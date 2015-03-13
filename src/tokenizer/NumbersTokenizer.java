@@ -8,7 +8,7 @@ import java.util.Vector;
  * 
  * @author pedro
  * 
- * little dirty the code
+ * little dirty code
  *
  */
 public class NumbersTokenizer extends SufixTreeTokenizer {

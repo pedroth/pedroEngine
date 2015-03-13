@@ -4,40 +4,39 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Random;
 
+import twoDimEngine.BoxEngine;
 import twoDimEngine.FillShader;
-import twoDimEngine.Line2D;
 import twoDimEngine.PaintMethod2D;
 import twoDimEngine.Point2D;
-import twoDimEngine.Quad2D;
-import twoDimEngine.Rectangle2D;
-import twoDimEngine.TwoDimEngine;
 import algebra.Vec2;
 
 public class Test extends MyFrame {
-	private TwoDimEngine engine;
+	private BoxEngine engine;
 	private PaintMethod2D shader;
-	private Vec2[] thief;
-	private Point2D point;
-
+	private ArrayList<ArrayList<Integer>> graph;
+	private ArrayList<Vec2> points;
+	private static final int numPoints = 100;
+	
 	public Test(String title, int width, int height) {
 		super(title, width, height);
-		engine = new TwoDimEngine(width, height);
+		engine = new BoxEngine(width, height);
 		shader = new FillShader(engine);
 		engine.setBackGroundColor(Color.white);
-		engine.setCamera(-10, 10, -10, 10);
-		thief = new Vec2[4];
-		thief[0] = new Vec2(0, 0);
-		thief[1] = new Vec2(1, 0);
-		thief[2] = new Vec2(1, 1);
-		thief[3] = new Vec2(0, 1);
-		point = new Point2D(new Vec2(5.0, 0.0));
-		point.setColor(Color.red);
-		point.setRadius(1);
-		engine.addtoList(point, shader);
-		Quad2D quad = new Quad2D(thief[0], thief[1], thief[2], thief[3]);
-		quad.setColor(Color.black);
-		engine.addtoList(quad);
+		engine.setCamera(-1, 1, -1, 1);
+		graph = new ArrayList<ArrayList<Integer>>();
+		points = new ArrayList<Vec2>();
+		Random r = new Random();
+		for(int i = 0; i < numPoints; i++) {
+			points.add(new Vec2(2 * r.nextDouble() - 1, 2 * r.nextDouble() - 1));
+			graph.add(new ArrayList<Integer>());
+			Point2D e = new Point2D(points.get(i));
+			e.setColor(Color.black);
+			e.setRadius(0.01);
+			engine.addtoList(e, shader);
+		}
 		init();
 	}
 
@@ -49,17 +48,12 @@ public class Test extends MyFrame {
 	@Override
 	public void updateDraw(Graphics g) {
 		engine.clearImageWithBackground();
-		for (int i = 0; i < thief.length; i++) {
-			thief[i].setX(thief[i].getX() - thief[i].getY() * dt);
-			thief[i].setY(thief[i].getY() + thief[i].getX() * dt);
-		}
-		point.setPos(Vec2.add(point.getPos(), Vec2.scalarProd(dt, new Vec2(
-				point.getPos().getY(), -point.getPos().getX()))));
-		//point.setRadius(Math.sin(3 * time) * Math.sin(3 * time));
-		engine.setCamera(5 * Math.cos(time) - 10, 5 * Math.cos(time) + 10, 5 * Math.sin(time) - 10,5 * Math.sin(time) + 10);
+		engine.buildBoundigBoxTree();
+		
+		
+		engine.drawTree();
 		engine.drawElements();
 		engine.paintImage(g);
-
 	}
 
 	public static void main(String[] args) {

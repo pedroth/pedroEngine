@@ -47,13 +47,21 @@ public abstract class Element2D extends AbstractDrawAble2D {
 	public Color[] getColors() {
 		return colors;
 	}
-
+	/**
+	 * return vertex from index
+	 * @param index number between 0 and number of vertices - 1 
+	 * @return
+	 */
 	public Vec2 getVertex(int index) {
 		if (index >= 0 && index < numVertices)
 			return vertices[index];
 		return null;
 	}
-
+	/**
+	 * 
+	 * @param vertex
+	 * @param index from 0 to number of vertices - 1
+	 */
 	public void setVertex(Vec2 vertex, int index) {
 		if (index >= 0 && index < numVertices) {
 			vertices[index] = vertex;

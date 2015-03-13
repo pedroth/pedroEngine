@@ -28,6 +28,12 @@ public abstract class MyFrame extends JFrame implements KeyListener,
 	 * time differential between frames in seconds
 	 */
 	protected double dt;
+	
+	private int fps;
+	private int fpsCount;
+	
+	private boolean isApplet = false;
+
 
 	public MyFrame(String title, int width, int height) {
 		// Set JFrame title
@@ -51,6 +57,8 @@ public abstract class MyFrame extends JFrame implements KeyListener,
 		 * time in seconds
 		 */
 		oldTime = (System.currentTimeMillis()) * 1E-03;
+		fps = 0;
+		fpsCount = 0;
 	}
 	
 	public void init() {
@@ -90,6 +98,22 @@ public abstract class MyFrame extends JFrame implements KeyListener,
 		this.time = time;
 	}
 
+	public double getDt() {
+		return dt;
+	}
+
+	public void setDt(double dt) {
+		this.dt = dt;
+	}
+
+	public int getFps() {
+		return fps;
+	}
+
+	public void setFps(int fps) {
+		this.fps = fps;
+	}
+
 	public int getWidthChanged() {
 		return widthChanged;
 	}
@@ -104,6 +128,18 @@ public abstract class MyFrame extends JFrame implements KeyListener,
 
 	public void setHeightChanged(int heightChanged) {
 		this.heightChanged = heightChanged;
+	}
+	
+	public boolean isApplet() {
+		return isApplet;
+	}
+
+	public void setApplet(boolean isApplet) {
+		this.isApplet = isApplet;
+		if(!isApplet)
+			this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		else
+			this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	}
 
 	/**
@@ -140,6 +176,14 @@ public abstract class MyFrame extends JFrame implements KeyListener,
 		dt = getTimeDifferential();
 		updateTime(dt);
 		updateDraw(g);
+		/**
+		 * fps count
+		 */
+		if(Math.floor(time + dt) - Math.floor(time) > 0) {
+			fps = fpsCount;
+			fpsCount = 0;
+		}
+		fpsCount++;
 		repaint();
 	}
 

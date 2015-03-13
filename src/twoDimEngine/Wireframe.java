@@ -1,7 +1,9 @@
 package twoDimEngine;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 import algebra.Vec2;
 
@@ -14,12 +16,15 @@ public class Wireframe extends PaintMethod2D {
 	private void drawLine(double x1, double y1, double x2, double y2,Color c) {
 		Graphics g = engine.getImageGraphics();
 		int i1, j1, i2, j2;
-		i1 = engine.IntegerCoordX(x1);
-		j1 = engine.IntegerCoordY(y1);
-		i2 = engine.IntegerCoordX(x2);
-		j2 = engine.IntegerCoordY(y2);
+		i1 = (int) engine.IntegerCoordX(x1);
+		j1 = (int) engine.IntegerCoordY(y1);
+		i2 = (int) engine.IntegerCoordX(x2);
+		j2 = (int) engine.IntegerCoordY(y2);
 		g.setColor(c);
-		g.drawLine(i1, j1, i2, j2);
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setStroke(new BasicStroke(5));
+		g2.draw(new java.awt.geom.Line2D.Double(i1,j1,i2,j2));
+//		g.drawLine(i1, j1, i2, j2);
 	}
 	
 	private void paintPolygon(Element2D e) {
@@ -49,8 +54,8 @@ public class Wireframe extends PaintMethod2D {
 	public void paintPoint(Point2D element) {
 		Graphics g = engine.getImageGraphics();
 		int i, j;
-		i = engine.IntegerCoordX(element.getVertex(0).getX());
-		j = engine.IntegerCoordY(element.getVertex(0).getY());
+		i = (int) engine.IntegerCoordX(element.getVertex(0).getX());
+		j = (int) engine.IntegerCoordY(element.getVertex(0).getY());
 		g.setColor(element.getColor(0));
 		
 		double radius = element.getRadius();
@@ -58,8 +63,8 @@ public class Wireframe extends PaintMethod2D {
 		if(radius == 0.0)
 			g.drawLine(i, j, i, j);
 		else {
-			int rx = engine.IntegerCoordX(element.getRadius()) - engine.IntegerCoordX(0.0);
-			int ry = Math.abs(engine.IntegerCoordY(element.getRadius()) - engine.IntegerCoordY(0.0));
+			int rx = (int) (engine.IntegerCoordX(element.getRadius()) - engine.IntegerCoordX(0.0));
+			int ry = (int) Math.abs(engine.IntegerCoordY(element.getRadius()) - engine.IntegerCoordY(0.0));
 			g.drawOval(i - rx, j - ry, 2 * rx, 2 * ry);
 		}
 	}
@@ -69,8 +74,8 @@ public class Wireframe extends PaintMethod2D {
 		Vec2[] points = element.getVertices();
 		double x = points[0].getX();
 		double y = points[0].getY();
-		int i = engine.IntegerCoordX(x);
-		int j = engine.IntegerCoordY(y);
+		int i = (int) engine.IntegerCoordX(x);
+		int j = (int) engine.IntegerCoordY(y);
 		Graphics g = engine.getImageGraphics();
 		g.setFont(element.getFont());
 		g.setColor(element.getColor(0));

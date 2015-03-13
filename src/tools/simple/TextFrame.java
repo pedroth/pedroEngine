@@ -1,7 +1,6 @@
 package tools.simple;
 
 import java.awt.TextArea;
-import java.util.List;
 
 import javax.swing.JFrame;
 

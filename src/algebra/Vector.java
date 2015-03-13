@@ -29,16 +29,17 @@ public class Vector extends Matrix {
 	 */
 	public Vector(Matrix v) {
 		super(v.getRows(), 1);
-		if (v.getColumns() != 1) {
+		if (v.getColumns() == 1) {
+			this.setMatrix(v.getMatrix());
+		} else {
 			throw new AlgebraException(
 					"number of columns of matrix v must be one");
-		} else {
-			this.setMatrix(v.getMatrix());
 		}
 
 	}
 
 	/**
+	 * Gets the x'th value of the vector
 	 * 
 	 * @param x
 	 *            index from 1 to dimension of vector
@@ -48,6 +49,7 @@ public class Vector extends Matrix {
 		return this.getXY(x, 1);
 	}
 	/**
+	 * Sets the x'th value of the vector to n
 	 * 
 	 * @param x
 	 * 			index from 1 to dimension of vector
@@ -75,16 +77,32 @@ public class Vector extends Matrix {
 	/**
 	 * 
 	 * @return
-	 * 	dimension of the vector
+	 * 	dimension/size of the vector
 	 */
 	public int getDim() {
 		return this.getRows();
+	}
+	/**
+	 * 
+	 * @return
+	 *  dimension/size of vector
+	 */
+	public int size() {
+		return this.getRows();
+	}
+	
+	public double[] getArray() {
+		int n = this.getDim();
+		double[] ans = new double[n];
+		for(int i = 0; i < n; i++) {
+			ans[i] = this.getX(i+1);
+		}
+		return ans;
 	}
 
 	/**
 	 * static
 	 */
-
 	public static double innerProd(Vector v1, Vector v2) {
 		Matrix ans = Vector.transpose(v1);
 		Matrix m = Matrix.prod(ans, v2);

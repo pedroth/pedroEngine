@@ -48,7 +48,7 @@ public class ImplicitSurface extends MyFrame {
 
 	private double[] surfaceColor = { 0, 0, 255 };
 
-	private double maxVision = 10.0;
+	protected double maxVision = 10.0;
 
 	private int statistics = 0;
 
@@ -60,7 +60,7 @@ public class ImplicitSurface extends MyFrame {
 
 	private int indexFunction = 0;
 
-	private int[] traceSamplesIndex = { 20, 50, 100, 60, 90, 90, 60, 300, 20, 10 };
+	private int[] traceSamplesIndex = { 10, 50, 100, 60, 90, 90, 60, 300, 20, 10 };
 	private int traceSamples = traceSamplesIndex[0];
 
 	private double[][] particlePos = { { 1, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 } };
@@ -69,7 +69,7 @@ public class ImplicitSurface extends MyFrame {
 	public ImplicitSurface(String title, int width, int height) {
 		super(title, width, height);
 		engine = new TwoDimEngine(width, height);
-		engine.setBackGroundColor(Color.black);
+		engine.setBackGroundColor(Color.blue);
 		engine.setCamera(-1, 1, -1, 1);
 
 		colorBuffer = new int[3 * samples];
@@ -279,9 +279,9 @@ public class ImplicitSurface extends MyFrame {
 		double aux[] = {255,255,255};
 		double ones[] = {1,1,1};
 		ones = scalarMult(0.5, add(ones,normal));
-		aux[2] = aux[0] * ones[0];
-		aux[1] = aux[1] * ones[1];
-		aux[0] = aux[2] * ones[2];
+		aux[2] = 1 * aux[0] * ones[0];
+		aux[1] = 1 * aux[1] * ones[1];
+		aux[0] = 1 * aux[2] * ones[2];
 		return add(scalarMult(1 * diffuse, aux), scalarMult(0.5*specular, lightColor));
 	}
 
@@ -308,7 +308,7 @@ public class ImplicitSurface extends MyFrame {
 		double delta = maxVision / traceSamples;
 		int index = -1;
 
-		double[] ans = new double[3];
+		double[] ans = {0, 0, 0};
 		double[] l = new double[3];
 		l[0] = init[0];
 		l[1] = init[1];

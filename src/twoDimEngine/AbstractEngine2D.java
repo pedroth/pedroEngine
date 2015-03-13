@@ -3,7 +3,6 @@ package twoDimEngine;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 public abstract class AbstractEngine2D {
 
@@ -104,16 +103,16 @@ public abstract class AbstractEngine2D {
 		g.drawImage(image, 0, 0, null);
 	}
 
-	public int IntegerCoordX(double x) {
-		int r;
-		r = (int) Math.floor(((this.getWidthPxl()) * (x - (xmin)))
+	public double IntegerCoordX(double x) {
+		double r;
+		r = (((this.getWidthPxl()) * (x - (xmin)))
 				/ (Math.abs(xmax - xmin)));
 		return r;
 	}
 
-	public int IntegerCoordY(double y) {
-		int r;
-		r = (int) Math.floor((-(this.getHeightPxl()) * (y - (ymax)))
+	public double IntegerCoordY(double y) {
+		double r;
+		r =  ((-(this.getHeightPxl()) * (y - (ymax)))
 				/ (Math.abs(ymax - ymin)));
 		return r;
 	}

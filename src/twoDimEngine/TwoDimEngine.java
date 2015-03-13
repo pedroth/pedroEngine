@@ -1,11 +1,6 @@
 package twoDimEngine;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-
-import javax.swing.border.AbstractBorder;
 
 public class TwoDimEngine extends AbstractEngine2D{
 	private ArrayList<AbstractDrawAble2D> elements;

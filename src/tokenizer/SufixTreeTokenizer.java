@@ -89,7 +89,7 @@ public class SufixTreeTokenizer extends TokenRecognizer {
 		}
 	}
 
-	SufixTreeTokenizer(String[] patterns) {
+	public SufixTreeTokenizer(String[] patterns) {
 		super(patterns);
 		root = new Node("root");
 	}

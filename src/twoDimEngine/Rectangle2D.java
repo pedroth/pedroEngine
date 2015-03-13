@@ -5,11 +5,6 @@ import java.awt.Color;
 import algebra.Matrix;
 import algebra.Vec2;
 
-import twoDimEngine.AbstractDrawAble2D;
-import twoDimEngine.PaintMethod2D;
-import twoDimEngine.Quad2D;
-import twoDimEngine.BoundingBox;
-
 public class Rectangle2D extends AbstractDrawAble2D {
 	private Vec2 pos;
 	private double angle;

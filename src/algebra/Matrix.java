@@ -495,16 +495,17 @@ public class Matrix {
 	}
 
 	public static void main(String[] args) {
-		double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
-		Matrix m = new Matrix(ls);
-		// m.fillRandom(-1, 1);
-		// System.out.println(m);
-		double[] ans = { 0, 1, 0};
-		Vector y = new Vector(ans);
-		// y.fillRandom(-1, 1);
-		// System.out.println(y);
-		Vector x = Matrix.solveLinearSystem(m, y);
-		 System.out.println(x);
-		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
+//		double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
+//		Matrix m = new Matrix(ls);
+//		// m.fillRandom(-1, 1);
+//		// System.out.println(m);
+//		double[] ans = { 0, 1, 0};
+//		Vector y = new Vector(ans);
+//		// y.fillRandom(-1, 1);
+//		// System.out.println(y);
+//		Vector x = Matrix.solveLinearSystem(m, y);
+//		 System.out.println(x);
+//		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
+		
 	}
 }
