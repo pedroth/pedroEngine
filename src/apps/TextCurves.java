@@ -24,6 +24,8 @@ import javax.swing.event.ChangeListener;
 
 import nlp.LowBow;
 import nlp.LowBowManager;
+import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.SpaceSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
 import tools.simple.TextFrame;
@@ -34,10 +36,11 @@ import twoDimEngine.String2D;
 import twoDimEngine.TwoDimEngine;
 import algebra.Vec2;
 import algebra.Vec3;
+
 /**
  * 
  * @author pedro
- *
+ * 
  */
 public class TextCurves extends MyFrame {
 	private TwoDimEngine engine;
@@ -90,7 +93,11 @@ public class TextCurves extends MyFrame {
 	 * text curve
 	 */
 	private ArrayList<String2D[]> strCurves;
-
+	/**
+	 * draw simplex on polygon
+	 */
+	private boolean simplexOnPoly;
+	
 	public TextCurves(String title, int width, int height) {
 		super(title, width, height);
 		engine = new TwoDimEngine(width, height);
@@ -103,7 +110,7 @@ public class TextCurves extends MyFrame {
 		input = new JFrame("Input text File");
 		input.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		input.setLayout(new GridLayout(1, 2));
-		Panel p1 = new Panel(new GridLayout(5, 1));
+		Panel p1 = new Panel(new GridLayout(6, 1));
 		input.setResizable(false);
 		input.setSize(500, 300);
 		/**
@@ -172,10 +179,10 @@ public class TextCurves extends MyFrame {
 		/**
 		 * generate text
 		 */
-		Panel p5 = new Panel(new GridLayout(1,2));
+		Panel p5 = new Panel(new GridLayout(1, 2));
 		Button generateButton = new Button("Generate");
 		generateButton.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				generateText();
@@ -183,7 +190,7 @@ public class TextCurves extends MyFrame {
 		});
 		Button heatFlowButton = new Button("Heat Flow");
 		heatFlowButton.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				heatFlow();
@@ -193,6 +200,10 @@ public class TextCurves extends MyFrame {
 		p5.add(generateButton);
 		p1.add(p5);
 		
+		/**
+		 * Poly Simplex
+		 */
+
 		input.add(p1);
 
 		input.setLocationRelativeTo(null);
@@ -308,11 +319,14 @@ public class TextCurves extends MyFrame {
 			Vec3[] pcaCurve = l.get(i).getPcaCurve();
 			Vec2[] projCurve = projCurves.get(i);
 			Line2D[] projLine = projLines.get(i);
+			/**
+			 * Projective projection
+			 */
 			for (int j = 0; j < pcaCurve.length; j++) {
 				Vec3 u = new Vec3(pcaCurve[j].getX(), pcaCurve[j].getY(), pcaCurve[j].getZ());
 				Vec3 v = Vec3.diff(u, camera.getEye());
 				v = Vec3.matrixProd(camera.getInverseCamBasis(), v);
-				int boundj = Math.min(j, projLine.length-1);
+				int boundj = Math.min(j, projLine.length - 1);
 				if (v.getZ() < d / 1000) {
 					projLine[boundj].setVisible(false);
 				} else {
@@ -397,7 +411,7 @@ public class TextCurves extends MyFrame {
 		int n = lowbow.getSamples();
 
 		Vec2[] projCurve = new Vec2[n];
-		Line2D[] projLine = new Line2D[n-1];
+		Line2D[] projLine = new Line2D[n - 1];
 		for (int i = 0; i < n - 1; i++) {
 			projCurve[i] = (projCurve[i] == null) ? new Vec2() : projCurve[i];
 			projCurve[i + 1] = new Vec2();
@@ -405,7 +419,7 @@ public class TextCurves extends MyFrame {
 			projLine[i].setColor(color);
 			engine.addtoList(projLine[i], shader);
 		}
-		
+
 		projLines.add(projLine);
 		projCurves.add(projCurve);
 
@@ -418,29 +432,29 @@ public class TextCurves extends MyFrame {
 			strCurve[i].setVisible(false);
 			engine.addtoList(strCurve[i]);
 		}
-		
+
 		strCurves.add(strCurve);
 	}
-	
+
 	public void generateText() {
 		ArrayList<LowBow> lowList = lowbowM.getLowbows();
-		
-		if(lowList == null)
+
+		if (lowList == null)
 			return;
-		
+
 		LowBow low = lowList.get(lowList.size() - 1);
 		int n = low.getTextLength();
 		double s = low.getSamplesPerTextLength();
 		int samples = low.getSamples();
 		String acm = "";
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples));
 			acm += low.generateText(k) + "\n";
 		}
-		
-		TextFrame frame = new TextFrame("Generated Text",acm);
+
+		TextFrame frame = new TextFrame("Generated Text", acm);
 	}
-	
+
 	public void pcaCoords() {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
@@ -452,11 +466,11 @@ public class TextCurves extends MyFrame {
 			System.out.println(string + "\t" + pca[k].getX() + "\t" + pca[k].getY() + "\t" + pca[k].getZ());
 		}
 	}
-	
+
 	public void heatFlow() {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
-		curve.heatFlow(1);
+		curve.heatFlow(0.70); // 0.5
 		curve.curve2Heat();
 		lowbowM.buildPca();
 		updateCurveStats();
@@ -476,7 +490,7 @@ public class TextCurves extends MyFrame {
 				frame.setVisible(false);
 			}
 			String inString = inOut.getText();
-			LowBow lowbow = new LowBow(inString);
+			LowBow lowbow = new LowBow(inString, new SpaceSplitter());
 			isReady = true;
 			double sigma = 0.02;
 			try {

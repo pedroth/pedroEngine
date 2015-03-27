@@ -1,10 +1,15 @@
 package nlp;
 
+import inputOutput.MyText;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.TextSplitter;
 import numeric.Pca;
 import numeric.SimplexPointSampler;
 import algebra.Matrix;
@@ -18,35 +23,46 @@ import algebra.Vector;
  * 
  */
 public class LowBow {
-	private String originalText;
-	private String[] text;
-	private HashMap<String, Integer> wordsIndex;
-	private HashMap<Integer, String> wordsIndexInv;
-	private Matrix x;
-	private int textLength;
-	private int numWords;
-	private int samples;
-	private double sigma;
-	private double samplesPerTextLength;
-	private double step;
-	private Vector[] curve;
-	private Vector[] heatCurve;
-	private Vec3[] pcaCurve;
-	private double smoothingCoeff;
+	protected String originalText;
+	protected String[] text;
+	protected HashMap<String, Integer> wordsIndex;
+	protected HashMap<Integer, String> wordsIndexInv;
+	/**
+	 * n by m matrix where n is the number of words and m is the number of words
+	 * in the dictionary
+	 */
+	protected Matrix x;
+	protected int textLength;
+	protected int numWords;
+	protected int samples;
+	protected double sigma;
+	protected double samplesPerTextLength;
+	protected double step;
+	protected Vector[] curve;
+	protected Vector[] heatCurve;
+	protected Vec3[] pcaCurve;
+	/**
+	 * parameter c described in definition 2
+	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
+	 */
+	protected double smoothingCoeff;
+	protected TextSplitter textSplitter;
 
-	public LowBow(String in) {
+	public LowBow(String in, TextSplitter textSplitter) {
 		smoothingCoeff = 0.0;
 		originalText = in;
 		wordsIndex = new HashMap<String, Integer>();
 		wordsIndexInv = new HashMap<Integer, String>();
+		this.textSplitter = textSplitter;
 		this.processText(in);
 	}
 
-	public LowBow(String in, HashMap<String, Integer> wordIndex, HashMap<Integer, String> wordIndexInv) {
+	public LowBow(String in, TextSplitter textSplitter, HashMap<String, Integer> wordIndex, HashMap<Integer, String> wordIndexInv) {
 		smoothingCoeff = 0.0;
 		originalText = in;
 		this.wordsIndex = wordIndex;
 		this.wordsIndexInv = wordIndexInv;
+		this.textSplitter = textSplitter;
 		this.processText(in);
 	}
 
@@ -85,8 +101,7 @@ public class LowBow {
 	}
 
 	private void processText(String in) {
-		TextSplitter txtSplit = new StopWordsSplitter("C:/Users/pedro/Desktop/stopWords.txt");
-		text = txtSplit.split(in);
+		text = textSplitter.split(in);
 		int acmIndex = 0;
 		for (int i = 0; i < text.length; i++) {
 			Integer aux = wordsIndex.get(text[i]);
@@ -132,7 +147,16 @@ public class LowBow {
 					x.setXY(i, j, (wordsIndex.get(text[i - 1]) == j) ? ((1.0 + smoothingCoeff) / norm) : (smoothingCoeff / norm));
 				}
 			}
+			/**
+			 * text key print
+			 */
+			// System.out.println(text[i - 1] + "\t" +
+			// wordsIndex.get(text[i-1]));
 		}
+		resample(samplesPerTextLength, sigma);
+	}
+	
+	public void resample(double samplesPerTextLength, double sigma) {
 		this.samplesPerTextLength = samplesPerTextLength;
 		this.sigma = sigma;
 		/**
@@ -147,9 +171,15 @@ public class LowBow {
 			for (int j = 1; j <= numWords; j++) {
 				curve[i].setX(j, gamma(myu, sigma, samples, j));
 			}
+			/**
+			 * normalization because the integration is just an approximation
+			 * error decreases as number of samples increases
+			 */
 			Vector ones = new Vector(numWords);
 			ones.fill(1.0);
-			// System.out.println(Vector.innerProd(curve[i], ones));
+			double dot = Vector.innerProd(curve[i], ones);
+			curve[i] = Vector.scalarProd(1 / dot, curve[i]);
+			// System.out.println(dot);
 			myu += step;
 		}
 	}
@@ -166,7 +196,7 @@ public class LowBow {
 			Vector v = Vector.diff(curve[i], myu);
 			pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
 		}
-		writeObjFile(false);
+		// writeObjFile(false);
 	}
 
 	/**
@@ -185,13 +215,27 @@ public class LowBow {
 			Vector v = Vector.diff(curve[i], myu);
 			pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
 		}
-		writeObjFile(false);
+		// writeObjFile(false);
 	}
 
+	/**
+	 * solves the following PDE: u_t(x,t) = (1 - lambda) * (u_init(x,t) -
+	 * u(x,t)) + lambda * (u_xx(x,t)); where u_t is the time derivative of the
+	 * curve, u_xx is the second derivative of the curve relative to the
+	 * parameter of the parameterization x u(x,t) is the curve parameterized by
+	 * x in time t
+	 * 
+	 * following the notation of the
+	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf u(x,t)
+	 * corresponds to the curve gamma(myu,t)
+	 * 
+	 * @param lambda
+	 *            \in [0,1]
+	 */
 	public void heatFlow(double lambda) {
 		boolean firstIte = true;
 		double acm = 0;
-		double epsilon = 1E-1;
+		double epsilon = 0.1;
 		double d2Norm = 0;
 		heatCurve = new Vector[curve.length];
 		Vector[] grad = new Vector[curve.length];
@@ -209,29 +253,28 @@ public class LowBow {
 				d2x = Vector.scalarProd(lambda * (samples - 1), d2x);
 				grad[i] = Vector.scalarProd(1 - lambda, Vector.diff(curve[i], heatCurve[i]));
 				grad[i] = Vector.add(d2x, grad[i]);
-				if(!firstIte) {
-					d2Norm += Vector.scalarProd(samples - 1, Vector.diff(grad[i],lastGrad[i])).norm();
+				if (!firstIte) {
+					d2Norm += Vector.scalarProd(samples - 1, Vector.diff(grad[i], lastGrad[i])).norm();
 				}
 				acm += grad[i].norm();
 			}
 			/**
 			 * Future work use Wolfe conditions instead or something else
 			 */
-			double dt = (firstIte)? 0.001 : ((( 1.0 / d2Norm)));
-			
+			double dt = (firstIte) ? 0.0001 : (((1.0 / d2Norm)));
+
 			for (int i = 1; i < curve.length - 1; i++) {
 				heatCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(dt, grad[i]));
 				lastGrad[i] = grad[i].copy();
 			}
-			firstIte = false;
+			firstIte = true;
 			System.out.println(dt + "  " + acm);
 		} while (acm > epsilon);
 	}
-	
-	private Vector getHeatStep() {
-		
-	}
 
+	/**
+	 * changes the original curve to the smoothed one
+	 */
 	public void curve2Heat() {
 		if (heatCurve == null) {
 			return;
@@ -241,6 +284,12 @@ public class LowBow {
 		}
 	}
 
+	/**
+	 * 
+	 * @param isPca
+	 *            if true writes the PCA curve, else writes down the first 3
+	 *            coordinates of the curve into a .obj file
+	 */
 	private void writeObjFile(boolean isPca) {
 		try {
 			File file = new File("Line.obj");
@@ -270,6 +319,13 @@ public class LowBow {
 		}
 	}
 
+	/**
+	 * generates word based on the maximum probable word in the curve at myu =
+	 * (1 / (samples-1)) * k
+	 * 
+	 * @param k
+	 * @return
+	 */
 	public String generateText(int k) {
 		String ans = "";
 		if (k < 0 || k > (samples - 1)) {
@@ -290,6 +346,13 @@ public class LowBow {
 		return ans;
 	}
 
+	/**
+	 * generates word in the curve at myu = (1 / (samples-1)) * k, by sampling
+	 * the probability distribution of words in the curve at sample k.
+	 * 
+	 * @param k
+	 * @return
+	 */
 	public String generateTextRandom(int k) {
 		String ans = "";
 		if (k < 0 || k > (samples - 1)) {
@@ -393,6 +456,14 @@ public class LowBow {
 	public double getSamplesPerTextLength() {
 		return samplesPerTextLength;
 	}
+	
+	public TextSplitter getTextSplitter() {
+		return textSplitter;
+	}
+
+	public void setTextSplitter(TextSplitter textSplitter) {
+		this.textSplitter = textSplitter;
+	}
 
 	public void setSigma(double sigma) {
 		this.sigma = sigma;
@@ -402,12 +473,34 @@ public class LowBow {
 		this.samplesPerTextLength = samplesPerTextLength;
 	}
 
-	public class MyTextSplitter implements TextSplitter {
-		public String[] split(String in) {
-			/**
-			 * ugly but it is the best way I found.
-			 */
-			return in.replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", " ").toLowerCase().replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", "").split("\\s+");
-		};
+	/**
+	 * Example
+	 */
+	public static void main(String[] args) {
+		MyText text1 = new MyText("C:/Users/pedro/Desktop/GermanWings_Reuters.txt");
+		MyText text2 = new MyText("C:/Users/pedro/Desktop/GermanWings_Reuters_Subset.txt");
+		/**
+		 * first curve
+		 */
+		LowBow low1 = new LowBow(text1.getText(), new MyTextSplitter());
+		low1.setSamplesPerTextLength(1.0);
+		low1.setSigma(0.005);
+		low1.setSmoothingCoeff(0.01);
+		
+		/**
+		 * second curve
+		 */
+		LowBow low2 = new LowBow(text2.getText(), new MyTextSplitter());
+		low2.setSamplesPerTextLength(1.0);
+		low2.setSigma(0.05);
+		low2.setSmoothingCoeff(0.01);
+		/**
+		 * Lowbow manager
+		 */
+		LowBowManager lowM = new LowBowManager();
+		lowM.add(low1);
+		lowM.add(low2);
+		lowM.init();
+		System.out.println(lowM.getDistance(0, 1));
 	}
 }

@@ -472,6 +472,7 @@ public class Matrix {
 	 * @return vector with solution to equation m * x = y.
 	 */
 	public static Vector solveLinearSystem(Matrix m, Vector y) {
+		double time = System.nanoTime() * 1E-9;
 		double epsilon = 1E-8;
 		Matrix normMTrans = Matrix.transpose(m);
 		Matrix myu = Matrix.prod(normMTrans, m);
@@ -481,12 +482,12 @@ public class Matrix {
 		do {
 			grad = new Vector(Matrix.diff(gamma, Matrix.prod(myu, x)));
 			double t = grad.squareNorm()
-					/ (1 * (Matrix.prod(
-							Matrix.prod(Vector.transpose(grad), myu), grad))
-							.getXY(1, 1));
-			grad = Vector.scalarProd(1 * t, grad);
+					/ Vector.innerProd(grad, Vector.matrixProd(myu, grad));
+			grad = Vector.scalarProd(0.5 * t, grad);
 			x = Vector.add(x, grad);
+			System.out.println(grad.norm()+ "\t" +Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
 		} while (grad.norm() > epsilon);
+		System.out.println(System.nanoTime() * 1E-9 - time);
 		return x;
 	}
 
@@ -496,14 +497,14 @@ public class Matrix {
 
 	public static void main(String[] args) {
 //		double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
-//		Matrix m = new Matrix(ls);
-//		// m.fillRandom(-1, 1);
-//		// System.out.println(m);
+		Matrix m = new Matrix(100,100);
+		m.fillRandom(-1000, 1000);
+		// System.out.println(m);
 //		double[] ans = { 0, 1, 0};
-//		Vector y = new Vector(ans);
-//		// y.fillRandom(-1, 1);
-//		// System.out.println(y);
-//		Vector x = Matrix.solveLinearSystem(m, y);
+		Vector y = new Vector(100);
+		 y.fillRandom(-100, 100);
+//		 System.out.println(y);
+		Vector x = Matrix.solveLinearSystem(m, y);
 //		 System.out.println(x);
 //		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
 		

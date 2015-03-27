@@ -6,16 +6,17 @@ import java.util.Set;
 
 import numeric.Pca;
 import algebra.Vector;
+
 /**
  * 
  * @author pedro
- *
+ * 
  */
 public class LowBowManager {
 	private ArrayList<LowBow> lowbows;
 	private HashMap<String, Integer> wordIndex;
 	private HashMap<Integer, String> wordIndexInv;
-	
+
 	public LowBowManager() {
 		lowbows = new ArrayList<LowBow>();
 		wordIndex = new HashMap<String, Integer>();
@@ -37,34 +38,56 @@ public class LowBowManager {
 		}
 	}
 
+	private LowBow myUnitAuxiliarInit(LowBow temp, double samplesPerTextLength) {
+		LowBow ans = new LowBow(temp.getOriginalText(), temp.getTextSplitter(), wordIndex, wordIndexInv);
+		ans.setSmoothingCoeff(temp.getSmoothingCoeff());
+		ans.init(samplesPerTextLength, temp.getSigma());
+		return ans;
+	}
+
 	public void init() {
 		int n = lowbows.size();
 		for (int i = 0; i < n; i++) {
 			LowBow temp = lowbows.get(i);
-			LowBow lowbow = new LowBow(temp.getOriginalText(), wordIndex, wordIndexInv);
-			lowbow.setSmoothingCoeff(temp.getSmoothingCoeff());
-			lowbow.init(temp.getSamplesPerTextLength(), temp.getSigma());
+			LowBow lowbow = myUnitAuxiliarInit(temp, temp.samplesPerTextLength);
 			lowbows.set(i, lowbow);
 		}
 	}
 	
+	public void maxSamplesInit() {
+		int n = lowbows.size();
+		double maxSamples = 0;
+		for (int i = 0; i < n; i++) {
+			LowBow l = lowbows.get(i);
+			double samples = l.samplesPerTextLength * l.textLength;
+			if(samples > maxSamples) {
+				maxSamples = samples;
+			}
+		}
+		for (int i = 0; i < n; i++) {
+			LowBow temp = lowbows.get(i);
+			LowBow lowbow = myUnitAuxiliarInit(temp, maxSamples / temp.textLength);
+			lowbows.set(i, lowbow);
+		}
+	}
+
 	public void buildPca() {
 		int size = 0;
 		for (LowBow lowbow : lowbows) {
-			size+=lowbow.getSamples();
+			size += lowbow.getSamples();
 		}
 		Vector[] data = new Vector[size];
-		
+
 		int n = lowbows.size();
-		
+
 		int index = 0;
-		for(int i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			Vector[] curve = lowbows.get(i).getCurve();
-			for(int j = 0; j < curve.length; j++) {
+			for (int j = 0; j < curve.length; j++) {
 				data[index] = curve[j];
 				index++;
 			}
-		} 
+		}
 		Pca pca = new Pca();
 		Vector[] pc = pca.getNPca(data, 3);
 		Vector myu = pca.getAverage();
@@ -77,6 +100,33 @@ public class LowBowManager {
 		return lowbows;
 	}
 	
+	/**
+	 * 
+	 * @param i curve at index i
+	 * @param j curve at index j
+	 * @return euclidean distance between curves i and j
+	 */
+	public double getDistance(int i, int j) {
+		LowBow l1 = lowbows.get(i);
+		LowBow l2 = lowbows.get(j);
+		double maxSamples = Math.max(l1.samplesPerTextLength * l1.textLength, l2.samplesPerTextLength * l2.textLength);
+		if(l1.samplesPerTextLength * l1.textLength >= l2.samplesPerTextLength * l2.textLength) {
+			l2.resample(maxSamples / l2.textLength, l2.getSigma());
+		} else {
+			l1.resample(maxSamples / l1.textLength, l1.getSigma());
+		}
+		/**
+		 * trapezoidal method
+		 */
+		double acm = 0;
+		double h = 1.0 / (l1.samples - 1);
+		for (int k = 0; k < l1.samples - 1; k++) {
+			acm += Vector.diff(l1.curve[k],l2.curve[k]).norm();
+			acm += Vector.diff(l1.curve[k + 1],l2.curve[k + 1]).norm();
+		}
+		return acm * 0.5 * h;
+	}
+
 	public void removeAll() {
 		lowbows.removeAll(lowbows);
 		wordIndex = new HashMap<String, Integer>();

@@ -63,6 +63,8 @@ public class Pca {
 	/**
 	 * it works but it is too slow and depends on matrix condition number bah!!
 	 * 
+	 * it is just the simple gradient descend on the constraint manifold
+	 * 
 	 * @param conv
 	 * @return
 	 */
@@ -89,9 +91,16 @@ public class Pca {
 		return eigenV;
 	}
 
+	/**
+	 * Conjugate gradient descent in the constraint manifold
+	 * 
+	 * @param conv
+	 * @return
+	 */
 	private static Vector superEigen(Matrix conv) {
+		int maxIte = 10000;
 		int ite = 0;
-		double time = 1E-3 * System.currentTimeMillis();
+		double time = 1E-9 * System.nanoTime();
 		double epsilon = 1E-10;
 		Vector eigenV = new Vector(conv.getRows());
 		eigenV.fillRandom(-1, 1);
@@ -104,15 +113,16 @@ public class Pca {
 			/**
 			 * you must put a minus since conv matrix is positive semi-definite
 			 */
-			eta = Vector.scalarProd(-beta, grad);
+			eta = Vector.scalarProd(-0.5 * beta, grad);
 			eta = Vector.orthoProjection(eta, eigenV);
 			eigenV = Vector.add(eigenV, eta);
 			eigenV = Vector.normalize(eigenV);
 			ite++;
-		} while (eta.norm() > epsilon);
-		// System.out.println(ite + " time : " + (1E-3 *
-		// System.currentTimeMillis() - time) + " error : " + eta.norm() +
-		// " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
+			// System.out.println(eta.norm());
+		} while (eta.norm() > epsilon && ite < maxIte);
+		 System.out.println(ite + " time : " + (1E-9 *
+		 System.nanoTime() - time) + " error : " + eta.norm() +
+		 " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
 		return eigenV;
 	}
 
@@ -130,8 +140,8 @@ public class Pca {
 
 	public static void main(String[] args) {
 		double[][] m = { { 0.8147, 0.1576, 0.6557, 0.7060, 0.4387, 0.2760, 0.7513, 0.8407, 0.3517, 0.0759 }, { 0.9058, 0.9706, 0.0357, 0.0318, 0.3816, 0.6797, 0.2551, 0.2543, 0.8308, 0.0540 }, { 0.1270, 0.9572, 0.8491, 0.2769, 0.7655, 0.6551, 0.5060, 0.8143, 0.5853, 0.5308 }, { 0.9134, 0.4854, 0.9340, 0.0462, 0.7952, 0.1626, 0.6991, 0.2435, 0.5497, 0.7792 }, { 0.6324, 0.8003, 0.6787, 0.0971, 0.1869, 0.1190, 0.8909, 0.9293, 0.9172, 0.9340 }, { 0.0975, 0.1419, 0.7577, 0.8235, 0.4898, 0.4984, 0.9593, 0.3500, 0.2858, 0.1299 }, { 0.2785, 0.4218, 0.7431, 0.6948, 0.4456, 0.9597, 0.5472, 0.1966, 0.7572, 0.5688 }, { 0.5469, 0.9157, 0.3922, 0.3171, 0.6463, 0.3404, 0.1386, 0.2511, 0.7537, 0.4694 }, { 0.9575, 0.7922, 0.6555, 0.9502, 0.7094, 0.5853, 0.1493, 0.6160, 0.3804, 0.0119 }, { 0.9649, 0.9595, 0.1712, 0.0344, 0.7547, 0.2238, 0.2575, 0.4733, 0.5678, 0.3371 } };
-		Matrix mat = new Matrix(m);
-		// mat.fillRandom(-1000, 1000);
+		Matrix mat = new Matrix(100,100);
+		 mat.fillRandom(-0.001, 0.001);
 		Vector[] v = new Vector[10];
 		for (int i = 1; i <= v.length; i++) {
 			v[i - 1] = new Vector(Matrix.transpose(mat.getSubMatrix(i, i, 1, 10)));
@@ -139,7 +149,7 @@ public class Pca {
 		Pca pca = new Pca();
 		Vector[] eigen = pca.getNPca(v, 10);
 		for (int i = 0; i < eigen.length; i++) {
-			System.out.println(eigen[i]);
+//			System.out.println(eigen[i]);
 		}
 	}
 }
