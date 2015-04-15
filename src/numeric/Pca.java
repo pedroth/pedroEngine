@@ -9,7 +9,13 @@ public class Pca {
 	private double[] eigenValues;
 
 	public Pca() {
-		// TODO Auto-generated constructor stub
+		eigenValues = null;
+		eigenVectors = null;
+	}
+	
+	public Pca(Vector[] Data) {
+		super();
+		getNPca(Data, Data[0].getDim());
 	}
 
 	/**
@@ -24,6 +30,7 @@ public class Pca {
 			return null;
 
 		Vector[] ans = new Vector[n];
+		eigenValues = new double[n];
 		/**
 		 * compute average
 		 */
@@ -48,13 +55,13 @@ public class Pca {
 		 */
 		for (int i = 0; i < n; i++) {
 			Vector v = superEigen(conv);
+			eigenValues[i] = Math.sqrt(Vector.innerProd(v, Vector.matrixProd(conv, v)));
 			ans[i] = v;
 			conv.fillZeros();
 			for (int j = 0; j < Data.length; j++) {
 				myData[j] = Vector.orthoProjection(myData[j], v);
 				conv = Matrix.add(conv, Matrix.prod(myData[j], Matrix.transpose(myData[j])));
 			}
-			// System.out.println(conv);
 		}
 		eigenVectors = ans;
 		return ans;
@@ -120,9 +127,9 @@ public class Pca {
 			ite++;
 			// System.out.println(eta.norm());
 		} while (eta.norm() > epsilon && ite < maxIte);
-		 System.out.println(ite + " time : " + (1E-9 *
-		 System.nanoTime() - time) + " error : " + eta.norm() +
-		 " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
+//		 System.out.println(ite + " time : " + (1E-9 *
+//		 System.nanoTime() - time) + " error : " + eta.norm() +
+//		 " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
 		return eigenV;
 	}
 

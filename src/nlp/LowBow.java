@@ -5,13 +5,16 @@ import inputOutput.MyText;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
-import nlp.textSplitter.MyTextSplitter;
+import javax.management.RuntimeErrorException;
+
 import nlp.textSplitter.TextSplitter;
+import numeric.MyMath;
 import numeric.Pca;
 import numeric.SimplexPointSampler;
+import tools.simple.TextFrame;
 import algebra.Matrix;
 import algebra.Vec3;
 import algebra.Vector;
@@ -21,10 +24,17 @@ import algebra.Vector;
  * 
  * @author pedro
  * 
+ *         NOTE : try the horrible linear algebra technique to solve the heat
+ *         equation
+ * 
  */
 public class LowBow {
 	protected String originalText;
 	protected String[] text;
+	/**
+	 * maps words to the corresponding coordinate on the simplex
+	 * index of the coordinates starts at 1.
+	 */
 	protected HashMap<String, Integer> wordsIndex;
 	protected HashMap<Integer, String> wordsIndexInv;
 	/**
@@ -47,6 +57,7 @@ public class LowBow {
 	 */
 	protected double smoothingCoeff;
 	protected TextSplitter textSplitter;
+	protected boolean isInitialized;
 
 	public LowBow(String in, TextSplitter textSplitter) {
 		smoothingCoeff = 0.0;
@@ -54,6 +65,7 @@ public class LowBow {
 		wordsIndex = new HashMap<String, Integer>();
 		wordsIndexInv = new HashMap<Integer, String>();
 		this.textSplitter = textSplitter;
+		isInitialized = false;
 		this.processText(in);
 	}
 
@@ -63,7 +75,17 @@ public class LowBow {
 		this.wordsIndex = wordIndex;
 		this.wordsIndexInv = wordIndexInv;
 		this.textSplitter = textSplitter;
+		isInitialized = false;
 		this.processText(in);
+		int samples = 10000;
+		double h = 1.0 / (samples-1);
+		double x = 0;
+		double acm = 0;
+		for(int i = 0; i < samples - 1; i++){
+			acm += kernel(x,0,0.009) + kernel(x + h,0,0.009);
+			x+=h;
+		}
+		System.out.println(0.5 * h * acm);
 	}
 
 	private double kernel(double x, double myu, double sigma) {
@@ -123,6 +145,9 @@ public class LowBow {
 		double acm = 0;
 		double h = 1.0 / (samples - 1);
 		double x = 0;
+		/**
+		 * trapezoidal method of integration
+		 */
 		for (int i = 0; i < samples - 1; i++) {
 			acm += kernel(x, myu, sigma) * psi(x, j) + kernel(x + h, myu, sigma) * psi(x + h, j);
 			x += h;
@@ -147,15 +172,13 @@ public class LowBow {
 					x.setXY(i, j, (wordsIndex.get(text[i - 1]) == j) ? ((1.0 + smoothingCoeff) / norm) : (smoothingCoeff / norm));
 				}
 			}
-			/**
-			 * text key print
-			 */
-			// System.out.println(text[i - 1] + "\t" +
-			// wordsIndex.get(text[i-1]));
 		}
+		
 		resample(samplesPerTextLength, sigma);
+		isInitialized = true;
 	}
 	
+
 	public void resample(double samplesPerTextLength, double sigma) {
 		this.samplesPerTextLength = samplesPerTextLength;
 		this.sigma = sigma;
@@ -179,12 +202,13 @@ public class LowBow {
 			ones.fill(1.0);
 			double dot = Vector.innerProd(curve[i], ones);
 			curve[i] = Vector.scalarProd(1 / dot, curve[i]);
-			// System.out.println(dot);
 			myu += step;
 		}
 	}
 
 	public void buildPca() {
+		if(!isInitialized)
+			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
 		 */
@@ -207,6 +231,8 @@ public class LowBow {
 	 *            is the average point
 	 */
 	public void buildPca(Vector[] pc, Vector myu) {
+		if(!isInitialized)
+			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
 		 */
@@ -222,54 +248,107 @@ public class LowBow {
 	 * solves the following PDE: u_t(x,t) = (1 - lambda) * (u_init(x,t) -
 	 * u(x,t)) + lambda * (u_xx(x,t)); where u_t is the time derivative of the
 	 * curve, u_xx is the second derivative of the curve relative to the
-	 * parameter of the parameterization x u(x,t) is the curve parameterized by
-	 * x in time t
+	 * parameter of the parameterization x , u(x,t) is the curve parameterized
+	 * by x in time t
+	 * 
+	 * this solves the PDE using Dirichlet boundary conditions
 	 * 
 	 * following the notation of the
 	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf u(x,t)
 	 * corresponds to the curve gamma(myu,t)
 	 * 
+	 * TODO Try use Wolfe's conditions to choose dt.
+	 * 
 	 * @param lambda
 	 *            \in [0,1]
 	 */
 	public void heatFlow(double lambda) {
-		boolean firstIte = true;
-		double acm = 0;
-		double epsilon = 0.1;
-		double d2Norm = 0;
+		if(!isInitialized)
+			throw new RuntimeErrorException(null, "LowBow not initialized");
+		
+		Stack<Double> stack = new Stack<Double>();
+		double acmGrad = 0;
+		/**
+		 * convergence error
+		 */
+		double epsilon = 0.01;
+		double h = 1E-3;
+		/**
+		 * time step of heat
+		 */
+		double dt = 1E-5;
+		/**
+		 * horrible parameter, to compute time step
+		 */
+		double eta = 0.5;
 		heatCurve = new Vector[curve.length];
+		Vector[] auxCurve = new Vector[curve.length];
 		Vector[] grad = new Vector[curve.length];
-		Vector[] lastGrad = new Vector[curve.length];
+		/**
+		 * initial condition u(x,0) = u_init(x)
+		 */
 		for (int i = 0; i < curve.length; i++) {
 			heatCurve[i] = curve[i].copy();
 			grad[i] = new Vector(numWords);
-			lastGrad[i] = new Vector(numWords);
+			auxCurve[i] = new Vector(numWords);
 		}
+
+		stack.push(Double.MAX_VALUE);
+
 		do {
-			acm = 0;
-			d2Norm = 0;
+			acmGrad = 0;
+			/**
+			 * 
+			 */
 			for (int i = 1; i < curve.length - 1; i++) {
+				/**
+				 * second derivative
+				 */
 				Vector d2x = Vector.add(Vector.diff(heatCurve[i + 1], Vector.scalarProd(2, heatCurve[i])), heatCurve[i - 1]);
 				d2x = Vector.scalarProd(lambda * (samples - 1), d2x);
-				grad[i] = Vector.scalarProd(1 - lambda, Vector.diff(curve[i], heatCurve[i]));
+				/**
+				 * distance from the original curve
+				 */
+				grad[i] = Vector.scalarProd((1 - lambda) * step, Vector.diff(curve[i], heatCurve[i]));
+				/**
+				 * gradient calculation
+				 */
 				grad[i] = Vector.add(d2x, grad[i]);
-				if (!firstIte) {
-					d2Norm += Vector.scalarProd(samples - 1, Vector.diff(grad[i], lastGrad[i])).norm();
+				acmGrad += grad[i].squareNorm();
+			}
+			double[] acmCost = { 0, 0, 0 };
+			for (int j = 0; j < 3; j++) {
+				double delta = j * h;
+				for (int i = 1; i < curve.length - 1; i += 2) {
+					auxCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(delta, grad[i]));
+					auxCurve[i + 1] = Vector.add(heatCurve[i + 1], Vector.scalarProd(delta, grad[i + 1]));
+
+					Vector dx = Vector.scalarProd(lambda * (samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
+					acmCost[j] += 0.5 * (Vector.scalarProd(1 - lambda, Vector.diff(curve[i], auxCurve[i])).squareNorm() + dx.squareNorm());
 				}
-				acm += grad[i].norm();
 			}
 			/**
-			 * Future work use Wolfe conditions instead or something else
+			 * choosing dt 
 			 */
-			double dt = (firstIte) ? 0.0001 : (((1.0 / d2Norm)));
-
-			for (int i = 1; i < curve.length - 1; i++) {
-				heatCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(dt, grad[i]));
-				lastGrad[i] = grad[i].copy();
+			double lastAcmGrad = stack.pop();
+			if (acmGrad - lastAcmGrad > 0) {
+				eta *= eta;
+			} else {
+				eta += 0.1 * (0.5 - eta);
 			}
-			firstIte = true;
-			System.out.println(dt + "  " + acm);
-		} while (acm > epsilon);
+			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
+			/**
+			 * update curve
+			 */
+			for (int i = 1; i < curve.length - 1; i += 2) {
+				heatCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(dt, grad[i]));
+				heatCurve[i + 1] = Vector.add(heatCurve[i + 1], Vector.scalarProd(dt, grad[i + 1]));
+			}
+
+			stack.push(new Double(acmGrad));
+
+			System.out.println("" + acmGrad + "\t" + dt + "\t" + stack.peek());
+		} while (acmGrad > epsilon);
 	}
 
 	/**
@@ -311,12 +390,34 @@ public class LowBow {
 			}
 
 			bw.close();
-
-			// System.out.println("Done" + ((isPca) ? "Pca" : "XYZ"));
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void writeMatrixFile() {
+		MyText t1 = new MyText();
+
+		String acm = "";
+		
+		acm += " x = [\t";
+		for(int i = 1; i <= x.getRows(); i++) {
+			for(int j = 1; j <= x.getColumns(); j++) {
+				acm += x.getXY(i, j)+ ",\t";
+			}
+			acm+=";\t";
+		}
+		acm += "]\n";
+		acm += "curve = [\t";
+		for(int i = 0; i < curve.length; i++) {
+			for(int j = 1; j <= curve[0].getDim(); j++) {
+				acm += curve[i].getX(j)+ ",\t";
+			}
+			acm+=";\t";
+		}
+		acm += "]\n";
+		
+		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
 	}
 
 	/**
@@ -456,7 +557,7 @@ public class LowBow {
 	public double getSamplesPerTextLength() {
 		return samplesPerTextLength;
 	}
-	
+
 	public TextSplitter getTextSplitter() {
 		return textSplitter;
 	}
@@ -477,30 +578,27 @@ public class LowBow {
 	 * Example
 	 */
 	public static void main(String[] args) {
-		MyText text1 = new MyText("C:/Users/pedro/Desktop/GermanWings_Reuters.txt");
-		MyText text2 = new MyText("C:/Users/pedro/Desktop/GermanWings_Reuters_Subset.txt");
-		/**
-		 * first curve
-		 */
-		LowBow low1 = new LowBow(text1.getText(), new MyTextSplitter());
-		low1.setSamplesPerTextLength(1.0);
-		low1.setSigma(0.005);
-		low1.setSmoothingCoeff(0.01);
-		
-		/**
-		 * second curve
-		 */
-		LowBow low2 = new LowBow(text2.getText(), new MyTextSplitter());
-		low2.setSamplesPerTextLength(1.0);
-		low2.setSigma(0.05);
-		low2.setSmoothingCoeff(0.01);
-		/**
-		 * Lowbow manager
-		 */
-		LowBowManager lowM = new LowBowManager();
-		lowM.add(low1);
-		lowM.add(low2);
-		lowM.init();
-		System.out.println(lowM.getDistance(0, 1));
+		LowBow low = new LowBow("a b b b c c a a b", new TextSplitter() {
+
+			@Override
+			public String[] split(String in) {
+				return in.split("\\s+");
+			}
+		});
+		low.setSamplesPerTextLength(1.0);
+		low.setSigma(0.005);
+		low.setSmoothingCoeff(0.01);
+		low.init();
+		low.heatFlow(0.25);
+		low.curve2Heat();
+		int n = low.getTextLength();
+		double s = low.getSamplesPerTextLength();
+		int samples = low.getSamples();
+		String acm = "";
+		for (int i = 0; i < n; i++) {
+			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples));
+			acm += low.generateText(k) + "\n";
+		}
+		TextFrame frame = new TextFrame("Generated Text", acm);
 	}
 }

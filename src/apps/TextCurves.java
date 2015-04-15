@@ -26,6 +26,7 @@ import nlp.LowBow;
 import nlp.LowBowManager;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
+import nlp.textSplitter.StopWordsSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
 import tools.simple.TextFrame;
@@ -470,10 +471,13 @@ public class TextCurves extends MyFrame {
 	public void heatFlow() {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
-		curve.heatFlow(0.70); // 0.5
+		frameState.setText("Computing heat flow");
+		curve.heatFlow(0.1); // 0.5
 		curve.curve2Heat();
+		frameState.setText("build pca");
 		lowbowM.buildPca();
 		updateCurveStats();
+		frameState.setText("");
 	}
 
 	public class myActionListener implements ActionListener {
@@ -490,7 +494,7 @@ public class TextCurves extends MyFrame {
 				frame.setVisible(false);
 			}
 			String inString = inOut.getText();
-			LowBow lowbow = new LowBow(inString, new SpaceSplitter());
+			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("src/nlp/wordsLists/stopWords.txt"));
 			isReady = true;
 			double sigma = 0.02;
 			try {

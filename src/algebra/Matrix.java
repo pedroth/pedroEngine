@@ -107,7 +107,7 @@ public class Matrix {
 	}
 
 	public String toString() {
-		String s = new String();
+		String s = "";
 		for (int i = 1; i <= this.getRows(); i++) {
 			for (int j = 1; j <= this.getColumns(); j++) {
 				s = s + String.format(" %.10f\t", this.getXY(i, j));

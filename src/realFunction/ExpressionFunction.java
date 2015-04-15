@@ -159,9 +159,7 @@ public class ExpressionFunction extends MultiVarFunction {
 						s = stack.lastElement();
 					}
 					stack.remove(stack.size() - 1);
-					if (!stack.isEmpty()
-							&& functionNametoFunc.get(stack.lastElement()) != null
-							&& operatorNametoPriotity.get(stack.lastElement()) == null) {
+					if (!stack.isEmpty() && functionNametoFunc.get(stack.lastElement()) != null && operatorNametoPriotity.get(stack.lastElement()) == null) {
 						popFunction(stack, output);
 					}
 
@@ -181,25 +179,17 @@ public class ExpressionFunction extends MultiVarFunction {
 
 					output.add(new DummyVariableNode(aux, this));
 
-				} else if (operatorNametoPriotity.get(aux) != null
-						&& aux != "^") {
+				} else if (operatorNametoPriotity.get(aux) != null && aux != "^") {
 
 					int opPriority = operatorNametoPriotity.get(aux);
-					while (!stack.isEmpty()
-							&& operatorNametoPriotity.get(stack.lastElement()) != null
-							&& opPriority <= operatorNametoPriotity.get(stack
-									.lastElement())) {
+					while (!stack.isEmpty() && operatorNametoPriotity.get(stack.lastElement()) != null && opPriority <= operatorNametoPriotity.get(stack.lastElement())) {
 						popFunction(stack, output);
 					}
 					stack.add(aux);
-				} else if (operatorNametoPriotity.get(aux) != null
-						&& aux == "^") {
+				} else if (operatorNametoPriotity.get(aux) != null && aux == "^") {
 
 					int opPriority = operatorNametoPriotity.get(aux);
-					while (!stack.isEmpty()
-							&& operatorNametoPriotity.get(stack.lastElement()) != null
-							&& opPriority < operatorNametoPriotity.get(stack
-									.lastElement())) {
+					while (!stack.isEmpty() && operatorNametoPriotity.get(stack.lastElement()) != null && opPriority < operatorNametoPriotity.get(stack.lastElement())) {
 						popFunction(stack, output);
 					}
 					stack.add(aux);
@@ -260,8 +250,7 @@ public class ExpressionFunction extends MultiVarFunction {
 		}
 	}
 
-	private void popFunction(java.util.Vector<String> stack,
-			java.util.Vector<FunctionNode> output) {
+	private void popFunction(java.util.Vector<String> stack, java.util.Vector<FunctionNode> output) {
 		String s = stack.lastElement();
 		stack.remove(stack.size() - 1);
 		FunctionNode f = null;
@@ -322,8 +311,7 @@ public class ExpressionFunction extends MultiVarFunction {
 
 	public static void main(String[] args) {
 		String[] varTokens = { "u", "x", "y" };
-		ExpressionFunction foo = new ExpressionFunction("sigma(0.5^i,1,99)",
-				varTokens);
+		ExpressionFunction foo = new ExpressionFunction("sigma(0.5^i,1,99)", varTokens);
 		String[] dummyVar = { "i" };
 		foo.addFunction("sigma", new Sigma(dummyVar, foo));
 		/**
@@ -332,8 +320,8 @@ public class ExpressionFunction extends MultiVarFunction {
 		foo.init();
 		double[] vars = { 3.141592, 0.0, -0.98 };
 		Vector x = new Vector(vars);
-		double oldTime = System.nanoTime()*1E-9;
+		double oldTime = System.nanoTime() * 1E-9;
 		System.out.println(foo.compute(x));
-		System.out.println(System.nanoTime()* 1E-9 - oldTime);
+		System.out.println(System.nanoTime() * 1E-9 - oldTime);
 	}
 }

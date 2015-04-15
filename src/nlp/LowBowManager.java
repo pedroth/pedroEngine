@@ -22,7 +22,11 @@ public class LowBowManager {
 		wordIndex = new HashMap<String, Integer>();
 		wordIndexInv = new HashMap<Integer, String>();
 	}
-
+	/**
+	 * 
+	 * @param l lowbow curve
+	 * 
+	 */
 	public void add(LowBow l) {
 		lowbows.add(l);
 		HashMap<String, Integer> lVocabulary = l.getWordsIndex();
@@ -44,7 +48,10 @@ public class LowBowManager {
 		ans.init(samplesPerTextLength, temp.getSigma());
 		return ans;
 	}
-
+	
+	/**
+	 * Initializes all curves with the same vocabulary
+	 */
 	public void init() {
 		int n = lowbows.size();
 		for (int i = 0; i < n; i++) {
@@ -53,7 +60,9 @@ public class LowBowManager {
 			lowbows.set(i, lowbow);
 		}
 	}
-	
+	/**
+	 * resamples each curve with the maximum samples of the curves in the collection
+	 */
 	public void maxSamplesInit() {
 		int n = lowbows.size();
 		double maxSamples = 0;
@@ -70,7 +79,9 @@ public class LowBowManager {
 			lowbows.set(i, lowbow);
 		}
 	}
-
+	/**
+	 * build pca of all curves
+	 */
 	public void buildPca() {
 		int size = 0;
 		for (LowBow lowbow : lowbows) {
