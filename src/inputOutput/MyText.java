@@ -16,17 +16,17 @@ public class MyText {
 		text = "";
 	}
 
-	public void read(String adress) {
+	public void read(String address) {
 		text = "";
 		BufferedReader in;
 		try {
-			if (isUrl(adress)) {
+			if (isUrl(address)) {
 				URL url;
-				url = new URL(adress);
+				url = new URL(address);
 				in = new BufferedReader(new InputStreamReader(url.openStream()));
 
 			} else {
-				in = new BufferedReader(new FileReader(adress));
+				in = new BufferedReader(new FileReader(address));
 			}
 
 			String line;

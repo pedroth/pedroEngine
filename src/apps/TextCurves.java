@@ -24,9 +24,8 @@ import javax.swing.event.ChangeListener;
 
 import nlp.LowBow;
 import nlp.LowBowManager;
+import nlp.LowBowSummaryPrepositions;
 import nlp.textSplitter.MyTextSplitter;
-import nlp.textSplitter.SpaceSplitter;
-import nlp.textSplitter.StopWordsSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
 import tools.simple.TextFrame;
@@ -37,6 +36,7 @@ import twoDimEngine.String2D;
 import twoDimEngine.TwoDimEngine;
 import algebra.Vec2;
 import algebra.Vec3;
+import algebra.Vector;
 
 /**
  * 
@@ -64,6 +64,7 @@ public class TextCurves extends MyFrame {
 	private double samplesInMax;
 	private Checkbox txtVisibleCheckBox;
 	private Label frameState;
+	private Button simplexOnPolyButton;
 	/**
 	 * locally weighted bag of wordsIndex
 	 */
@@ -98,7 +99,11 @@ public class TextCurves extends MyFrame {
 	 * draw simplex on polygon
 	 */
 	private boolean simplexOnPoly;
-	
+	/**
+	 * polygon where the curve will be drawn
+	 */
+	private Vec2[] polygon;
+
 	public TextCurves(String title, int width, int height) {
 		super(title, width, height);
 		engine = new TwoDimEngine(width, height);
@@ -200,11 +205,29 @@ public class TextCurves extends MyFrame {
 		p5.add(heatFlowButton);
 		p5.add(generateButton);
 		p1.add(p5);
-		
+
 		/**
 		 * Poly Simplex
 		 */
+		Panel p6 = new Panel(new GridLayout(1, 2));
+		simplexOnPolyButton = new Button("Barycentric");
+		simplexOnPolyButton.addActionListener(new ActionListener() {
 
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				simplexOnPoly = !simplexOnPoly;
+				
+				if(simplexOnPoly) {
+					simplexOnPolyButton.setLabel("PCA");
+				} else {
+					simplexOnPolyButton.setLabel("Barycentric");
+				}
+			}
+		});
+		p6.add(new Label(""));
+		p6.add(simplexOnPolyButton);
+		p1.add(p6);
+		
 		input.add(p1);
 
 		input.setLocationRelativeTo(null);
@@ -308,9 +331,9 @@ public class TextCurves extends MyFrame {
 	/**
 	 * update projected curve
 	 */
-	private void updateCurve() {
+	private void updateCurvePca() {
 		/**
-		 * distance to plane
+		 * distance to drawing plane
 		 */
 		double d = 1;
 		ArrayList<LowBow> l = lowbowM.getLowbows();
@@ -328,7 +351,7 @@ public class TextCurves extends MyFrame {
 				Vec3 v = Vec3.diff(u, camera.getEye());
 				v = Vec3.matrixProd(camera.getInverseCamBasis(), v);
 				int boundj = Math.min(j, projLine.length - 1);
-				if (v.getZ() < d / 1000) {
+				if (v.getZ() < (d / 1000)) {
 					projLine[boundj].setVisible(false);
 				} else {
 					projLine[boundj].setVisible(true);
@@ -336,6 +359,44 @@ public class TextCurves extends MyFrame {
 					projCurve[j].setY(v.getY() * (d / v.getZ()));
 				}
 			}
+		}
+	}
+	
+	private void updateCurveOnPoly() {
+		ArrayList<LowBow> l = lowbowM.getLowbows();
+		int n = l.size();
+		int wordL = l.get(0).getNumWords();
+		if((polygon == null) || (polygon.length != wordL)) {
+			buildPoly(wordL);
+		}
+		
+		for (int i = 0; i < n; i++) {
+			Vector[] curve = l.get(i).getCurve();
+			Vec2[] projCurve = projCurves.get(i);
+			Line2D[] projLine = projLines.get(i);
+			/**
+			 * Barycentric coordinates to world coordinates calculation
+			 */
+			for (int j = 0; j < projCurve.length; j++) {
+				Vec2 acm = new Vec2();
+				for(int k = 0; k < wordL; k++) {
+					acm = Vec2.add(acm, Vec2.scalarProd(curve[j].getX(k + 1), polygon[k]));
+				}
+				int boundj = Math.min(j, projLine.length - 1);
+				projLine[boundj].setVisible(true);
+				projCurve[j].setX(acm.getX());
+				projCurve[j].setY(acm.getY());
+			}
+		}
+	}
+
+	private void buildPoly(int wordL) {
+		polygon = new Vec2[wordL];
+		double t = 0;
+		double step = (2 * Math.PI) / wordL;
+		for (int i = 0; i < wordL; i++) {
+			polygon[i] = new Vec2(Math.cos(t), Math.sin(t));
+			t+=step;
 		}
 	}
 
@@ -348,7 +409,10 @@ public class TextCurves extends MyFrame {
 			Vec2[] projCurve = projCurves.get(i);
 			Line2D[] projLine = projLines.get(i);
 			for (int j = 0; j < strCurve.length; j++) {
-				int k = (int) Math.floor(MyMath.clamp(lowbow.getSamplesPerTextLength() * j, 0, lowbow.getSamples()));
+				int tLength = lowbow.getTextLength();
+				int samples = lowbow.getSamples();
+				double s = (samples - 1.0) / (tLength - 1.0);
+				int k = (int) Math.floor(MyMath.clamp(s * j, 0, samples - 1));
 				if (txtVisibleCheckBox.getState() && projLine[i].isVisible()) {
 					strCurve[j].setVisible(true);
 					strCurve[j].setVertex(projCurve[k], 0);
@@ -388,12 +452,16 @@ public class TextCurves extends MyFrame {
 	public void updateDraw(Graphics g) {
 		engine.clearImageWithBackground();
 		camera.update(dt);
-		updateCurve();
+		if (simplexOnPoly)
+			updateCurveOnPoly();
+		else
+			updateCurvePca();
 		updateStringCurve();
 		engine.drawElements();
 		this.setTitle("Fps : " + this.getFps());
 		engine.paintImage(g);
 	}
+
 
 	public void reset() {
 		this.setVisible(false);
@@ -445,11 +513,11 @@ public class TextCurves extends MyFrame {
 
 		LowBow low = lowList.get(lowList.size() - 1);
 		int n = low.getTextLength();
-		double s = low.getSamplesPerTextLength();
 		int samples = low.getSamples();
+		double s = (samples - 1.0) / (n - 1.0);
 		String acm = "";
 		for (int i = 0; i < n; i++) {
-			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples));
+			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
 			acm += low.generateText(k) + "\n";
 		}
 
@@ -472,7 +540,7 @@ public class TextCurves extends MyFrame {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
 		frameState.setText("Computing heat flow");
-		curve.heatFlow(0.1); // 0.5
+		curve.heatFlow(0.75); // 0.5
 		curve.curve2Heat();
 		frameState.setText("build pca");
 		lowbowM.buildPca();
@@ -494,7 +562,7 @@ public class TextCurves extends MyFrame {
 				frame.setVisible(false);
 			}
 			String inString = inOut.getText();
-			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("src/nlp/wordsLists/stopWords.txt"));
+			LowBow lowbow = new LowBow(inString, new MyTextSplitter());
 			isReady = true;
 			double sigma = 0.02;
 			try {

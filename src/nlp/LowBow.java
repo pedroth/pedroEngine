@@ -32,8 +32,8 @@ public class LowBow {
 	protected String originalText;
 	protected String[] text;
 	/**
-	 * maps words to the corresponding coordinate on the simplex
-	 * index of the coordinates starts at 1.
+	 * maps words to the corresponding coordinate on the simplex index of the
+	 * coordinates starts at 1.
 	 */
 	protected HashMap<String, Integer> wordsIndex;
 	protected HashMap<Integer, String> wordsIndexInv;
@@ -77,15 +77,6 @@ public class LowBow {
 		this.textSplitter = textSplitter;
 		isInitialized = false;
 		this.processText(in);
-		int samples = 10000;
-		double h = 1.0 / (samples-1);
-		double x = 0;
-		double acm = 0;
-		for(int i = 0; i < samples - 1; i++){
-			acm += kernel(x,0,0.009) + kernel(x + h,0,0.009);
-			x+=h;
-		}
-		System.out.println(0.5 * h * acm);
 	}
 
 	private double kernel(double x, double myu, double sigma) {
@@ -173,11 +164,10 @@ public class LowBow {
 				}
 			}
 		}
-		
+
 		resample(samplesPerTextLength, sigma);
 		isInitialized = true;
 	}
-	
 
 	public void resample(double samplesPerTextLength, double sigma) {
 		this.samplesPerTextLength = samplesPerTextLength;
@@ -195,7 +185,7 @@ public class LowBow {
 				curve[i].setX(j, gamma(myu, sigma, samples, j));
 			}
 			/**
-			 * normalization because the integration is just an approximation
+			 * normalization, because the integration is just an approximation
 			 * error decreases as number of samples increases
 			 */
 			Vector ones = new Vector(numWords);
@@ -207,7 +197,7 @@ public class LowBow {
 	}
 
 	public void buildPca() {
-		if(!isInitialized)
+		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
@@ -231,7 +221,7 @@ public class LowBow {
 	 *            is the average point
 	 */
 	public void buildPca(Vector[] pc, Vector myu) {
-		if(!isInitialized)
+		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
@@ -263,11 +253,14 @@ public class LowBow {
 	 *            \in [0,1]
 	 */
 	public void heatFlow(double lambda) {
-		if(!isInitialized)
+		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
-		
+
 		Stack<Double> stack = new Stack<Double>();
 		double acmGrad = 0;
+		double maxCost = Double.MIN_VALUE;
+		int maxIte = 10000;
+		int ite = 0;
 		/**
 		 * convergence error
 		 */
@@ -328,14 +321,17 @@ public class LowBow {
 				}
 			}
 			/**
-			 * choosing dt 
+			 * choosing dt, baah
 			 */
 			double lastAcmGrad = stack.pop();
 			if (acmGrad - lastAcmGrad > 0) {
 				eta *= eta;
 			} else {
-				eta += 0.1 * (0.5 - eta);
+				eta += 0.1 * (1 - eta);
 			}
+			/**
+			 * more cool
+			 */
 			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
 			/**
 			 * update curve
@@ -346,9 +342,13 @@ public class LowBow {
 			}
 
 			stack.push(new Double(acmGrad));
-
-			System.out.println("" + acmGrad + "\t" + dt + "\t" + stack.peek());
-		} while (acmGrad > epsilon);
+			
+			maxCost = Math.max(maxCost, acmGrad);
+			ite++;
+			
+			System.out.println("" + acmGrad + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad));
+//			System.out.printf("%.5f\n" , 1 - (1.0 / maxCost) * acmGrad);
+		} while (acmGrad > epsilon && ite < maxIte);
 	}
 
 	/**
@@ -369,11 +369,12 @@ public class LowBow {
 	 *            if true writes the PCA curve, else writes down the first 3
 	 *            coordinates of the curve into a .obj file
 	 */
+	@SuppressWarnings("unused")
 	private void writeObjFile(boolean isPca) {
 		try {
 			File file = new File("Line.obj");
 
-			// if file doesnt exists, then create it
+			// if file doesn't exists, then create it
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -394,29 +395,30 @@ public class LowBow {
 			e.printStackTrace();
 		}
 	}
-	
+
+	@SuppressWarnings("unused")
 	private void writeMatrixFile() {
 		MyText t1 = new MyText();
 
 		String acm = "";
-		
+
 		acm += " x = [\t";
-		for(int i = 1; i <= x.getRows(); i++) {
-			for(int j = 1; j <= x.getColumns(); j++) {
-				acm += x.getXY(i, j)+ ",\t";
+		for (int i = 1; i <= x.getRows(); i++) {
+			for (int j = 1; j <= x.getColumns(); j++) {
+				acm += x.getXY(i, j) + ",\t";
 			}
-			acm+=";\t";
+			acm += ";\t";
 		}
 		acm += "]\n";
 		acm += "curve = [\t";
-		for(int i = 0; i < curve.length; i++) {
-			for(int j = 1; j <= curve[0].getDim(); j++) {
-				acm += curve[i].getX(j)+ ",\t";
+		for (int i = 0; i < curve.length; i++) {
+			for (int j = 1; j <= curve[0].getDim(); j++) {
+				acm += curve[i].getX(j) + ",\t";
 			}
-			acm+=";\t";
+			acm += ";\t";
 		}
 		acm += "]\n";
-		
+
 		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
 	}
 
@@ -545,8 +547,13 @@ public class LowBow {
 	public Vector[] getHeatCurve() {
 		return heatCurve;
 	}
-
+	/**
+	 * 
+	 * @param smoothingCoeff positive real value
+	 */
 	public void setSmoothingCoeff(double smoothingCoeff) {
+		if(smoothingCoeff <= 0)
+			throw new RuntimeErrorException(null, "smoothing coeff must be > 0");
 		this.smoothingCoeff = smoothingCoeff;
 	}
 
@@ -565,15 +572,41 @@ public class LowBow {
 	public void setTextSplitter(TextSplitter textSplitter) {
 		this.textSplitter = textSplitter;
 	}
-
+	/**
+	 * 
+	 * @param sigma positive real value
+	 */
 	public void setSigma(double sigma) {
+		if(sigma <= 0)
+			throw new RuntimeErrorException(null, "sigma must be > 0");
 		this.sigma = sigma;
 	}
-
+	/**
+	 * 
+	 * @param samplesPerTextLength  positive real value
+	 */
 	public void setSamplesPerTextLength(double samplesPerTextLength) {
+		if(samplesPerTextLength <= 0)
+			throw new RuntimeErrorException(null, "samples per text length must be > 0");
 		this.samplesPerTextLength = samplesPerTextLength;
 	}
-
+	
+	public String getSummary(double lambda) {
+		if(!isInitialized)
+			throw new RuntimeErrorException(null, "LowBow not initialized");
+		this.heatFlow(lambda);
+		this.curve2Heat();
+		int n = this.getTextLength();
+		int samples = this.getSamples();
+		double s = (samples - 1.0) / (n - 1.0);
+		String acm = "";
+		for (int i = 0; i < n; i++) {
+			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
+			acm += this.generateText(k) + "\n";
+		}
+		return acm;
+	}
+	
 	/**
 	 * Example
 	 */
@@ -589,16 +622,6 @@ public class LowBow {
 		low.setSigma(0.005);
 		low.setSmoothingCoeff(0.01);
 		low.init();
-		low.heatFlow(0.25);
-		low.curve2Heat();
-		int n = low.getTextLength();
-		double s = low.getSamplesPerTextLength();
-		int samples = low.getSamples();
-		String acm = "";
-		for (int i = 0; i < n; i++) {
-			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples));
-			acm += low.generateText(k) + "\n";
-		}
-		TextFrame frame = new TextFrame("Generated Text", acm);
+		TextFrame frame = new TextFrame("Generated Text", low.getSummary(0.25));
 	}
 }

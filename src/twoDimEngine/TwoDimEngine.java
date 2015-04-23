@@ -22,6 +22,10 @@ public class TwoDimEngine extends AbstractEngine2D{
 	public void removeAllElements() {
 		elements.removeAll(elements);
 	}
+	
+	public void removeElement(AbstractDrawAble2D obj) {
+		elements.remove(obj);
+	}
 
 	/**
 	 * initializations before each draw
