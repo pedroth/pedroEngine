@@ -324,8 +324,8 @@ public class LowBow {
 					/**
 					 * compute cost functions
 					 */
-					Vector dx = Vector.scalarProd(lambda * (samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
-					acmCost[j] += (Vector.scalarProd(1 - lambda, Vector.diff(curve[i], auxCurve[i])).squareNorm() + dx.squareNorm());
+					Vector dx = Vector.scalarProd((samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
+					acmCost[j] += ((1 - lambda) * Vector.diff(curve[i], auxCurve[i]).squareNorm() + lambda * dx.squareNorm());
 				}
 				acmCost[j] *= 0.5 * h * acmCost[j];
 			}
