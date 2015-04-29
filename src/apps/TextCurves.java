@@ -65,6 +65,11 @@ public class TextCurves extends MyFrame {
 	private Checkbox txtVisibleCheckBox;
 	private Label frameState;
 	private Button simplexOnPolyButton;
+	private JSlider heatLambdaSlider;
+	private double lambdaIn;
+	private double lambdaInMin;
+	private double lambdaInMax;
+	private Label lambdaSliderTxt;
 	/**
 	 * locally weighted bag of wordsIndex
 	 */
@@ -96,13 +101,16 @@ public class TextCurves extends MyFrame {
 	 */
 	private ArrayList<String2D[]> strCurves;
 	/**
-	 * draw simplex on polygon
+	 * state that determines when to draw simplex on polygon state = 0 : pca
+	 * state = 1 : drawBarycentric state = 2 : dont draw
 	 */
-	private boolean simplexOnPoly;
+	private int simplexOnPoly;
 	/**
 	 * polygon where the curve will be drawn
 	 */
 	private Vec2[] polygon;
+	
+	
 
 	public TextCurves(String title, int width, int height) {
 		super(title, width, height);
@@ -194,40 +202,62 @@ public class TextCurves extends MyFrame {
 				generateText();
 			}
 		});
-		Button heatFlowButton = new Button("Heat Flow");
-		heatFlowButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				heatFlow();
-			}
-		});
-		p5.add(heatFlowButton);
-		p5.add(generateButton);
-		p1.add(p5);
-
 		/**
 		 * Poly Simplex
 		 */
-		Panel p6 = new Panel(new GridLayout(1, 2));
 		simplexOnPolyButton = new Button("Barycentric");
 		simplexOnPolyButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				simplexOnPoly = !simplexOnPoly;
-				
-				if(simplexOnPoly) {
+				if (simplexOnPolyButton.getLabel().equals("PCA")) {
+					simplexOnPoly = 0;
+				} else {
+					simplexOnPoly = 1;
+				}
+
+				if (simplexOnPoly == 1 || simplexOnPoly == 2) {
 					simplexOnPolyButton.setLabel("PCA");
 				} else {
 					simplexOnPolyButton.setLabel("Barycentric");
 				}
 			}
 		});
-		p6.add(new Label(""));
-		p6.add(simplexOnPolyButton);
+		p5.add(simplexOnPolyButton);
+		p5.add(generateButton);
+		p1.add(p5);
+
+		/**
+		 * heat flow button
+		 */
+		Panel p6 = new Panel(new GridLayout(1, 3));
+		lambdaInMin = 0.0001;
+		lambdaInMax = 0.9999;
+		lambdaIn = lambdaInMin;
+		lambdaSliderTxt = new Label("" + lambdaIn);
+		heatLambdaSlider = new JSlider(0,99,0);
+		heatLambdaSlider.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider aux = (JSlider) e.getSource();
+				lambdaIn = lambdaInMin + ((lambdaInMax - lambdaInMin) / (aux.getMaximum())) * (aux.getValue());
+				lambdaSliderTxt.setText("" + lambdaIn);
+			}
+		});
+		Button heatFlowButton = new Button("Heat Flow");
+		heatFlowButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				heatFlow(lambdaIn);
+			}
+		});
+		p6.add(lambdaSliderTxt);
+		p6.add(heatLambdaSlider);
+		p6.add(heatFlowButton);
 		p1.add(p6);
-		
+
 		input.add(p1);
 
 		input.setLocationRelativeTo(null);
@@ -361,15 +391,15 @@ public class TextCurves extends MyFrame {
 			}
 		}
 	}
-	
+
 	private void updateCurveOnPoly() {
 		ArrayList<LowBow> l = lowbowM.getLowbows();
 		int n = l.size();
 		int wordL = l.get(0).getNumWords();
-		if((polygon == null) || (polygon.length != wordL)) {
+		if ((polygon == null) || (polygon.length != wordL)) {
 			buildPoly(wordL);
 		}
-		
+
 		for (int i = 0; i < n; i++) {
 			Vector[] curve = l.get(i).getCurve();
 			Vec2[] projCurve = projCurves.get(i);
@@ -379,7 +409,7 @@ public class TextCurves extends MyFrame {
 			 */
 			for (int j = 0; j < projCurve.length; j++) {
 				Vec2 acm = new Vec2();
-				for(int k = 0; k < wordL; k++) {
+				for (int k = 0; k < wordL; k++) {
 					acm = Vec2.add(acm, Vec2.scalarProd(curve[j].getX(k + 1), polygon[k]));
 				}
 				int boundj = Math.min(j, projLine.length - 1);
@@ -388,6 +418,7 @@ public class TextCurves extends MyFrame {
 				projCurve[j].setY(acm.getY());
 			}
 		}
+		simplexOnPoly = 2;
 	}
 
 	private void buildPoly(int wordL) {
@@ -396,7 +427,7 @@ public class TextCurves extends MyFrame {
 		double step = (2 * Math.PI) / wordL;
 		for (int i = 0; i < wordL; i++) {
 			polygon[i] = new Vec2(Math.cos(t), Math.sin(t));
-			t+=step;
+			t += step;
 		}
 	}
 
@@ -452,16 +483,17 @@ public class TextCurves extends MyFrame {
 	public void updateDraw(Graphics g) {
 		engine.clearImageWithBackground();
 		camera.update(dt);
-		if (simplexOnPoly)
+		if (simplexOnPoly == 1) {
 			updateCurveOnPoly();
-		else
+		} else if (simplexOnPoly == 0) {
 			updateCurvePca();
+		} else {
+		}
 		updateStringCurve();
 		engine.drawElements();
 		this.setTitle("Fps : " + this.getFps());
 		engine.paintImage(g);
 	}
-
 
 	public void reset() {
 		this.setVisible(false);
@@ -536,11 +568,11 @@ public class TextCurves extends MyFrame {
 		}
 	}
 
-	public void heatFlow() {
+	public void heatFlow(double lambda) {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
 		frameState.setText("Computing heat flow");
-		curve.heatFlow(0.75); // 0.5
+		curve.heatFlow(lambda);
 		curve.curve2Heat();
 		frameState.setText("build pca");
 		lowbowM.buildPca();
@@ -587,6 +619,9 @@ public class TextCurves extends MyFrame {
 			addCurveToEngine(lLowBow.get(lLowBow.size() - 1));
 			frameState.setText("");
 			frame.setVisible(true);
+			if(simplexOnPoly == 2) {
+				simplexOnPoly = 1;
+			}
 		}
 
 	}

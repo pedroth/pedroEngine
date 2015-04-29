@@ -265,7 +265,7 @@ public class LowBow {
 		 * convergence error
 		 */
 		double epsilon = 0.01;
-		double h = 1E-3;
+		double h = 1E-4;
 		/**
 		 * time step of heat
 		 */
@@ -290,9 +290,6 @@ public class LowBow {
 
 		do {
 			acmGrad = 0;
-			/**
-			 * 
-			 */
 			for (int i = 1; i < curve.length - 1; i++) {
 				/**
 				 * second derivative
@@ -309,30 +306,46 @@ public class LowBow {
 				grad[i] = Vector.add(d2x, grad[i]);
 				acmGrad += grad[i].squareNorm();
 			}
+			/**
+			 * choosing dt
+			 */
+			/**
+			 * compute second time derivative in gradient direction
+			 */
 			double[] acmCost = { 0, 0, 0 };
 			for (int j = 0; j < 3; j++) {
 				double delta = j * h;
 				for (int i = 1; i < curve.length - 1; i += 2) {
+					/**
+					 * update curve
+					 */
 					auxCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(delta, grad[i]));
 					auxCurve[i + 1] = Vector.add(heatCurve[i + 1], Vector.scalarProd(delta, grad[i + 1]));
-
+					/**
+					 * compute cost functions
+					 */
 					Vector dx = Vector.scalarProd(lambda * (samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
-					acmCost[j] += 0.5 * (Vector.scalarProd(1 - lambda, Vector.diff(curve[i], auxCurve[i])).squareNorm() + dx.squareNorm());
+					acmCost[j] += (Vector.scalarProd(1 - lambda, Vector.diff(curve[i], auxCurve[i])).squareNorm() + dx.squareNorm());
 				}
+				acmCost[j] *= 0.5 * h * acmCost[j];
 			}
 			/**
 			 * choosing dt, baah
 			 */
 			double lastAcmGrad = stack.pop();
 			if (acmGrad - lastAcmGrad > 0) {
-				eta *= eta;
+				eta += 0.1 * (-eta);
 			} else {
 				eta += 0.1 * (1 - eta);
 			}
 			/**
 			 * more cool
 			 */
-			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
+			dt = 1 * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
+			/**
+			 * end choosing dt
+			 */
+			
 			/**
 			 * update curve
 			 */
@@ -346,7 +359,7 @@ public class LowBow {
 			maxCost = Math.max(maxCost, acmGrad);
 			ite++;
 			
-			System.out.println("" + acmGrad + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad));
+			System.out.println("" + acmCost[0] + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad) + "\t" + ite);
 //			System.out.printf("%.5f\n" , 1 - (1.0 / maxCost) * acmGrad);
 		} while (acmGrad > epsilon && ite < maxIte);
 	}
