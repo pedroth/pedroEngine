@@ -13,6 +13,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -43,7 +45,7 @@ import algebra.Vector;
  * @author pedro
  * 
  */
-public class TextCurves extends MyFrame {
+public class TextCurves extends MyFrame implements MouseWheelListener {
 	private TwoDimEngine engine;
 	private PaintMethod2D shader;
 	/**
@@ -104,7 +106,7 @@ public class TextCurves extends MyFrame {
 	 * state that determines when to draw simplex on polygon state = 0 : pca
 	 * state = 1 : drawBarycentric state = 2 : dont draw
 	 */
-	private int simplexOnPoly;
+	private int simplexOnPolyState;
 	/**
 	 * polygon where the curve will be drawn
 	 */
@@ -211,13 +213,14 @@ public class TextCurves extends MyFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (simplexOnPolyButton.getLabel().equals("PCA")) {
-					simplexOnPoly = 0;
+					simplexOnPolyState = 0;
 				} else {
-					simplexOnPoly = 1;
+					simplexOnPolyState = 1;
 				}
 
-				if (simplexOnPoly == 1 || simplexOnPoly == 2) {
+				if (simplexOnPolyState == 1 || simplexOnPolyState == 2) {
 					simplexOnPolyButton.setLabel("PCA");
+					engine.setCamera(-1, 1, -1, 1);
 				} else {
 					simplexOnPolyButton.setLabel("Barycentric");
 				}
@@ -272,6 +275,8 @@ public class TextCurves extends MyFrame {
 		lowbowM = new LowBowManager();
 		centerMass = new Vec3();
 		stdev = 0;
+		
+		this.addMouseWheelListener(this);
 	}
 
 	@Override
@@ -418,7 +423,7 @@ public class TextCurves extends MyFrame {
 				projCurve[j].setY(acm.getY());
 			}
 		}
-		simplexOnPoly = 2;
+		simplexOnPolyState = 2;
 	}
 
 	private void buildPoly(int wordL) {
@@ -483,9 +488,9 @@ public class TextCurves extends MyFrame {
 	public void updateDraw(Graphics g) {
 		engine.clearImageWithBackground();
 		camera.update(dt);
-		if (simplexOnPoly == 1) {
+		if (simplexOnPolyState == 1) {
 			updateCurveOnPoly();
-		} else if (simplexOnPoly == 0) {
+		} else if (simplexOnPolyState == 0) {
 			updateCurvePca();
 		} else {
 		}
@@ -619,8 +624,8 @@ public class TextCurves extends MyFrame {
 			addCurveToEngine(lLowBow.get(lLowBow.size() - 1));
 			frameState.setText("");
 			frame.setVisible(true);
-			if(simplexOnPoly == 2) {
-				simplexOnPoly = 1;
+			if(simplexOnPolyState == 2) {
+				simplexOnPolyState = 1;
 			}
 		}
 
@@ -628,6 +633,16 @@ public class TextCurves extends MyFrame {
 
 	public static void main(String[] args) {
 		new TextCurves("Teste", 800, 500);
+	}
+
+	@Override
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		int mRotation = e.getWheelRotation();
+		if (simplexOnPolyState > 0) {
+			double percent = 0.1;
+			double size = engine.getXmax();
+			engine.setCamera(-size - mRotation * percent * 2 * size , size + mRotation * percent * 2 * size, -size - mRotation * percent * 2 * size, size + mRotation * percent * 2 * size);
+		}
 	}
 
 }

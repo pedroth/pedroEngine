@@ -10,6 +10,7 @@ import java.util.Stack;
 
 import javax.management.RuntimeErrorException;
 
+import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
 import numeric.MyMath;
 import numeric.Pca;
@@ -264,7 +265,7 @@ public class LowBow {
 		/**
 		 * convergence error
 		 */
-		double epsilon = 0.01;
+		double epsilon = 1E-3;
 		double h = 1E-4;
 		/**
 		 * time step of heat
@@ -283,7 +284,7 @@ public class LowBow {
 		for (int i = 0; i < curve.length; i++) {
 			heatCurve[i] = curve[i].copy();
 			grad[i] = new Vector(numWords);
-			auxCurve[i] = new Vector(numWords);
+			auxCurve[i] = curve[i].copy();
 		}
 
 		stack.push(Double.MAX_VALUE);
@@ -308,6 +309,8 @@ public class LowBow {
 			}
 			/**
 			 * choosing dt
+			 * 
+			 * tried armijo condition and it didnt work
 			 */
 			/**
 			 * compute second time derivative in gradient direction
@@ -325,23 +328,23 @@ public class LowBow {
 					 * compute cost functions
 					 */
 					Vector dx = Vector.scalarProd((samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
-					acmCost[j] += ((1 - lambda) * Vector.diff(curve[i], auxCurve[i]).squareNorm() + lambda * dx.squareNorm());
+					acmCost[j] += ((1 - lambda) * Vector.diff(curve[i], auxCurve[i]).squareNorm() + lambda  * dx.squareNorm());
 				}
-				acmCost[j] *= 0.5 * h * acmCost[j];
+				acmCost[j] *= 0.5 * step;
 			}
 			/**
 			 * choosing dt, baah
 			 */
 			double lastAcmGrad = stack.pop();
 			if (acmGrad - lastAcmGrad > 0) {
-				eta += 0.1 * (-eta);
+				eta *= eta;
 			} else {
-				eta += 0.1 * (1 - eta);
+				eta += 0.1 * (0.99 - eta);
 			}
 			/**
 			 * more cool
 			 */
-			dt = 1 * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
+			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
 			/**
 			 * end choosing dt
 			 */
@@ -410,7 +413,7 @@ public class LowBow {
 	}
 
 	@SuppressWarnings("unused")
-	private void writeMatrixFile() {
+	public void writeMatrixFile() {
 		MyText t1 = new MyText();
 
 		String acm = "";
@@ -431,7 +434,16 @@ public class LowBow {
 			acm += ";\t";
 		}
 		acm += "]\n";
-
+		
+		acm += "heat = [\t";
+		for (int i = 0; i < heatCurve.length; i++) {
+			for (int j = 1; j <= curve[0].getDim(); j++) {
+				acm += heatCurve[i].getX(j) + ",\t";
+			}
+			acm += ";\t";
+		}
+		acm += "]\n";
+		
 		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
 	}
 
@@ -624,17 +636,15 @@ public class LowBow {
 	 * Example
 	 */
 	public static void main(String[] args) {
-		LowBow low = new LowBow("a b b b c c a a b", new TextSplitter() {
-
-			@Override
-			public String[] split(String in) {
-				return in.split("\\s+");
-			}
-		});
+		MyText t = new MyText();
+		t.read("C:/Users/pedro/Desktop/research/Text.txt");
+		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWordsPlusPrepositions.txt")); 
 		low.setSamplesPerTextLength(1.0);
-		low.setSigma(0.005);
+		low.setSigma(0.008);
 		low.setSmoothingCoeff(0.01);
 		low.init();
-		TextFrame frame = new TextFrame("Generated Text", low.getSummary(0.25));
+		low.heatFlow(0.001);
+		low.writeMatrixFile();
+		System.out.println(low);
 	}
 }
