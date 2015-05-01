@@ -347,6 +347,13 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 			raw.setX(raw.getX() + (dx / widthChanged) + (dy / heightChanged));
 			thrust.setX(power * ((dx / widthChanged) + (dy / heightChanged)));
 		}
+		
+		if(simplexOnPolyState > 0) {
+			double h = -2 * (dx / widthChanged);
+			double k = 2 * (dy / heightChanged);
+			engine.setCamera(engine.getXmin() + h, engine.getXmax() + h, engine.getYmin() + k, engine.getYmax() + k);
+		}
+		
 		mx = newMx;
 		my = newMy;
 
@@ -640,8 +647,9 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		int mRotation = e.getWheelRotation();
 		if (simplexOnPolyState > 0) {
 			double percent = 0.1;
-			double size = engine.getXmax();
-			engine.setCamera(-size - mRotation * percent * 2 * size , size + mRotation * percent * 2 * size, -size - mRotation * percent * 2 * size, size + mRotation * percent * 2 * size);
+			double sizeX = engine.getXmax() - engine.getXmin();
+			double sizeY = engine.getYmax() - engine.getYmin();
+			engine.setCamera(engine.getXmin() - mRotation * percent * 0.5 * sizeX , engine.getXmax() + mRotation * percent * 0.5 * sizeX, engine.getYmin() - mRotation * percent * 0.5 * sizeY, engine.getYmax() + mRotation * percent * 0.5 * sizeY);
 		}
 	}
 
