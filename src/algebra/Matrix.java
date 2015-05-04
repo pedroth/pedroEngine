@@ -2,6 +2,7 @@ package algebra;
 
 import java.util.Random;
 
+import numeric.SVD;
 import realFunction.LinearFunction;
 import realFunction.UniVarFunction;
 
@@ -10,6 +11,9 @@ public class Matrix {
 	private int rows;
 	private int columns;
 
+	/**
+	 * creates empty matrix
+	 */
 	public Matrix() {
 		this.rows = 0;
 		this.columns = 0;
@@ -26,8 +30,7 @@ public class Matrix {
 	 */
 	public Matrix(int rows, int columns) {
 		if (rows < 1 && columns < 1) {
-			throw new AlgebraException(
-					"number of rows and columns must be positive integers");
+			throw new AlgebraException("number of rows and columns must be positive integers");
 		} else {
 			matrix = new double[rows][columns];
 			this.rows = rows;
@@ -116,6 +119,19 @@ public class Matrix {
 		}
 		s += "\n";
 		return s;
+	}
+
+	public String toStringMatlab() {
+		String acm = "";
+		acm += "[\t";
+		for (int i = 1; i <= rows; i++) {
+			for (int j = 1; j <= columns; j++) {
+				acm += this.getXY(i, j) + ",\t";
+			}
+			acm += ";\t";
+		}
+		acm += "]\n";
+		return acm;
 	}
 
 	public void fillZeros() {
@@ -209,17 +225,14 @@ public class Matrix {
 	 *         ymax]
 	 */
 	public void setSubMatrix(int xmin, int xmax, int ymin, int ymax, Matrix m) {
-		if (checkInputIndex(xmin, ymin) && checkInputIndex(xmax, ymax)
-				&& m.rows == (xmax - xmin + 1)
-				&& m.columns == (ymax - ymin + 1)) {
+		if (checkInputIndex(xmin, ymin) && checkInputIndex(xmax, ymax) && m.rows == (xmax - xmin + 1) && m.columns == (ymax - ymin + 1)) {
 			for (int i = xmin; i <= xmax; i++) {
 				for (int j = ymin; j <= ymax; j++) {
 					this.setXY(i, j, m.getXY(i - xmin + 1, j - ymin + 1));
 				}
 			}
 		} else {
-			throw new AlgebraException(
-					"index out of matrix or input doesnt fit");
+			throw new AlgebraException("index out of matrix or input doesnt fit");
 		}
 	}
 
@@ -268,17 +281,20 @@ public class Matrix {
 			}
 			this.setMatrix(ans.getMatrix());
 		} else {
-			throw new AlgebraException(
-					"not possible reshape, rows * columns differs from original matrix");
+			throw new AlgebraException("not possible reshape, rows * columns differs from original matrix");
 		}
 	}
 
 	public Matrix concat(Matrix m) {
-		Matrix ans= null;
+		Matrix ans = null;
 		if (m.rows == this.rows) {
 			ans = new Matrix(rows, columns + m.columns);
 			ans.setSubMatrix(1, rows, 1, columns, this);
 			ans.setSubMatrix(1, rows, columns + 1, columns + m.columns, m);
+		} else if (this.rows == 0) {
+			ans = m.copy();
+		} else if (m.rows == 0) {
+			// do nothing
 		} else {
 			throw new AlgebraException("rows of two matrices must be equal");
 		}
@@ -366,8 +382,7 @@ public class Matrix {
 				}
 			}
 		} else {
-			throw new AlgebraException(
-					"the number of columns of the first matrix must be equal to the number of lines of the second one");
+			throw new AlgebraException("the number of columns of the first matrix must be equal to the number of lines of the second one");
 		}
 		return c;
 	}
@@ -399,18 +414,15 @@ public class Matrix {
 				remainder = a.getRows() % (nCores - 1);
 
 				for (int i = 0; i < (nCores - 1); i++) {
-					threads[i] = new Thread(c.new MatrixParallelProd(1 + i
-							* quotient, (i + 1) * quotient, a, b, c));
+					threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, a, b, c));
 					threads[i].start();
 				}
 				int lastIndex = 1 + (nCores - 1) * quotient;
-				threads[nCores - 1] = new Thread(c.new MatrixParallelProd(
-						lastIndex, remainder + lastIndex - 1, a, b, c));
+				threads[nCores - 1] = new Thread(c.new MatrixParallelProd(lastIndex, remainder + lastIndex - 1, a, b, c));
 				threads[nCores - 1].start();
 			} else {
 				for (int i = 0; i < nCores; i++) {
-					threads[i] = new Thread(c.new MatrixParallelProd(1 + i
-							* quotient, (i + 1) * quotient, a, b, c));
+					threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, a, b, c));
 					threads[i].start();
 				}
 			}
@@ -431,8 +443,7 @@ public class Matrix {
 		private Matrix b;
 		private Matrix output;
 
-		public MatrixParallelProd(int up, int down, Matrix a, Matrix b,
-				Matrix output) {
+		public MatrixParallelProd(int up, int down, Matrix a, Matrix b, Matrix output) {
 			super();
 			this.up = up;
 			this.down = down;
@@ -469,44 +480,69 @@ public class Matrix {
 	 * 
 	 * @param m
 	 * @param y
+	 * @param epsilon
+	 *            convergence error
 	 * @return vector with solution to equation m * x = y.
 	 */
-	public static Vector solveLinearSystem(Matrix m, Vector y) {
+	public static Vector solveLinearSystem(Matrix m, Vector y, double epsilon) {
 		double time = System.nanoTime() * 1E-9;
-		double epsilon = 1E-8;
 		Matrix normMTrans = Matrix.transpose(m);
-		Matrix myu = Matrix.prod(normMTrans, m);
+		Matrix myu;
+		if (m.getRows() >= 100 || m.getColumns() >= 100)
+			myu = Matrix.prodParallel(normMTrans, m);
+		else
+			myu = Matrix.prod(normMTrans, m);
+
 		Vector gamma = Vector.matrixProd(normMTrans, y);
 		Vector x = gamma.copy();
 		Vector grad = null;
 		do {
-			grad = new Vector(Matrix.diff(gamma, Matrix.prod(myu, x)));
-			double t = grad.squareNorm()
-					/ Vector.innerProd(grad, Vector.matrixProd(myu, grad));
-			grad = Vector.scalarProd(0.5 * t, grad);
+			grad = Vector.diff(gamma, Vector.matrixProd(myu, x));
+			double t = grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(myu, grad));
+			grad = Vector.scalarProd(0.001 * t, grad);
 			x = Vector.add(x, grad);
-			System.out.println(grad.norm()+ "\t" +Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
+			// System.out.println(grad.norm() + "\t" +
+			// Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
 		} while (grad.norm() > epsilon);
-		System.out.println(System.nanoTime() * 1E-9 - time);
+		// System.out.println(System.nanoTime() * 1E-9 - time);
 		return x;
 	}
+
+	public static Vector solveLinearSystem(Matrix m, Vector y) {
+		return solveLinearSystem(m, y, 1E-8);
+	}
+
+	 public static Vector solveLinearSystemSVD(Matrix m, Vector y) {
+		 SVD svd = new SVD(m);
+		 svd.computeSVD();
+		 Matrix U = svd.getU();
+		 Matrix S = svd.getSigmaInv();
+		 Matrix V = svd.getV();
+		 if (m.getRows() >= 100 || m.getColumns() >= 100) {
+				return  Vector.matrixProd(Matrix.prodParallel(Matrix.prodParallel(V, S), Matrix.transpose(U)),y);
+		 }else {
+				return  Vector.matrixProd(Matrix.prod(Matrix.prod(V, S), Matrix.transpose(U)),y);
+		 }
+	 }
 
 	private boolean checkInputIndex(int x, int y) {
 		return x <= this.getRows() && x > 0 && y <= this.getColumns() && y > 0;
 	}
 
 	public static void main(String[] args) {
-//		double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
-		Matrix m = new Matrix(100,100);
+		// double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
+		Matrix m = new Matrix(100, 100);
 		m.fillRandom(-1000, 1000);
 		// System.out.println(m);
-//		double[] ans = { 0, 1, 0};
+		// double[] ans = { 0, 1, 0};
 		Vector y = new Vector(100);
-		 y.fillRandom(-100, 100);
-//		 System.out.println(y);
+		y.fillRandom(-100, 100);
+		// System.out.println(y);
+		double time = System.currentTimeMillis() * 1E-3;
 		Vector x = Matrix.solveLinearSystem(m, y);
-//		 System.out.println(x);
-//		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
-		
+		System.out.println("time : " + ((System.currentTimeMillis() * 1E-3)  - time));
+		// System.out.println(x);
+		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
+
 	}
 }

@@ -50,6 +50,7 @@ public class Pca {
 			myData[i] = Vector.diff(Data[i], myu);
 			conv = Matrix.add(conv, Matrix.prod(myData[i], Matrix.transpose(myData[i])));
 		}
+		
 		/**
 		 * compute eigenVectors
 		 */
@@ -76,6 +77,7 @@ public class Pca {
 	 * @return
 	 */
 	private static Vector eigen(Matrix conv) {
+		int maxIte = 10000;
 		double time = 1E-3 * System.currentTimeMillis();
 		int ite = 0;
 		double epsilon = 1E-8;
@@ -92,7 +94,7 @@ public class Pca {
 			eigenV = Vector.add(eigenV, dotEigen);
 			eigenV = Vector.normalize(eigenV);
 			ite++;
-		} while (eta.norm() > epsilon);
+		} while (eta.norm() > epsilon && ite < maxIte);
 		// System.out.println(ite + " time : " + (1E-3 *
 		// System.currentTimeMillis() - time) + " error : " + eta.norm());
 		return eigenV;
@@ -118,7 +120,7 @@ public class Pca {
 			grad = Vector.matrixProd(conv, eigenV);
 			double beta = -(grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(conv, grad)));
 			/**
-			 * you must put a minus since conv matrix is positive semi-definite
+			 * you must put a minus since you want to maximize.
 			 */
 			eta = Vector.scalarProd(-0.5 * beta, grad);
 			eta = Vector.orthoProjection(eta, eigenV);

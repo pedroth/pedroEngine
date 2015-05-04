@@ -257,114 +257,51 @@ public class LowBow {
 		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 
-		Stack<Double> stack = new Stack<Double>();
-		double acmGrad = 0;
-		double maxCost = Double.MIN_VALUE;
-		int maxIte = 10000;
-		int ite = 0;
-		/**
-		 * convergence error
-		 */
-		double epsilon = 1E-3;
-		double h = 1E-4;
-		/**
-		 * time step of heat
-		 */
-		double dt = 1E-5;
-		/**
-		 * horrible parameter, to compute time step
-		 */
-		double eta = 0.5;
 		heatCurve = new Vector[curve.length];
-		Vector[] auxCurve = new Vector[curve.length];
-		Vector[] grad = new Vector[curve.length];
-		/**
-		 * initial condition u(x,0) = u_init(x)
-		 */
 		for (int i = 0; i < curve.length; i++) {
-			heatCurve[i] = curve[i].copy();
-			grad[i] = new Vector(numWords);
-			auxCurve[i] = curve[i].copy();
+			heatCurve[i] = new Vector(numWords);
 		}
-
-		stack.push(Double.MAX_VALUE);
-
-		do {
-			acmGrad = 0;
-			for (int i = 1; i < curve.length - 1; i++) {
+		/**
+		 * aux variables
+		 */
+		double epsilon = 1E-8;
+		Vector zeta = new Vector(samples);
+		Matrix myu = new Matrix(samples, samples);
+		/**
+		 * build matrix myu
+		 */
+		for (int i = 1; i <= samples; i++) {
+			for (int j = 1; j <= samples; j++) {
 				/**
-				 * second derivative
+				 * ((lambda / step)  * ( dirac(i-j-1) - 2dirac(i-j) + dirac(i-j+1)) - (1-lambda)*step*dirac(i-j)) * (step(i - 2) - step(i - samples))
 				 */
-				Vector d2x = Vector.add(Vector.diff(heatCurve[i + 1], Vector.scalarProd(2, heatCurve[i])), heatCurve[i - 1]);
-				d2x = Vector.scalarProd(lambda * (samples - 1), d2x);
+				myu.setXY(i, j, (-(1 - lambda) * step * MyMath.dirac(i - j) + (samples - 1) * lambda * (MyMath.dirac(i - j - 1) - 2 * MyMath.dirac(i - j) + MyMath.dirac(i - j + 1))) * (MyMath.step(i - 2) - MyMath.step(i - samples)));
 				/**
-				 * distance from the original curve
+				 * adding boundary conditions
 				 */
-				grad[i] = Vector.scalarProd((1 - lambda) * step, Vector.diff(curve[i], heatCurve[i]));
-				/**
-				 * gradient calculation
-				 */
-				grad[i] = Vector.add(d2x, grad[i]);
-				acmGrad += grad[i].squareNorm();
+				myu.setXY(i, j, myu.getXY(i, j) + MyMath.dirac(i - 1) * MyMath.dirac(j - 1) + MyMath.dirac(i - samples) * MyMath.dirac(j - samples));
 			}
-			/**
-			 * choosing dt
-			 * 
-			 * tried armijo condition and it didnt work
-			 */
-			/**
-			 * compute second time derivative in gradient direction
-			 */
-			double[] acmCost = { 0, 0, 0 };
-			for (int j = 0; j < 3; j++) {
-				double delta = j * h;
-				for (int i = 1; i < curve.length - 1; i += 2) {
-					/**
-					 * update curve
-					 */
-					auxCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(delta, grad[i]));
-					auxCurve[i + 1] = Vector.add(heatCurve[i + 1], Vector.scalarProd(delta, grad[i + 1]));
-					/**
-					 * compute cost functions
-					 */
-					Vector dx = Vector.scalarProd((samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
-					acmCost[j] += ((1 - lambda) * Vector.diff(curve[i], auxCurve[i]).squareNorm() + lambda  * dx.squareNorm());
-				}
-				acmCost[j] *= 0.5 * step;
-			}
-			/**
-			 * choosing dt, baah
-			 */
-			double lastAcmGrad = stack.pop();
-			if (acmGrad - lastAcmGrad > 0) {
-				eta *= eta;
-			} else {
-				eta += 0.1 * (0.99 - eta);
-			}
-			/**
-			 * more cool
-			 */
-			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
-			/**
-			 * end choosing dt
-			 */
-			
-			/**
-			 * update curve
-			 */
-			for (int i = 1; i < curve.length - 1; i += 2) {
-				heatCurve[i] = Vector.add(heatCurve[i], Vector.scalarProd(dt, grad[i]));
-				heatCurve[i + 1] = Vector.add(heatCurve[i + 1], Vector.scalarProd(dt, grad[i + 1]));
-			}
+		}
+		
+//		MyText t1 = new MyText();
+//
+//		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
+		
 
-			stack.push(new Double(acmGrad));
-			
-			maxCost = Math.max(maxCost, acmGrad);
-			ite++;
-			
-			System.out.println("" + acmCost[0] + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad) + "\t" + ite);
-//			System.out.printf("%.5f\n" , 1 - (1.0 / maxCost) * acmGrad);
-		} while (acmGrad > epsilon && ite < maxIte);
+		for (int j = 1; j <= numWords; j++) {
+			/**
+			 * build zeta
+			 */
+			for (int i = 1; i <= samples; i++) {
+				zeta.setX(i, -(1 - lambda) * step * curve[i - 1].getX(j));
+			}
+			Vector v = Matrix.solveLinearSystemSVD(myu, zeta);
+//			System.out.println(v);
+//			System.out.println(Vector.diff(Vector.matrixProd(myu, v),zeta).norm());
+			for (int i = 1; i <= samples; i++) {
+				heatCurve[i - 1].setX(j, v.getX(i));
+			}
+		}
 	}
 
 	/**
@@ -434,7 +371,7 @@ public class LowBow {
 			acm += ";\t";
 		}
 		acm += "]\n";
-		
+
 		acm += "heat = [\t";
 		for (int i = 0; i < heatCurve.length; i++) {
 			for (int j = 1; j <= curve[0].getDim(); j++) {
@@ -443,7 +380,7 @@ public class LowBow {
 			acm += ";\t";
 		}
 		acm += "]\n";
-		
+
 		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
 	}
 
@@ -572,12 +509,14 @@ public class LowBow {
 	public Vector[] getHeatCurve() {
 		return heatCurve;
 	}
+
 	/**
 	 * 
-	 * @param smoothingCoeff positive real value
+	 * @param smoothingCoeff
+	 *            positive real value
 	 */
 	public void setSmoothingCoeff(double smoothingCoeff) {
-		if(smoothingCoeff <= 0)
+		if (smoothingCoeff <= 0)
 			throw new RuntimeErrorException(null, "smoothing coeff must be > 0");
 		this.smoothingCoeff = smoothingCoeff;
 	}
@@ -597,27 +536,31 @@ public class LowBow {
 	public void setTextSplitter(TextSplitter textSplitter) {
 		this.textSplitter = textSplitter;
 	}
+
 	/**
 	 * 
-	 * @param sigma positive real value
+	 * @param sigma
+	 *            positive real value
 	 */
 	public void setSigma(double sigma) {
-		if(sigma <= 0)
+		if (sigma <= 0)
 			throw new RuntimeErrorException(null, "sigma must be > 0");
 		this.sigma = sigma;
 	}
+
 	/**
 	 * 
-	 * @param samplesPerTextLength  positive real value
+	 * @param samplesPerTextLength
+	 *            positive real value
 	 */
 	public void setSamplesPerTextLength(double samplesPerTextLength) {
-		if(samplesPerTextLength <= 0)
+		if (samplesPerTextLength <= 0)
 			throw new RuntimeErrorException(null, "samples per text length must be > 0");
 		this.samplesPerTextLength = samplesPerTextLength;
 	}
-	
+
 	public String getSummary(double lambda) {
-		if(!isInitialized)
+		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 		this.heatFlow(lambda);
 		this.curve2Heat();
@@ -631,20 +574,20 @@ public class LowBow {
 		}
 		return acm;
 	}
-	
+
 	/**
 	 * Example
 	 */
 	public static void main(String[] args) {
 		MyText t = new MyText();
 		t.read("C:/Users/pedro/Desktop/research/Text.txt");
-		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWordsPlusPrepositions.txt")); 
+		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
 		low.setSamplesPerTextLength(1.0);
 		low.setSigma(0.008);
 		low.setSmoothingCoeff(0.01);
 		low.init();
-		low.heatFlow(0.001);
-		low.writeMatrixFile();
+		low.heatFlow(0.25);
+//		low.writeMatrixFile();
 		System.out.println(low);
 	}
 }
