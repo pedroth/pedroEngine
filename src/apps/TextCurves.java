@@ -24,10 +24,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import nlp.LowBow;
-import nlp.LowBowManager;
-import nlp.LowBowSummaryPrepositions;
+import nlp.lowbow.HeatFlow;
+import nlp.lowbow.LowBow;
+import nlp.lowbow.LowBowManager;
+import nlp.lowbow.LowBowSummaryPrepositions;
+import nlp.lowbow.MatrixHeatFlow;
 import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.StopWordsSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
 import tools.simple.TextFrame;
@@ -253,7 +256,8 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				heatFlow(lambdaIn);
+				HeatFlow heat = new MatrixHeatFlow();
+				heatFlow(lambdaIn, heat);
 			}
 		});
 		p6.add(lambdaSliderTxt);
@@ -580,11 +584,11 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		}
 	}
 
-	public void heatFlow(double lambda) {
+	public void heatFlow(double lambda, HeatFlow heat) {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
 		frameState.setText("Computing heat flow");
-		curve.heatFlow(lambda);
+		curve.heatFlow(lambda,heat);
 		curve.curve2Heat();
 		frameState.setText("build pca");
 		lowbowM.buildPca();
@@ -606,7 +610,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 				frame.setVisible(false);
 			}
 			String inString = inOut.getText();
-			LowBow lowbow = new LowBow(inString, new MyTextSplitter());
+			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("wordsLists/stopWords.txt"));
 			isReady = true;
 			double sigma = 0.02;
 			try {

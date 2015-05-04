@@ -1,4 +1,4 @@
-package nlp;
+package nlp.lowbow;
 
 import inputOutput.MyText;
 
@@ -10,6 +10,7 @@ import java.util.Stack;
 
 import javax.management.RuntimeErrorException;
 
+import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
 import numeric.MyMath;
@@ -21,12 +22,9 @@ import algebra.Vec3;
 import algebra.Vector;
 
 /**
- * Lowbow implementation
+ * Lowbow implementation as described in http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
  * 
  * @author pedro
- * 
- *         NOTE : try the horrible linear algebra technique to solve the heat
- *         equation
  * 
  */
 public class LowBow {
@@ -253,55 +251,11 @@ public class LowBow {
 	 * @param lambda
 	 *            \in [0,1]
 	 */
-	public void heatFlow(double lambda) {
+	public void heatFlow(double lambda, HeatFlow heat) {
 		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
-
-		heatCurve = new Vector[curve.length];
-		for (int i = 0; i < curve.length; i++) {
-			heatCurve[i] = new Vector(numWords);
-		}
-		/**
-		 * aux variables
-		 */
-		double epsilon = 1E-8;
-		Vector zeta = new Vector(samples);
-		Matrix myu = new Matrix(samples, samples);
-		/**
-		 * build matrix myu
-		 */
-		for (int i = 1; i <= samples; i++) {
-			for (int j = 1; j <= samples; j++) {
-				/**
-				 * ((lambda / step)  * ( dirac(i-j-1) - 2dirac(i-j) + dirac(i-j+1)) - (1-lambda)*step*dirac(i-j)) * (step(i - 2) - step(i - samples))
-				 */
-				myu.setXY(i, j, (-(1 - lambda) * step * MyMath.dirac(i - j) + (samples - 1) * lambda * (MyMath.dirac(i - j - 1) - 2 * MyMath.dirac(i - j) + MyMath.dirac(i - j + 1))) * (MyMath.step(i - 2) - MyMath.step(i - samples)));
-				/**
-				 * adding boundary conditions
-				 */
-				myu.setXY(i, j, myu.getXY(i, j) + MyMath.dirac(i - 1) * MyMath.dirac(j - 1) + MyMath.dirac(i - samples) * MyMath.dirac(j - samples));
-			}
-		}
 		
-//		MyText t1 = new MyText();
-//
-//		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
-		
-
-		for (int j = 1; j <= numWords; j++) {
-			/**
-			 * build zeta
-			 */
-			for (int i = 1; i <= samples; i++) {
-				zeta.setX(i, -(1 - lambda) * step * curve[i - 1].getX(j));
-			}
-			Vector v = Matrix.solveLinearSystemSVD(myu, zeta);
-//			System.out.println(v);
-//			System.out.println(Vector.diff(Vector.matrixProd(myu, v),zeta).norm());
-			for (int i = 1; i <= samples; i++) {
-				heatCurve[i - 1].setX(j, v.getX(i));
-			}
-		}
+		heat.heatFlow(lambda, this);
 	}
 
 	/**
@@ -559,10 +513,10 @@ public class LowBow {
 		this.samplesPerTextLength = samplesPerTextLength;
 	}
 
-	public String getSummary(double lambda) {
+	public String getSummary(double lambda, HeatFlow heat) {
 		if (!isInitialized)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
-		this.heatFlow(lambda);
+		this.heatFlow(lambda, heat);
 		this.curve2Heat();
 		int n = this.getTextLength();
 		int samples = this.getSamples();
@@ -581,12 +535,13 @@ public class LowBow {
 	public static void main(String[] args) {
 		MyText t = new MyText();
 		t.read("C:/Users/pedro/Desktop/research/Text.txt");
-		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
-		low.setSamplesPerTextLength(1.0);
-		low.setSigma(0.008);
+		LowBow low = new LowBow("a c c c b b a c c", new SpaceSplitter());//new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
+		low.setSamplesPerTextLength(3.0);
+		low.setSigma(0.08);
 		low.setSmoothingCoeff(0.01);
 		low.init();
-		low.heatFlow(0.25);
+		HeatFlow heat = new MatrixHeatFlow();
+		low.heatFlow(1, heat);
 //		low.writeMatrixFile();
 		System.out.println(low);
 	}

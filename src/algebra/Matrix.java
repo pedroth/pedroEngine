@@ -488,6 +488,7 @@ public class Matrix {
 		double time = System.nanoTime() * 1E-9;
 		Matrix normMTrans = Matrix.transpose(m);
 		Matrix myu;
+
 		if (m.getRows() >= 100 || m.getColumns() >= 100)
 			myu = Matrix.prodParallel(normMTrans, m);
 		else
@@ -498,8 +499,9 @@ public class Matrix {
 		Vector grad = null;
 		do {
 			grad = Vector.diff(gamma, Vector.matrixProd(myu, x));
-			double t = grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(myu, grad));
-			grad = Vector.scalarProd(0.001 * t, grad);
+			double d2fdt = Vector.innerProd(grad, Vector.matrixProd(myu, grad));
+			double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
+			grad = Vector.scalarProd(0.5 * t, grad);
 			x = Vector.add(x, grad);
 			// System.out.println(grad.norm() + "\t" +
 			// Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
@@ -509,40 +511,39 @@ public class Matrix {
 	}
 
 	public static Vector solveLinearSystem(Matrix m, Vector y) {
-		return solveLinearSystem(m, y, 1E-8);
+		return solveLinearSystem(m, y, 1E-15);
 	}
 
-	 public static Vector solveLinearSystemSVD(Matrix m, Vector y) {
-		 SVD svd = new SVD(m);
-		 svd.computeSVD();
-		 Matrix U = svd.getU();
-		 Matrix S = svd.getSigmaInv();
-		 Matrix V = svd.getV();
-		 if (m.getRows() >= 100 || m.getColumns() >= 100) {
-				return  Vector.matrixProd(Matrix.prodParallel(Matrix.prodParallel(V, S), Matrix.transpose(U)),y);
-		 }else {
-				return  Vector.matrixProd(Matrix.prod(Matrix.prod(V, S), Matrix.transpose(U)),y);
-		 }
-	 }
+	public static Vector solveLinearSystemSVD(Matrix m, Vector y) {
+		SVD svd = new SVD(m);
+		svd.computeSVD();
+		Matrix U = svd.getU();
+		Matrix S = svd.getSigmaInv();
+		Matrix V = svd.getV();
+		if (m.getRows() >= 100 || m.getColumns() >= 100) {
+			return Vector.matrixProd(Matrix.prodParallel(Matrix.prodParallel(V, S), Matrix.transpose(U)), y);
+		} else {
+			return Vector.matrixProd(Matrix.prod(Matrix.prod(V, S), Matrix.transpose(U)), y);
+		}
+	}
 
 	private boolean checkInputIndex(int x, int y) {
 		return x <= this.getRows() && x > 0 && y <= this.getColumns() && y > 0;
 	}
 
 	public static void main(String[] args) {
-		// double[][] ls = { { -1,1,-1,1}, { 0,0,0,1 } ,{1,1,1,1}};
-		Matrix m = new Matrix(100, 100);
-		m.fillRandom(-1000, 1000);
-		// System.out.println(m);
-		// double[] ans = { 0, 1, 0};
-		Vector y = new Vector(100);
-		y.fillRandom(-100, 100);
-		// System.out.println(y);
+		double[][] ls = { { 8, 4, 2, 0, 0, 9, 2, 4, 9, 9 }, { 2, 9, 3, 9, 0, 0, 7, 3, 5, 6 }, { 0, 7, 5, 2, 4, 1, 2, 2, 5, 4 }, { 6, 3, 0, 3, 4, 9, 9, 9, 0, 6 }, { 1, 6, 4, 6, 4, 1, 3, 2, 5, 5 }, { 7, 7, 2, 7, 1, 3, 1, 3, 8, 7 }, { 9, 1, 4, 1, 3, 2, 5, 2, 4, 6 }, { 3, 5, 8, 5, 8, 0, 7, 2, 3, 5 }, { 2, 8, 3, 9, 7, 1, 4, 4, 1, 9 }, { 0, 6, 5, 7, 4, 4, 9, 9, 6, 6 } };
+		Matrix m = new Matrix(ls);
+		// m.fillRandom(-1000, 1000);
+		double[][] ys = { { 6 }, { 7 }, { 8 }, { 3 }, { 7 }, { 5 }, { 3 }, { 4 }, { 6 }, { 2 } };
+		Vector y = new Vector(new Matrix(ys));
+		// y.fillRandom(-100, 100);
 		double time = System.currentTimeMillis() * 1E-3;
-		Vector x = Matrix.solveLinearSystem(m, y);
-		System.out.println("time : " + ((System.currentTimeMillis() * 1E-3)  - time));
+		Vector x = Matrix.solveLinearSystemSVD(m, y);
+		System.out.println("time : " + ((System.currentTimeMillis() * 1E-3) - time));
 		// System.out.println(x);
 		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
+		System.out.println(x);
 
 	}
 }

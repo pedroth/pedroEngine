@@ -1,4 +1,4 @@
-package nlp;
+package nlp.lowbow;
 
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
@@ -103,7 +103,8 @@ public class LowBowSummaryApp {
 			l.setSmoothingCoeff(addictiveSmoothCoeff);
 			l.init();
 			System.out.println("computing summary");
-			text.write(addressOut, l.getSummary(lambda));
+			HeatFlow heat = new SparseHeatFlow();
+			text.write(addressOut, l.getSummary(lambda,heat));
 		} catch(RuntimeException e) {
 			
 		}

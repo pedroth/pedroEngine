@@ -1,4 +1,4 @@
-package nlp;
+package nlp.lowbow;
 
 import graph.Graph;
 import inputOutput.MyText;
@@ -11,6 +11,7 @@ import java.io.ObjectInputStream.GetField;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import nlp.TextAlignment;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
@@ -162,8 +163,8 @@ public class LowBowSummaryPrepositions extends LowBow {
 	}
 
 	@Override
-	public String getSummary(double lambda) {
-		String acm = super.getSummary(lambda);
+	public String getSummary(double lambda, HeatFlow heat) {
+		String acm = super.getSummary(lambda, heat);
 		TextSplitter spliter = new SpaceSplitter();
 		String[] split = spliter.split(acm);
 		for (int i = 0; i < split.length; i++) {
