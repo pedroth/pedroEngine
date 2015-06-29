@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream.GetField;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import nlp.TextAlignment;
 import nlp.textSplitter.SpaceSplitter;
@@ -120,10 +121,10 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 */
 		 acm = "";
 		TextAlignment textAlig = new TextAlignment();
-		Vec2[] align = textAlig.align(text, closeToOriginalText);
-		 for (int i = 0; i < align.length; i++) {
-		 int k = (int) align[i].getX();
-		 int l = (int) align[i].getY();
+		List<Vec2> align = textAlig.align(text, closeToOriginalText);
+		 for (int i = 0; i < align.size(); i++) {
+		 int k = (int) align.get(i).getX();
+		 int l = (int) align.get(i).getY();
 		 acm += text[k] + "\t" + closeToOriginalText[l] + "\n";
 		 }
 		 t1.write("C:/Users/pedro/Desktop/Text3.txt", acm);
@@ -131,9 +132,9 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 * maps text to close to original text
 		 */
 		textToCOtextMap = new HashMap<Integer, Integer>();
-		for (int i = 0; i < align.length; i++) {
-			int key = (int) align[i].getX();
-			int value = (int) align[i].getY();
+		for (int i = 0; i < align.size(); i++) {
+			int key = (int) align.get(i).getX();
+			int value = (int) align.get(i).getY();
 			if (!textToCOtextMap.containsKey(key)) {
 				textToCOtextMap.put(key, value);
 			}

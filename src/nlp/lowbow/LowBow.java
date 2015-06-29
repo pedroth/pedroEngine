@@ -5,24 +5,23 @@ import inputOutput.MyText;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.management.RuntimeErrorException;
 
-import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
 import numeric.MyMath;
 import numeric.Pca;
 import numeric.SimplexPointSampler;
-import tools.simple.TextFrame;
 import algebra.Matrix;
 import algebra.Vec3;
 import algebra.Vector;
 
 /**
  * Lowbow implementation as described in http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
+ * 
  * 
  * @author pedro
  * 
@@ -34,11 +33,13 @@ public class LowBow {
 	 * maps words to the corresponding coordinate on the simplex index of the
 	 * coordinates starts at 1.
 	 */
-	protected HashMap<String, Integer> wordsIndex;
-	protected HashMap<Integer, String> wordsIndexInv;
+	protected Map<String, Integer> wordsIndex;
+	protected Map<Integer, String> wordsIndexInv;
 	/**
 	 * n by m matrix where n is the number of words and m is the number of words
 	 * in the dictionary
+	 * 
+	 * is the delta in definition 2 of http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
 	 */
 	protected Matrix x;
 	protected int textLength;
@@ -61,14 +62,14 @@ public class LowBow {
 	public LowBow(String in, TextSplitter textSplitter) {
 		smoothingCoeff = 0.0;
 		originalText = in;
-		wordsIndex = new HashMap<String, Integer>();
-		wordsIndexInv = new HashMap<Integer, String>();
+		wordsIndex = new TreeMap<String, Integer>();
+		wordsIndexInv = new TreeMap<Integer, String>();
 		this.textSplitter = textSplitter;
 		isInitialized = false;
 		this.processText(in);
 	}
 
-	public LowBow(String in, TextSplitter textSplitter, HashMap<String, Integer> wordIndex, HashMap<Integer, String> wordIndexInv) {
+	public LowBow(String in, TextSplitter textSplitter, Map<String, Integer> wordIndex, Map<Integer, String> wordIndexInv) {
 		smoothingCoeff = 0.0;
 		originalText = in;
 		this.wordsIndex = wordIndex;
@@ -416,11 +417,11 @@ public class LowBow {
 		return text;
 	}
 
-	public HashMap<String, Integer> getWordsIndex() {
+	public Map<String, Integer> getWordsIndex() {
 		return wordsIndex;
 	}
 
-	public HashMap<Integer, String> getWordsIndexInv() {
+	public Map<Integer, String> getWordsIndexInv() {
 		return wordsIndexInv;
 	}
 
@@ -535,14 +536,15 @@ public class LowBow {
 	public static void main(String[] args) {
 		MyText t = new MyText();
 		t.read("C:/Users/pedro/Desktop/research/Text.txt");
-		LowBow low = new LowBow("a c c c b b a c c", new SpaceSplitter());//new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
-		low.setSamplesPerTextLength(3.0);
+//		LowBow low = new LowBow("a c c c b b a c c", new SpaceSplitter());
+		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
+		low.setSamplesPerTextLength(1.0);
 		low.setSigma(0.08);
-		low.setSmoothingCoeff(0.01);
+		low.setSmoothingCoeff(0.003);
 		low.init();
 		HeatFlow heat = new MatrixHeatFlow();
-		low.heatFlow(1, heat);
-//		low.writeMatrixFile();
+		low.heatFlow(0.01, heat);
+		low.writeMatrixFile();
 		System.out.println(low);
 	}
 }

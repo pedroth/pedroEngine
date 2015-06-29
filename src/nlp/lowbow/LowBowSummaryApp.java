@@ -22,6 +22,7 @@ import inputOutput.MyText;
  *  stopWords : separates text in words, and removes stop words.
  *  prepositional : separates text in words, removes stop words and build a summary with the help of the last preposition seen before that word.
  *  symbolic : words are everything that is between spaces. example : a c c g g t -> [a,c,g,t]
+ *  
  */
 public class LowBowSummaryApp {
 	
@@ -33,7 +34,7 @@ public class LowBowSummaryApp {
 		
 		boolean error = false;
 		
-		if(args.length < 7) {
+		if(args.length < 8) {
 			System.out.println("There are missing arguments");
 			error = true; 
 		}

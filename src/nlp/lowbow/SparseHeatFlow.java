@@ -113,7 +113,7 @@ public class SparseHeatFlow implements HeatFlow {
 			maxCost = Math.max(maxCost, acmGrad);
 			ite++;
 			
-			System.out.println("" + acmCost[0] + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad) + "\t" + ite);
+//			System.out.println("" + acmCost[0] + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad) + "\t" + ite);
 //			System.out.printf("%.5f\n" , 1 - (1.0 / maxCost) * acmGrad);
 		} while (acmGrad > epsilon && ite < maxIte);
 		

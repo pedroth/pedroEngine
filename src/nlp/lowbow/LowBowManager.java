@@ -2,7 +2,9 @@ package nlp.lowbow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import numeric.Pca;
 import algebra.Vector;
@@ -14,8 +16,8 @@ import algebra.Vector;
  */
 public class LowBowManager {
 	private ArrayList<LowBow> lowbows;
-	private HashMap<String, Integer> wordIndex;
-	private HashMap<Integer, String> wordIndexInv;
+	private Map<String, Integer> wordIndex;
+	private Map<Integer, String> wordIndexInv;
 
 	public LowBowManager() {
 		lowbows = new ArrayList<LowBow>();
@@ -29,7 +31,7 @@ public class LowBowManager {
 	 */
 	public void add(LowBow l) {
 		lowbows.add(l);
-		HashMap<String, Integer> lVocabulary = l.getWordsIndex();
+		Map<String, Integer> lVocabulary = l.getWordsIndex();
 		Set<String> keys = lVocabulary.keySet();
 		int acmIndex = wordIndex.size();
 		for (String s : keys) {

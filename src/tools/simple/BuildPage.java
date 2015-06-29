@@ -95,6 +95,17 @@ public class BuildPage {
 		});
 		return directories;
 	}
+	
+	public static String[] getFiles(String path) {
+		File file = new File(path);
+		String[] files = file.list(new FilenameFilter() {
+			@Override
+			public boolean accept(File current, String name) {
+				return new File(current, name).isFile();
+			}
+		});
+		return files;
+	}
 
 	public static void buildJava() {
 		String path = "C:/pedro/visualExperiments/JavaExperiments";

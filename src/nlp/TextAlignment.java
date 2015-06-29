@@ -1,5 +1,8 @@
 package nlp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import algebra.Vec2;
 import algebra.Vec3;
 
@@ -13,18 +16,27 @@ public class TextAlignment {
 	/**
 	 * who cares if stores double instead of integers
 	 */
-	private Vec2[] alignment;
+	private ArrayList<Vec2> alignment;
+	/**
+	 * dynamic programming matrix, it records the score of the alignment until
+	 * position (i,j)
+	 */
+	private int[][] fMat;
+	/**
+	 * max similarity
+	 */
+	private int maxSim;
+	/**
+	 * max normalized similarity
+	 */
+	private double maxNormSim;
 
 	public TextAlignment() {
 		/* empty on purpose */
 	}
 
-	public Vec2[] align(String[] t1, String[] t2) {
-		/**
-		 * dynamic programming matrix, it records the score of the alignment
-		 * until position (i,j)
-		 */
-		int[][] fMat = new int[t2.length + 1][t1.length + 1];
+	public List<Vec2> align(String[] t1, String[] t2) {
+		fMat = new int[t2.length + 1][t1.length + 1];
 		// % 1 - diagonal
 		// % 2 - left
 		// % 3 - up
@@ -53,17 +65,18 @@ public class TextAlignment {
 			}
 		}
 
-		alignment = new Vec2[Math.max(t1.length, t2.length)];
+		alignment = new ArrayList<Vec2>();
 		int i = fMat.length - 1;
 		int j = fMat[0].length - 1;
-		int index = alignment.length - 1;
+		maxSim = fMat[i][j];
+		maxNormSim = (fMat[i][j] > 0 ? (fMat[i][j] - 1.0) : 0.0) / Math.max(t1.length, t2.length);
 		while (i > 0 || j > 0) {
 			int arrow = auxMat[i][j];
 			/**
 			 * diagonal
 			 */
 			if (arrow == 1) {
-				alignment[index--] = new Vec2(j - 1, i - 1);
+				alignment.add(0, new Vec2(j - 1, i - 1));
 				i--;
 				j--;
 			}
@@ -71,26 +84,35 @@ public class TextAlignment {
 			 * left
 			 */
 			else if (arrow == 2) {
-				alignment[index--] = new Vec2(j - 1, i);
+				alignment.add(0, new Vec2(j - 1, i));
 				j--;
 			}
 			/**
 			 * up
 			 */
 			else {
-				alignment[index--] = new Vec2(j, i - 1);
+				alignment.add(new Vec2(j, i - 1));
 				i--;
 			}
 		}
+
 		return alignment;
+	}
+
+	public int getMaxSim() {
+		return maxSim;
+	}
+
+	public double getMaxNormSim() {
+		return maxNormSim;
 	}
 
 	/**
 	 * 
 	 * @param v
 	 * @return max of 3 elements, the max value is on the first coordinate of
-	 *         the Vec2 and the index on the second coordinate. If some of the
-	 *         elements are equal return the index of first maximum. The
+	 *         the Vec2 and the index is on the second coordinate. If some of
+	 *         the elements are equal return the index of first maximum. The
 	 *         returned index starts at 1.
 	 */
 	private Vec2 TriMax(Vec3 v) {
@@ -104,4 +126,5 @@ public class TextAlignment {
 		}
 		return new Vec2(val, index);
 	}
+
 }

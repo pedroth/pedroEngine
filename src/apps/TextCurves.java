@@ -24,12 +24,16 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import nlp.lowbow.FisherHeat;
 import nlp.lowbow.HeatFlow;
 import nlp.lowbow.LowBow;
 import nlp.lowbow.LowBowManager;
 import nlp.lowbow.LowBowSummaryPrepositions;
 import nlp.lowbow.MatrixHeatFlow;
+import nlp.lowbow.SparseHeatFlow;
+import nlp.textSplitter.CharacterSplitter;
 import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
@@ -183,7 +187,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		Panel p3 = new Panel(new GridLayout(1, 2));
 		p3.add(new Label("Sigma[> 0]: "));
 		sigmaText = new TextField();
-		sigmaText.setText("" + 0.2);
+		sigmaText.setText("auto");
 		p3.add(sigmaText);
 		p1.add(p3);
 		/**
@@ -463,6 +467,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 				if (txtVisibleCheckBox.getState() && projLine[i].isVisible()) {
 					strCurve[j].setVisible(true);
 					strCurve[j].setVertex(projCurve[k], 0);
+					strCurve[j].setString(lowbow.generateText(k));
 				} else {
 					strCurve[j].setVisible(false);
 				}
@@ -524,7 +529,13 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
 	public void addCurveToEngine(LowBow lowbow) {
 		Random r = new Random();
-		Color color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+		Color color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));;
+		int randSamples = r.nextInt(5);
+		
+		for (int i = 0; i < randSamples; i++) {
+			color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+		}
+		
 		int n = lowbow.getSamples();
 
 		Vec2[] projCurve = new Vec2[n];
@@ -594,6 +605,9 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		lowbowM.buildPca();
 		updateCurveStats();
 		frameState.setText("");
+		if(simplexOnPolyState == 2) {
+			simplexOnPolyState = 1;
+		}
 	}
 
 	public class myActionListener implements ActionListener {
@@ -605,22 +619,31 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
+			boolean sigmaAuto = false;
+			
 			frameState.setText("Loading");
 			if (frame.isVisible()) {
 				frame.setVisible(false);
 			}
 			String inString = inOut.getText();
-			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("wordsLists/stopWords.txt"));
+//			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("wordsLists/stopWords.txt"));
+//			LowBow lowbow = new LowBow(inString, new SpaceSplitter());
+			LowBow lowbow = new LowBow(inString, new MyTextSplitter());
+//			LowBow lowbow = new LowBow(inString, new CharacterSplitter());
 			isReady = true;
 			double sigma = 0.02;
 			try {
 				sigma = Double.parseDouble(sigmaText.getText());
 			} catch (NumberFormatException e1) {
-				/**
-				 * blank on purpose
-				 */
+				if(sigmaText.getText().toLowerCase().equals("auto")) {
+					sigmaAuto = true;
+				}
 			}
 			lowbow.setSamplesPerTextLength(samplesIn);
+			if(sigmaAuto) {
+				sigma = 1.0 / (2 * lowbow.getNumWords());
+			}
 			lowbow.setSigma(sigma);
 			lowbow.setSmoothingCoeff(0.01);
 			lowbowM.add(lowbow);
