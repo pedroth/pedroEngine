@@ -16,13 +16,11 @@ import algebra.Vector;
  */
 public class LowBowManager {
 	private ArrayList<LowBow> lowbows;
-	private Map<String, Integer> wordIndex;
-	private Map<Integer, String> wordIndexInv;
+	private Simplex simplex;
 
 	public LowBowManager() {
 		lowbows = new ArrayList<LowBow>();
-		wordIndex = new HashMap<String, Integer>();
-		wordIndexInv = new HashMap<Integer, String>();
+		simplex = new Simplex();
 	}
 	/**
 	 * 
@@ -31,30 +29,28 @@ public class LowBowManager {
 	 */
 	public void add(LowBow l) {
 		lowbows.add(l);
-		Map<String, Integer> lVocabulary = l.getWordsIndex();
-		Set<String> keys = lVocabulary.keySet();
-		int acmIndex = wordIndex.size();
+		Set<String> keys = simplex.getKeySet();
+		int acmIndex = simplex.size();
 		for (String s : keys) {
-			Integer aux = wordIndex.get(s);
+			Integer aux = simplex.get(s);
 			if (aux == null) {
 				acmIndex++;
-				wordIndex.put(s, acmIndex);
-				wordIndexInv.put(acmIndex, s);
+				simplex.put(s, acmIndex);
 			}
 		}
 	}
 
 	private LowBow myUnitAuxiliarInit(LowBow temp, double samplesPerTextLength) {
-		LowBow ans = new LowBow(temp.getOriginalText(), temp.getTextSplitter(), wordIndex, wordIndexInv);
+		LowBow ans = new LowBow(temp.getOriginalText(), temp.getTextSplitter(), simplex);
 		ans.setSmoothingCoeff(temp.getSmoothingCoeff());
-		ans.init(samplesPerTextLength, temp.getSigma());
+		ans.build(samplesPerTextLength, temp.getSigma());
 		return ans;
 	}
 	
 	/**
 	 * Initializes all curves with the same vocabulary
 	 */
-	public void init() {
+	public void build() {
 		int n = lowbows.size();
 		for (int i = 0; i < n; i++) {
 			LowBow temp = lowbows.get(i);
@@ -142,6 +138,6 @@ public class LowBowManager {
 
 	public void removeAll() {
 		lowbows.removeAll(lowbows);
-		wordIndex = new HashMap<String, Integer>();
+		simplex = new Simplex();
 	}
 }

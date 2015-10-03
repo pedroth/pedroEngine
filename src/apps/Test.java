@@ -49,8 +49,7 @@ public class Test extends MyFrame {
 	public void updateDraw(Graphics g) {
 		engine.clearImageWithBackground();
 		engine.buildBoundigBoxTree();
-		
-		
+			
 		engine.drawTree();
 		engine.drawElements();
 		engine.paintImage(g);

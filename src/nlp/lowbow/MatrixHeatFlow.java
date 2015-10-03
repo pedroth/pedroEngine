@@ -5,14 +5,10 @@ import numeric.MyMath;
 import algebra.Matrix;
 import algebra.Vector;
 
-public class MatrixHeatFlow implements HeatFlow {
+public class MatrixHeatFlow implements HeatMethod {
 
 	@Override
 	public void heatFlow(double lambda, LowBow l) {
-		l.heatCurve = new Vector[l.curve.length];
-		for (int i = 0; i < l.curve.length; i++) {
-			l.heatCurve[i] = new Vector(l.numWords);
-		}
 		/**
 		 * aux variables
 		 */
@@ -56,7 +52,7 @@ public class MatrixHeatFlow implements HeatFlow {
 //			t1.write("C:/Users/pedro/Desktop/Text"+ (j) + ".txt", zeta.toStringMatlab());
 //			System.out.println(Vector.diff(Vector.matrixProd(myu, v),zeta).norm());
 			for (int i = 1; i <= l.samples; i++) {
-				l.heatCurve[i - 1].setX(j, v.getX(i));
+				l.curve[i - 1].setX(j, v.getX(i));
 			}
 //			System.out.println(1.0 * j /l.numWords);
 		}

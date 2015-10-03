@@ -102,10 +102,11 @@ public class LowBowSummaryApp {
 			l.setSamplesPerTextLength(samplesPerTextLength);
 			l.setSigma(sigma);
 			l.setSmoothingCoeff(addictiveSmoothCoeff);
-			l.init();
+			l.build();
 			System.out.println("computing summary");
-			HeatFlow heat = new SparseHeatFlow();
-			text.write(addressOut, l.getSummary(lambda,heat));
+			HeatMethod heat = new SparseHeatFlow();
+			l.heatFlow(lambda, heat);
+			text.write(addressOut, l.generateText());
 		} catch(RuntimeException e) {
 			
 		}

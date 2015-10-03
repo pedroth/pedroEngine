@@ -24,17 +24,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import nlp.lowbow.FisherHeat;
-import nlp.lowbow.HeatFlow;
+import nlp.lowbow.HeatMethod;
 import nlp.lowbow.LowBow;
 import nlp.lowbow.LowBowManager;
-import nlp.lowbow.LowBowSummaryPrepositions;
 import nlp.lowbow.MatrixHeatFlow;
 import nlp.lowbow.SparseHeatFlow;
-import nlp.textSplitter.CharacterSplitter;
 import nlp.textSplitter.MyTextSplitter;
-import nlp.textSplitter.SpaceSplitter;
-import nlp.textSplitter.StopWordsSplitter;
 import numeric.MyMath;
 import tools.simple.Camera3D;
 import tools.simple.TextFrame;
@@ -260,7 +255,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				HeatFlow heat = new MatrixHeatFlow();
+				HeatMethod heat = new MatrixHeatFlow();
 				heatFlow(lambdaIn, heat);
 			}
 		});
@@ -467,7 +462,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 				if (txtVisibleCheckBox.getState() && projLine[i].isVisible()) {
 					strCurve[j].setVisible(true);
 					strCurve[j].setVertex(projCurve[k], 0);
-					strCurve[j].setString(lowbow.generateText(k));
+					strCurve[j].setString(lowbow.wordAt(k));
 				} else {
 					strCurve[j].setVisible(false);
 				}
@@ -577,7 +572,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		String acm = "";
 		for (int i = 0; i < n; i++) {
 			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
-			acm += low.generateText(k) + "\n";
+			acm += low.wordAt(k) + "\n";
 		}
 
 		TextFrame frame = new TextFrame("Generated Text", acm);
@@ -595,12 +590,11 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 		}
 	}
 
-	public void heatFlow(double lambda, HeatFlow heat) {
+	public void heatFlow(double lambda, HeatMethod heat) {
 		ArrayList<LowBow> low = lowbowM.getLowbows();
 		LowBow curve = low.get(low.size() - 1);
 		frameState.setText("Computing heat flow");
-		curve.heatFlow(lambda,heat);
-		curve.curve2Heat();
+		curve.heatFlow(lambda, heat);
 		frameState.setText("build pca");
 		lowbowM.buildPca();
 		updateCurveStats();
@@ -642,13 +636,13 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 			}
 			lowbow.setSamplesPerTextLength(samplesIn);
 			if(sigmaAuto) {
-				sigma = 1.0 / (2 * lowbow.getNumWords());
+				sigma = 1.0 / (2 * lowbow.getTextLength());
 			}
 			lowbow.setSigma(sigma);
 			lowbow.setSmoothingCoeff(0.01);
 			lowbowM.add(lowbow);
 			frameState.setText("Processing");
-			lowbowM.init();
+			lowbowM.build();
 			frameState.setText("computing Pca");
 			lowbowM.buildPca();
 			isReady = false;

@@ -20,12 +20,12 @@ public class BuildPage {
 
 		String text = "\n\n<h1>" + name + "</h1>\n" + "<object type=\"application/x-java-applet\" height=\"100\" width=\"250\">\n" + "<param name=\"code\" value=\"apps.FrameApplet.class\" />\n" + "<param name=\"archive\" value=\"" + name + "Applet.jar\" />\nApplet failed to run.  No Java plug-in was found.\n" + " </object>\n" + " <p>input : </p><p>&lt; h &gt; : help button.</p>\n<p><a href='" + name + ".zip'> download applet and play it faster</a>\n";
 
-		if (name.equals("CellularAutomaton")) {
-			text = "<h1>CellularAutomaton</h1>\n" + "<object type=\"application/x-java-applet\" height=\"500\" width=\"500\">\n" + "<param name=\"code\" value=\"apps.ParallelCellularAutomaton.class\" />\n" + "<param name=\"archive\" value=\"CellularAutomatonApplet.jar\" />n" + "Applet failed to run.  No Java plug-in was found." + "</object>\n" + "<p>input : </p><p>&lt; h &gt; : help button.</p>\n";
-
-		} else if (name.equals("SimplePhysics")) {
-			text = "\n\n<h1>" + name + "</h1>\n" + "<object type=\"application/x-java-applet\" height=\"500\" width=\"500\">\n" + "<param name=\"code\" value=\"apps.SimplePhysics.class\" />\n" + "<param name=\"archive\" value=\"" + name + "Applet.jar\" />\nApplet failed to run.  No Java plug-in was found.\n" + " </object>\n" + " <p>input : </p><p>&lt; h &gt; : help button.</p>\n";
-		}
+//		if (name.equals("CellularAutomaton")) {
+//			text = "<h1>CellularAutomaton</h1>\n" + "<object type=\"application/x-java-applet\" height=\"500\" width=\"500\">\n" + "<param name=\"code\" value=\"apps.ParallelCellularAutomaton.class\" />\n" + "<param name=\"archive\" value=\"CellularAutomatonApplet.jar\" />n" + "Applet failed to run.  No Java plug-in was found." + "</object>\n" + "<p>input : </p><p>&lt; h &gt; : help button.</p>\n";
+//
+//		} else if (name.equals("SimplePhysics")) {
+//			text = "\n\n<h1>" + name + "</h1>\n" + "<object type=\"application/x-java-applet\" height=\"500\" width=\"500\">\n" + "<param name=\"code\" value=\"apps.SimplePhysics.class\" />\n" + "<param name=\"archive\" value=\"" + name + "Applet.jar\" />\nApplet failed to run.  No Java plug-in was found.\n" + " </object>\n" + " <p>input : </p><p>&lt; h &gt; : help button.</p>\n";
+//		}
 
 		try {
 			SufixTreeTokenizer parser = new SufixTreeTokenizer(special);

@@ -91,7 +91,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 acm += closeToOriginalText[i] + "\n";
 		 }
 		
-		 t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
+//		 t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
 
 		for (int i = 0; i < closeToOriginalText.length; i++) {
 			if (!isPreposition[i]) {
@@ -115,7 +115,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 closeToOriginalText[prepositionIndex[i]]:"") + "\n";
 		 }
 		
-		 t1.write("C:/Users/pedro/Desktop/Text2.txt", acm);
+//		 t1.write("C:/Users/pedro/Desktop/Text2.txt", acm);
 		/**
 		 * Alignment
 		 */
@@ -127,7 +127,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 int l = (int) align.get(i).getY();
 		 acm += text[k] + "\t" + closeToOriginalText[l] + "\n";
 		 }
-		 t1.write("C:/Users/pedro/Desktop/Text3.txt", acm);
+//		 t1.write("C:/Users/pedro/Desktop/Text3.txt", acm);
 		/**
 		 * maps text to close to original text
 		 */
@@ -147,7 +147,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 			gWordsIndex.addVertex(i);
 		}
 		for (int i = 0; i < textLength; i++) {
-			gWordsIndex.addEdge(wordsIndex.get(text[i]), numWords + i + 1);
+			gWordsIndex.addEdge(simplex.get(text[i]), numWords + i + 1);
 		}
 		printWordsToTextGraph();
 	}
@@ -164,8 +164,8 @@ public class LowBowSummaryPrepositions extends LowBow {
 	}
 
 	@Override
-	public String getSummary(double lambda, HeatFlow heat) {
-		String acm = super.getSummary(lambda, heat);
+	public String generateText() {
+		String acm = super.generateText();
 		TextSplitter spliter = new SpaceSplitter();
 		String[] split = spliter.split(acm);
 		for (int i = 0; i < split.length; i++) {
@@ -182,7 +182,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 */
 		int bestTextIndex = -1;
 		int min = Integer.MAX_VALUE;
-		for (Integer adj : gWordsIndex.getEdges(wordsIndex.get(s))) {
+		for (Integer adj : gWordsIndex.getEdges(simplex.get(s))) {
 			if (adj == null) {
 				return null;
 			}
@@ -210,13 +210,13 @@ public class LowBowSummaryPrepositions extends LowBow {
 		MyText t1 = new MyText();
 		String acm = "";
 		for (int i = 1; i <= numWords; i++) {
-			acm += wordsIndexInv.get(i) + "|\t";
+			acm += simplex.get(i) + "|\t";
 			for (int adj : gWordsIndex.getEdges(i)) {
 				acm += text[adj - numWords - 1] + "\t";
 			}
 			acm += "\n";
 		}
-		t1.write("C:/Users/pedro/Desktop/Text4.txt", acm);
+//		t1.write("C:/Users/pedro/Desktop/Text4.txt", acm);
 	}
 
 	public static void main(String[] args) {
@@ -226,7 +226,6 @@ public class LowBowSummaryPrepositions extends LowBow {
 		low.setSamplesPerTextLength(1);
 		low.setSmoothingCoeff(0.01);
 		low.setSigma(0.009);
-//		low.init();
-//		low.getSummary(0.1);
+		low.build();
 	}
 }

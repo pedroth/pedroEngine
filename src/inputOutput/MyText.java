@@ -16,6 +16,11 @@ public class MyText {
 		text = "";
 	}
 
+	public MyText(String adress) {
+		super();
+		this.read(adress);
+	}
+
 	public void read(String address) {
 		text = "";
 		BufferedReader in;

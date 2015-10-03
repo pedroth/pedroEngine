@@ -29,103 +29,94 @@ import algebra.Vector;
 public class LowBow {
 	protected String originalText;
 	protected String[] text;
+	protected int textLength;
+	protected TextSplitter textSplitter;
 	/**
-	 * maps words to the corresponding coordinate on the simplex index of the
-	 * coordinates starts at 1.
+	 * vocabulary represented as a simplex
 	 */
-	protected Map<String, Integer> wordsIndex;
-	protected Map<Integer, String> wordsIndexInv;
+	protected Simplex simplex;
+	protected int numWords;
 	/**
 	 * n by m matrix where n is the number of words and m is the number of words
 	 * in the dictionary
 	 * 
 	 * is the delta in definition 2 of http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
 	 */
-	protected Matrix x;
-	protected int textLength;
-	protected int numWords;
-	protected int samples;
-	protected double sigma;
-	protected double samplesPerTextLength;
-	protected double step;
+	protected Matrix rawCurve;
 	protected Vector[] curve;
-	protected Vector[] heatCurve;
 	protected Vec3[] pcaCurve;
+	
+	protected int samples;
+	/**
+	 * 1.0 / (samples - 1)
+	 */
+	protected double step;
+	
+	protected double sigma;
+	protected double samplesPerTextLength = 1.0;
 	/**
 	 * parameter c described in definition 2
 	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
 	 */
-	protected double smoothingCoeff;
-	protected TextSplitter textSplitter;
-	protected boolean isInitialized;
-
-	public LowBow(String in, TextSplitter textSplitter) {
-		smoothingCoeff = 0.0;
-		originalText = in;
-		wordsIndex = new TreeMap<String, Integer>();
-		wordsIndexInv = new TreeMap<Integer, String>();
-		this.textSplitter = textSplitter;
-		isInitialized = false;
-		this.processText(in);
+	protected double smoothingCoeff = 1E-2;
+	
+	protected boolean isBuild;
+	
+	public LowBow(LowBow l) {
+		super();
+		this.originalText = l.originalText;
+		this.text = l.text;
+		this.textLength = l.textLength;
+		this.textSplitter = l.textSplitter;
+		this.simplex = l.simplex;
+		this.numWords = l.numWords;
+		this.rawCurve = l.rawCurve;
+		this.curve = l.curve;
+		this.pcaCurve = l.pcaCurve;
+		this.samples = l.samples;
+		this.step = l.step;
+		this.sigma = l.sigma;
+		this.samplesPerTextLength = l.samplesPerTextLength;
+		this.smoothingCoeff = l.smoothingCoeff;
+		this.isBuild = l.isBuild;
 	}
 
-	public LowBow(String in, TextSplitter textSplitter, Map<String, Integer> wordIndex, Map<Integer, String> wordIndexInv) {
-		smoothingCoeff = 0.0;
+	public LowBow(String in, TextSplitter textSplitter) {
 		originalText = in;
-		this.wordsIndex = wordIndex;
-		this.wordsIndexInv = wordIndexInv;
+		this.simplex = new Simplex();
 		this.textSplitter = textSplitter;
-		isInitialized = false;
+		isBuild = false;
 		this.processText(in);
+		sigma = 1.0 / (0.8 * textLength);
+	}
+
+	public LowBow(String in, TextSplitter textSplitter, Simplex simplex) {
+		originalText = in;
+		this.simplex = simplex;
+		this.textSplitter = textSplitter;
+		isBuild = false;
+		this.processText(in);
+		sigma = 1.0 / (0.8 * textLength);
 	}
 
 	private double kernel(double x, double myu, double sigma) {
-		double normalization = phi((1 - myu) / sigma) - phi(-myu / sigma);
+		double normalization = MyMath.phi((1 - myu) / sigma) - MyMath.phi(-myu / sigma);
 		double gaussian = (1 / (Math.sqrt(2 * Math.PI) * sigma)) * Math.exp(-0.5 * ((x - myu) / sigma) * ((x - myu) / sigma));
 		return gaussian / normalization;
-	}
-
-	/**
-	 * http://www.johndcook.com/blog/cpp_phi/
-	 * 
-	 * @param x
-	 * @return gaussian cumulative distribution function
-	 */
-	private double phi(double x) {
-		// constants
-		double a1 = 0.254829592;
-		double a2 = -0.284496736;
-		double a3 = 1.421413741;
-		double a4 = -1.453152027;
-		double a5 = 1.061405429;
-		double p = 0.3275911;
-
-		// Save the sign of x
-		int sign = 1;
-		if (x < 0)
-			sign = -1;
-		x = Math.abs(x) / Math.sqrt(2.0);
-
-		// A&S formula 7.1.26
-		double t = 1.0 / (1.0 + p * x);
-		double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-
-		return 0.5 * (1.0 + sign * y);
 	}
 
 	private void processText(String in) {
 		text = textSplitter.split(in);
 		int acmIndex = 0;
 		for (int i = 0; i < text.length; i++) {
-			Integer aux = wordsIndex.get(text[i]);
+			Integer aux = simplex.get(text[i]);
 			if (aux == null) {
 				acmIndex++;
-				wordsIndex.put(text[i], acmIndex);
-				wordsIndexInv.put(acmIndex, text[i]);
+				simplex.put(text[i], acmIndex);
 			}
 		}
 		textLength = text.length;
-		numWords = wordsIndex.size();
+		numWords = simplex.size();
 	}
 
 	/**
@@ -133,40 +124,40 @@ public class LowBow {
 	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
 	 */
 	private double gamma(double myu, double sigma, int samples, int j) {
-		double acm = 0;
+		double acc = 0;
 		double h = 1.0 / (samples - 1);
 		double x = 0;
 		/**
 		 * trapezoidal method of integration
 		 */
 		for (int i = 0; i < samples - 1; i++) {
-			acm += kernel(x, myu, sigma) * psi(x, j) + kernel(x + h, myu, sigma) * psi(x + h, j);
+			acc += kernel(x, myu, sigma) * psi(x, j) + kernel(x + h, myu, sigma) * psi(x + h, j);
 			x += h;
 		}
-		return acm * 0.5 * h;
+		return acc * 0.5 * h;
+	}
+	
+	public void build() {
+		build(samplesPerTextLength, sigma);
 	}
 
-	public void init() {
-		init(samplesPerTextLength, sigma);
-	}
-
-	public void init(double samplesPerTextLength, double sigma) {
-		x = new Matrix(textLength, numWords);
-		int n = x.getRows();
-		int m = x.getColumns();
+	public void build(double samplesPerTextLength, double sigma) {
+		rawCurve = new Matrix(textLength, numWords);
+		int n = rawCurve.getRows();
+		int m = rawCurve.getColumns();
 		double norm = 1 + smoothingCoeff * m;
 		for (int i = 1; i <= n; i++) {
 			if (smoothingCoeff == 0.0) {
-				x.setXY(i, wordsIndex.get(text[i - 1]), 1.0);
+				rawCurve.setXY(i, simplex.get(text[i - 1]), 1.0);
 			} else {
 				for (int j = 1; j <= m; j++) {
-					x.setXY(i, j, (wordsIndex.get(text[i - 1]) == j) ? ((1.0 + smoothingCoeff) / norm) : (smoothingCoeff / norm));
+					rawCurve.setXY(i, j, (simplex.get(text[i - 1]) == j) ? ((1.0 + smoothingCoeff) / norm) : (smoothingCoeff / norm));
 				}
 			}
 		}
 
 		resample(samplesPerTextLength, sigma);
-		isInitialized = true;
+		isBuild = true;
 	}
 
 	public void resample(double samplesPerTextLength, double sigma) {
@@ -197,7 +188,7 @@ public class LowBow {
 	}
 
 	public void buildPca() {
-		if (!isInitialized)
+		if (!isBuild)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
@@ -221,7 +212,7 @@ public class LowBow {
 	 *            is the average point
 	 */
 	public void buildPca(Vector[] pc, Vector myu) {
-		if (!isInitialized)
+		if (!isBuild)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
 		/**
 		 * pca
@@ -232,43 +223,6 @@ public class LowBow {
 			pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
 		}
 		// writeObjFile(false);
-	}
-
-	/**
-	 * solves the following PDE: u_t(x,t) = (1 - lambda) * (u_init(x,t) -
-	 * u(x,t)) + lambda * (u_xx(x,t)); where u_t is the time derivative of the
-	 * curve, u_xx is the second derivative of the curve relative to the
-	 * parameter of the parameterization x , u(x,t) is the curve parameterized
-	 * by x in time t
-	 * 
-	 * this solves the PDE using Dirichlet boundary conditions
-	 * 
-	 * following the notation of the
-	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf u(x,t)
-	 * corresponds to the curve gamma(myu,t)
-	 * 
-	 * TODO Try use Wolfe's conditions to choose dt.
-	 * 
-	 * @param lambda
-	 *            \in [0,1]
-	 */
-	public void heatFlow(double lambda, HeatFlow heat) {
-		if (!isInitialized)
-			throw new RuntimeErrorException(null, "LowBow not initialized");
-		
-		heat.heatFlow(lambda, this);
-	}
-
-	/**
-	 * changes the original curve to the smoothed one
-	 */
-	public void curve2Heat() {
-		if (heatCurve == null) {
-			return;
-		}
-		for (int i = 0; i < curve.length; i++) {
-			curve[i] = heatCurve[i];
-		}
 	}
 
 	/**
@@ -305,38 +259,28 @@ public class LowBow {
 	}
 
 	@SuppressWarnings("unused")
-	public void writeMatrixFile() {
+	public void writeMatrixFile(String address) {
 		MyText t1 = new MyText();
 
-		String acm = "";
+		String acc = "";
 
-		acm += " x = [\t";
-		for (int i = 1; i <= x.getRows(); i++) {
-			for (int j = 1; j <= x.getColumns(); j++) {
-				acm += x.getXY(i, j) + ",\t";
+		acc += " x = [\t";
+		for (int i = 1; i <= rawCurve.getRows(); i++) {
+			for (int j = 1; j <= rawCurve.getColumns(); j++) {
+				acc += rawCurve.getXY(i, j) + ",\t";
 			}
-			acm += ";\t";
+			acc += ";\t";
 		}
-		acm += "]\n";
-		acm += "curve = [\t";
+		acc += "]\n";
+		acc += "curve = [\t";
 		for (int i = 0; i < curve.length; i++) {
 			for (int j = 1; j <= curve[0].getDim(); j++) {
-				acm += curve[i].getX(j) + ",\t";
+				acc += curve[i].getX(j) + ",\t";
 			}
-			acm += ";\t";
+			acc += ";\t";
 		}
-		acm += "]\n";
-
-		acm += "heat = [\t";
-		for (int i = 0; i < heatCurve.length; i++) {
-			for (int j = 1; j <= curve[0].getDim(); j++) {
-				acm += heatCurve[i].getX(j) + ",\t";
-			}
-			acm += ";\t";
-		}
-		acm += "]\n";
-
-		t1.write("C:/Users/pedro/Desktop/Text1.txt", acm);
+		acc += "]\n";
+		t1.write(address, acc);
 	}
 
 	/**
@@ -346,7 +290,11 @@ public class LowBow {
 	 * @param k
 	 * @return
 	 */
-	public String generateText(int k) {
+	public String wordAt(int k) {
+		if(!isBuild) {
+			build();
+		}
+			
 		String ans = "";
 		if (k < 0 || k > (samples - 1)) {
 			return ans;
@@ -362,7 +310,7 @@ public class LowBow {
 				key = i;
 			}
 		}
-		ans = wordsIndexInv.get(key);
+		ans = simplex.get(key);
 		return ans;
 	}
 
@@ -373,7 +321,11 @@ public class LowBow {
 	 * @param k
 	 * @return
 	 */
-	public String generateTextRandom(int k) {
+	public String wordAtRandom(int k) {
+		if(!isBuild) {
+			build();
+		}
+		
 		String ans = "";
 		if (k < 0 || k > (samples - 1)) {
 			return ans;
@@ -381,7 +333,7 @@ public class LowBow {
 		Vector v = curve[k];
 		SimplexPointSampler r = new SimplexPointSampler(v.getArray());
 		int key = r.nextSymbol();
-		ans = wordsIndexInv.get(key + 1);
+		ans = simplex.get(key + 1);
 		return ans;
 	}
 
@@ -399,7 +351,7 @@ public class LowBow {
 		t = Math.min(t, 1.0);
 		if (t >= 0 && j >= 1 && j <= numWords) {
 			int index = (int) Math.min(Math.floor(textLength * t), textLength - 1);
-			return x.getXY(index + 1, j);
+			return rawCurve.getXY(index + 1, j);
 		} else {
 			throw new IndexOutOfBoundsException("t:" + t + "  j : " + j + " numWords : " + numWords);
 		}
@@ -417,20 +369,16 @@ public class LowBow {
 		return text;
 	}
 
-	public Map<String, Integer> getWordsIndex() {
-		return wordsIndex;
-	}
-
-	public Map<Integer, String> getWordsIndexInv() {
-		return wordsIndexInv;
+	public Simplex getSimplex() {
+		return simplex;
 	}
 
 	/**
 	 * 
-	 * @return lowbow representation without smoothing. Each line represents
+	 * @return lowbow representation without smoothing.
 	 */
-	public Matrix getCategoricText() {
-		return x;
+	public Matrix rawCurve() {
+		return rawCurve;
 	}
 
 	public int getTextLength() {
@@ -452,6 +400,10 @@ public class LowBow {
 	public Vector[] getCurve() {
 		return curve;
 	}
+	
+	public void setCurve(Vector[] curve) {
+		this.curve = curve;
+	}
 
 	public Vec3[] getPcaCurve() {
 		return pcaCurve;
@@ -459,10 +411,6 @@ public class LowBow {
 
 	public double getSmoothingCoeff() {
 		return smoothingCoeff;
-	}
-
-	public Vector[] getHeatCurve() {
-		return heatCurve;
 	}
 
 	/**
@@ -502,6 +450,12 @@ public class LowBow {
 			throw new RuntimeErrorException(null, "sigma must be > 0");
 		this.sigma = sigma;
 	}
+	/**
+	 * set sigma acoording to the folowing rule: 1.0 / (2 * textLength)
+	 */
+	public void setSigmaAuto() {
+		this.sigma = 1.0 / (0.8 * this.getTextLength());
+	}
 
 	/**
 	 * 
@@ -512,22 +466,31 @@ public class LowBow {
 		if (samplesPerTextLength <= 0)
 			throw new RuntimeErrorException(null, "samples per text length must be > 0");
 		this.samplesPerTextLength = samplesPerTextLength;
+		
 	}
-
-	public String getSummary(double lambda, HeatFlow heat) {
-		if (!isInitialized)
+	/**
+	 * 
+	 * @return text based on the maximum probable word at each sample.
+	 */
+	public String generateText() {
+		if (!isBuild)
 			throw new RuntimeErrorException(null, "LowBow not initialized");
-		this.heatFlow(lambda, heat);
-		this.curve2Heat();
 		int n = this.getTextLength();
 		int samples = this.getSamples();
 		double s = (samples - 1.0) / (n - 1.0);
-		String acm = "";
+		String acc = "";
 		for (int i = 0; i < n; i++) {
 			int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
-			acm += this.generateText(k) + "\n";
+			acc += this.wordAt(k) + "\n";
 		}
-		return acm;
+		return acc;
+	}
+	
+	public void heatFlow(double lambda, HeatMethod heatM) {
+		if(!isBuild) {
+			build();
+		}
+		heatM.heatFlow(lambda, this);
 	}
 
 	/**
@@ -541,10 +504,10 @@ public class LowBow {
 		low.setSamplesPerTextLength(1.0);
 		low.setSigma(0.08);
 		low.setSmoothingCoeff(0.003);
-		low.init();
-		HeatFlow heat = new MatrixHeatFlow();
+		low.build();
+		HeatMethod heat = new MatrixHeatFlow();
 		low.heatFlow(0.01, heat);
-		low.writeMatrixFile();
+//		low.writeMatrixFile();
 		System.out.println(low);
 	}
 }

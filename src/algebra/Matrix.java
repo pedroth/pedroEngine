@@ -544,6 +544,5 @@ public class Matrix {
 		// System.out.println(x);
 		System.out.println(new Vector(Matrix.diff(Matrix.prod(m, x), y)).norm());
 		System.out.println(x);
-
 	}
 }

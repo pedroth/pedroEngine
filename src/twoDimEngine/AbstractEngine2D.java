@@ -25,7 +25,6 @@ public abstract class AbstractEngine2D {
 	public AbstractEngine2D(int width,int height) {
 		backGroundColor = Color.white;
 		image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		backGroundColor = Color.white;
 		defaultPainter = new Wireframe(this);
 	}
 
