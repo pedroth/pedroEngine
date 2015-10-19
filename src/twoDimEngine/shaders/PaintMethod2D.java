@@ -1,4 +1,11 @@
-package twoDimEngine;
+package twoDimEngine.shaders;
+
+import twoDimEngine.AbstractEngine2D;
+import twoDimEngine.elements.Line2D;
+import twoDimEngine.elements.Point2D;
+import twoDimEngine.elements.Quad2D;
+import twoDimEngine.elements.String2D;
+import twoDimEngine.elements.Triangle2D;
 
 public abstract class  PaintMethod2D {
 	protected AbstractEngine2D engine;

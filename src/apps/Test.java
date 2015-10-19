@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import twoDimEngine.BoxEngine;
-import twoDimEngine.FillShader;
-import twoDimEngine.PaintMethod2D;
-import twoDimEngine.Point2D;
+import twoDimEngine.elements.Point2D;
+import twoDimEngine.shaders.FillShader;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
 public class Test extends MyFrame {

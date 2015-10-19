@@ -9,10 +9,10 @@ import java.text.NumberFormat;
 import java.util.Random;
 
 import tools.simple.TextFrame;
-import twoDimEngine.FillShader;
-import twoDimEngine.PaintMethod2D;
-import twoDimEngine.String2D;
 import twoDimEngine.TwoDimEngine;
+import twoDimEngine.elements.String2D;
+import twoDimEngine.shaders.FillShader;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
 public class ImplicitSurface extends MyFrame {

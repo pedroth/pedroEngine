@@ -2,6 +2,8 @@ package twoDimEngine;
 
 import java.util.ArrayList;
 
+import twoDimEngine.shaders.PaintMethod2D;
+
 public class TwoDimEngine extends AbstractEngine2D{
 	private ArrayList<AbstractDrawAble2D> elements;
 

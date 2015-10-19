@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
+import twoDimEngine.elements.Quad2D;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
 public class BoxEngine extends AbstractEngine2D {

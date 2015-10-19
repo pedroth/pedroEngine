@@ -1,5 +1,8 @@
 package numeric;
 
+import realFunction.ExpressionFunction;
+import algebra.Vector;
+
 public class MyMath {
 	public static double clamp(double x, double xmin, double xmax) {
 		return Math.max(xmin, Math.min(xmax, x));
@@ -54,5 +57,19 @@ public class MyMath {
 		double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
 
 		return 0.5 * (1.0 + sign * y);
+	}
+	
+	/**
+	 * warning does not accept variables
+	 * 
+	 * @param s
+	 *            string to be read.
+	 * @return computation of the expression in s
+	 */
+	public static double numericRead(String s) {
+		ExpressionFunction in;
+		in = new ExpressionFunction(s, new String[] {});
+		in.init();
+		return in.compute(new Vector(new double[] {}));
 	}
 }

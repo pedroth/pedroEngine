@@ -1,7 +1,11 @@
-package twoDimEngine;
+package twoDimEngine.elements;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import twoDimEngine.AbstractDrawAble2D;
+import twoDimEngine.BoundingBox;
+import twoDimEngine.shaders.PaintMethod2D;
 
 public class Composite2D extends AbstractDrawAble2D {
 	private List<AbstractDrawAble2D> elementList;

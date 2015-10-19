@@ -69,7 +69,7 @@ public class Matrix {
 		if (checkInputIndex(x, y))
 			r = matrix[x - 1][y - 1];
 		else
-			throw new AlgebraException("index out of matrix");
+			throw new AlgebraException("index out of matrix. (x,y) : ( " + x + " , " + y +" )" );
 		return r;
 	}
 

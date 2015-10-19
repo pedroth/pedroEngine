@@ -1,7 +1,9 @@
-package twoDimEngine;
+package twoDimEngine.elements;
 
 import java.awt.Color;
 
+import twoDimEngine.AbstractDrawAble2D;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
 public abstract class Element2D extends AbstractDrawAble2D {

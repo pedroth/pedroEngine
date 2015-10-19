@@ -1,5 +1,7 @@
-package twoDimEngine;
+package twoDimEngine.elements;
 
+import twoDimEngine.BoundingBox;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
 public class Line2D extends Element2D {

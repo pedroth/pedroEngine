@@ -1,12 +1,16 @@
-package twoDimEngine;
+package twoDimEngine.elements;
 
+import twoDimEngine.BoundingBox;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Vec2;
 
-public class Triangle2D extends Element2D {
-
-	public Triangle2D(Vec2 v1, Vec2 v2, Vec2 v3) {
-		super(3);
-		for (int i = 0; i < 3; i++) {
+public class Quad2D extends Element2D {
+	
+	
+	
+	public Quad2D(Vec2 v1, Vec2 v2, Vec2 v3, Vec2 v4) {
+		super(4);		
+		for (int i = 0; i < numVertices; i++) {
 			switch(i){
 			case 0:
 				vertices[0] = v1;
@@ -17,13 +21,16 @@ public class Triangle2D extends Element2D {
 			case 2:
 				vertices[2] = v3;
 				break;
+			case 3:
+				vertices[3] = v4;
+				break;
 			}
 		}
 	}
 
 	@Override
 	public void draw(PaintMethod2D painter) {
-		painter.paintTriangle(this);
+		painter.paintQuad(this);
 	}
 
 	@Override
@@ -42,4 +49,5 @@ public class Triangle2D extends Element2D {
 		
 		return new BoundingBox(xmin, ymin, xmax, ymax);
 	}
+
 }

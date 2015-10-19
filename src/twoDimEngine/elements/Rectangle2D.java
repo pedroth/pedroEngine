@@ -1,7 +1,10 @@
-package twoDimEngine;
+package twoDimEngine.elements;
 
 import java.awt.Color;
 
+import twoDimEngine.AbstractDrawAble2D;
+import twoDimEngine.BoundingBox;
+import twoDimEngine.shaders.PaintMethod2D;
 import algebra.Matrix;
 import algebra.Vec2;
 

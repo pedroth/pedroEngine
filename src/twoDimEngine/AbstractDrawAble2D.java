@@ -1,5 +1,7 @@
 package twoDimEngine;
 
+import twoDimEngine.shaders.PaintMethod2D;
+
 public abstract class AbstractDrawAble2D implements DrawAble2D {
 	protected PaintMethod2D myPainter;
 	protected boolean visible;

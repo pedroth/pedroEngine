@@ -1,7 +1,12 @@
-package twoDimEngine;
+package twoDimEngine.shaders;
 
 import java.awt.Graphics;
 
+import twoDimEngine.AbstractEngine2D;
+import twoDimEngine.elements.Element2D;
+import twoDimEngine.elements.Point2D;
+import twoDimEngine.elements.Quad2D;
+import twoDimEngine.elements.Triangle2D;
 import algebra.Vec2;
 
 

@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
+import twoDimEngine.shaders.PaintMethod2D;
+import twoDimEngine.shaders.Wireframe;
+
 public abstract class AbstractEngine2D {
 
 	/**

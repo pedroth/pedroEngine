@@ -1,10 +1,17 @@
-package twoDimEngine;
+package twoDimEngine.shaders;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import twoDimEngine.AbstractEngine2D;
+import twoDimEngine.elements.Element2D;
+import twoDimEngine.elements.Line2D;
+import twoDimEngine.elements.Point2D;
+import twoDimEngine.elements.Quad2D;
+import twoDimEngine.elements.String2D;
+import twoDimEngine.elements.Triangle2D;
 import algebra.Vec2;
 
 public class Wireframe extends PaintMethod2D {

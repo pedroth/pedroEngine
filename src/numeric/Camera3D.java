@@ -1,4 +1,4 @@
-package tools.simple;
+package numeric;
 
 import algebra.Matrix;
 import algebra.Vec3;
