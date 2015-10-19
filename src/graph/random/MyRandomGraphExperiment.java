@@ -10,6 +10,8 @@ import java.awt.Label;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ import javax.swing.JPanel;
 
 import numeric.MyMath;
 import realFunction.ExpressionFunction;
+import realFunction.MultiVarFunction;
 import realFunction.UniVarFunction;
 import algebra.Matrix;
 import algebra.Vector;
@@ -30,6 +33,7 @@ public class MyRandomGraphExperiment {
 	 */
 	private JFrame frame = new JFrame("Grupo 1");
 	private JPanel panel = new JPanel();
+	private Choice functionType = new Choice();
 	private TextField functionString = new TextField("sin(x) + cos(y)");
 	private TextField xMinTxt = new TextField("0");
 	private TextField xMaxTxt = new TextField("2 * pi");
@@ -53,6 +57,10 @@ public class MyRandomGraphExperiment {
 	private double ymax = 2 * Math.PI;
 	private UniVarFunction positiveFunction;
 	/**
+	 * Here for printing purposes
+	 */
+	private String originalRandomMatrix;
+	/**
 	 * between 0 and 1
 	 */
 	private double scale = 1.0;
@@ -62,6 +70,27 @@ public class MyRandomGraphExperiment {
 		 * build GUI
 		 */
 		this.BuildGUI();
+		functionType.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (functionType.getSelectedItem().equals("Random")) {
+					functionString.setVisible(false);
+					xMinTxt.setVisible(false);
+					xMaxTxt.setVisible(false);
+					yMinTxt.setVisible(false);
+					yMaxTxt.setVisible(false);
+				}else {
+					functionString.setVisible(true);
+					xMinTxt.setVisible(true);
+					xMaxTxt.setVisible(true);
+					yMinTxt.setVisible(true);
+					yMaxTxt.setVisible(true);
+				}
+			}
+		});
+		
+		
 		runButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -122,7 +151,9 @@ public class MyRandomGraphExperiment {
 		frame.setSize(500, 500);
 		panel.setLayout(new GridLayout(10, 1));
 		JPanel functionPanel = new JPanel(new GridLayout(1, 2));
-		functionPanel.add(new Label("F(x,y)"));
+		functionPanel.add(functionType);
+		functionType.add("F(x,y)");
+		functionType.add("Random");
 		functionPanel.add(functionString);
 		panel.add(functionPanel);
 		
@@ -174,8 +205,21 @@ public class MyRandomGraphExperiment {
 
 	private Matrix generateRandomMatrix() {
 		String[] vars = { "x", "y" };
-		ExpressionFunction function = new ExpressionFunction(expr, vars);
-		function.init();
+		MultiVarFunction function = null;
+		if(functionType.getSelectedItem().equals("Random")) {
+			function = new MultiVarFunction(0) {
+				private Random random = new Random();
+				@Override
+				public double compute(Vector x) {
+					return random.nextDouble();
+				}
+			};
+		} else {
+			ExpressionFunction fAux = new ExpressionFunction(expr, vars);
+			fAux.init();
+			function = fAux;
+		}
+		
 		Matrix randomMatrix = new Matrix(numVertex, numVertex);
 		double[] x = new double[2];
 		double maxValue = Double.MIN_VALUE;
@@ -190,7 +234,9 @@ public class MyRandomGraphExperiment {
 				randomMatrix.setXY(j, i, f);
 			}
 		}
-
+		
+		originalRandomMatrix = randomMatrix.toStringMatlab();
+		
 		for (int i = 1; i <= numVertex; i++) {
 			for (int j = i + 1; j <= numVertex; j++) {
 				double f = (randomMatrix.getXY(i, j) / maxValue) * scale;
@@ -198,7 +244,7 @@ public class MyRandomGraphExperiment {
 				randomMatrix.setXY(j, i, f);
 			}
 		}
-
+		
 		return randomMatrix;
 	}
 
@@ -250,8 +296,10 @@ public class MyRandomGraphExperiment {
 		MyText text = new MyText();
 		degrees += String.format("%n");
 		degrees += clusterCoeffs;
+		degrees += String.format("%n");
+		degrees += "randomMat = " + originalRandomMatrix;
 		text.write(desktopAddress + File.separator + "graphStats.txt", degrees);
-		text.write(desktopAddress + File.separator + "graphStats.csv", graph.toStringGephi());
+		//text.write(desktopAddress + File.separator + "graphStats.csv", graph.toStringGephi());
 	}
 
 	public static void main(String[] args) {
