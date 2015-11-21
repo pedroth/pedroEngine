@@ -1,6 +1,6 @@
 package functionNode;
 
-import algebra.Vector;
+import algebra.src.Vector;
 
 public abstract class BinaryNode extends FunctionNode{
 	

@@ -1,8 +1,8 @@
 package twoDimEngine;
 
-import algebra.Matrix;
-import algebra.Vec2;
-import algebra.Vector;
+import algebra.src.Matrix;
+import algebra.src.Vec2;
+import algebra.src.Vector;
 
 public class BoundingBox {
 	private double xmin, ymax, xmax, ymin;
@@ -22,6 +22,59 @@ public class BoundingBox {
 
 	public BoundingBox() {
 		empty = true;
+	}
+
+	public static BoundingBox union(BoundingBox r1, BoundingBox r2) {
+		if (r1.isEmpty()) {
+			return r2;
+		} else if (r2.isEmpty()) {
+			return r1;
+		} else {
+			double xmin = (Math.min(r1.getXmin(), r2.getXmin()));
+			double xmax = (Math.max(r1.getXmax(), r2.getXmax()));
+			double ymin = (Math.min(r1.getYmin(), r2.getYmin()));
+			double ymax = (Math.max(r1.getYmax(), r2.getYmax()));
+			return new BoundingBox(xmin, ymin, xmax, ymax);
+		}
+	}
+
+	/**
+	 * @param r1
+	 * @param r2
+	 * @return null if rectangles do not intersect
+	 */
+	public static BoundingBox intersection(BoundingBox r1, BoundingBox r2) {
+		if (r1.isEmpty() || r2.isEmpty()) {
+			return new BoundingBox();
+		} else {
+			double xmin = (Math.max(r1.getXmin(), r2.getXmin()));
+			double xmax = (Math.min(r1.getXmax(), r2.getXmax()));
+			double ymin = (Math.max(r1.getYmin(), r2.getYmin()));
+			double ymax = (Math.min(r1.getYmax(), r2.getYmax()));
+			return new BoundingBox(xmin, ymin, xmax, ymax);
+		}
+	}
+
+	public static BoundingBox scale(BoundingBox r, double s) {
+		Vec2 center = r.getCenter();
+		double xcenter = center.getX();
+		double ycenter = center.getY();
+		BoundingBox box = new BoundingBox(
+				xcenter + (r.getXmin() - xcenter) * s, ycenter
+				+ (r.getYmin() - ycenter) * s, xcenter
+				+ (r.getXmax() - xcenter) * s, ycenter
+				+ (r.getYmax() - ycenter) * s);
+		return box;
+	}
+
+	public static BoundingBox translate(BoundingBox r, Vec2 v) {
+		double xcenter = v.getX();
+		double ycenter = v.getY();
+
+		BoundingBox box = new BoundingBox(xcenter + r.getXmin(), ycenter
+				+ r.getYmin(), xcenter + r.getXmax(), ycenter + r.getYmax());
+
+		return box;
 	}
 
 	private boolean checkIfEmpty() {
@@ -62,12 +115,25 @@ public class BoundingBox {
 		return ymin;
 	}
 
+	public void setYmin(double ymin) {
+		this.ymin = ymin;
+		ycenter = (ymin + ymax) / 2.0;
+	}
+
 	public double getXcenter() {
 		return xcenter;
 	}
 
+	public void setXcenter(double xcenter) {
+		this.xcenter = xcenter;
+	}
+
 	public double getYcenter() {
 		return ycenter;
+	}
+
+	public void setYcenter(double ycenter) {
+		this.ycenter = ycenter;
 	}
 
 	public Vec2 getCenter() {
@@ -80,19 +146,6 @@ public class BoundingBox {
 
 	public Vec2 getXYmax() {
 		return new Vec2(xmax, ymax);
-	}
-
-	public void setXcenter(double xcenter) {
-		this.xcenter = xcenter;
-	}
-
-	public void setYcenter(double ycenter) {
-		this.ycenter = ycenter;
-	}
-
-	public void setYmin(double ymin) {
-		this.ymin = ymin;
-		ycenter = (ymin + ymax) / 2.0;
 	}
 
 	public boolean isEmpty() {
@@ -113,7 +166,7 @@ public class BoundingBox {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param x
 	 * @return return four dimensional vector where each dimension correspond to
 	 *         a barycentric coordinate. first dimension - left down corner
@@ -145,7 +198,7 @@ public class BoundingBox {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return normal vector pointing out to each vertex of the bounding box
 	 */
 	public Vec2[] getNormals() {
@@ -168,7 +221,7 @@ public class BoundingBox {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param x
 	 * @return distance function from the box to x, in the interior of the box
 	 *         the function is negative
@@ -176,7 +229,7 @@ public class BoundingBox {
 	public double getDistance(Vec2 x) {
 		Vec2[] vertex = getVertex();
 		double minDistance = Double.MAX_VALUE;
-		int index = 0; 
+		int index = 0;
 		for (int i = 0; i < vertex.length; i++) {
 			double distance = Vec2.diff(x, vertex[i]).norm();
 			if(minDistance > distance){
@@ -188,7 +241,7 @@ public class BoundingBox {
 		minDistance = Math.min(minDistance, lineDistance(vertex[index], vertex[(index + 1) % vertex.length], x));
 		return minDistance;
 	}
-	
+
 	private double lineDistance(Vec2 p1, Vec2 p2, Vec2 x) {
 		Vec2 u = Vec2.diff(x, p1);
 		Vec2 v = Vec2.diff(p2,p1);
@@ -204,7 +257,7 @@ public class BoundingBox {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param x
 	 * @return return gradient of distance function which is just the unit
 	 *         normal vector to the box
@@ -218,60 +271,6 @@ public class BoundingBox {
 					Vec2.scalarProd(bary.getX(i + 1), normals[i]));
 		}
 		return Vec2.normalize(normal);
-	}
-
-	public static BoundingBox union(BoundingBox r1, BoundingBox r2) {
-		if (r1.isEmpty()) {
-			return r2;
-		} else if (r2.isEmpty()) {
-			return r1;
-		} else {
-			double xmin = (Math.min(r1.getXmin(), r2.getXmin()));
-			double xmax = (Math.max(r1.getXmax(), r2.getXmax()));
-			double ymin = (Math.min(r1.getYmin(), r2.getYmin()));
-			double ymax = (Math.max(r1.getYmax(), r2.getYmax()));
-			return new BoundingBox(xmin, ymin, xmax, ymax);
-		}
-	}
-
-	/**
-	 * 
-	 * @param r1
-	 * @param r2
-	 * @return null if rectangles do not intersect
-	 */
-	public static BoundingBox intersection(BoundingBox r1, BoundingBox r2) {
-		if (r1.isEmpty() || r2.isEmpty()) {
-			return new BoundingBox();
-		} else {
-			double xmin = (Math.max(r1.getXmin(), r2.getXmin()));
-			double xmax = (Math.min(r1.getXmax(), r2.getXmax()));
-			double ymin = (Math.max(r1.getYmin(), r2.getYmin()));
-			double ymax = (Math.min(r1.getYmax(), r2.getYmax()));
-			return new BoundingBox(xmin, ymin, xmax, ymax);
-		}
-	}
-
-	public static BoundingBox scale(BoundingBox r, double s) {
-		Vec2 center = r.getCenter();
-		double xcenter = center.getX();
-		double ycenter = center.getY();
-		BoundingBox box = new BoundingBox(
-				xcenter + (r.getXmin() - xcenter) * s, ycenter
-						+ (r.getYmin() - ycenter) * s, xcenter
-						+ (r.getXmax() - xcenter) * s, ycenter
-						+ (r.getYmax() - ycenter) * s);
-		return box;
-	}
-
-	public static BoundingBox translate(BoundingBox r, Vec2 v) {
-		double xcenter = v.getX();
-		double ycenter = v.getY();
-
-		BoundingBox box = new BoundingBox(xcenter + r.getXmin(), ycenter
-				+ r.getYmin(), xcenter + r.getXmax(), ycenter + r.getYmax());
-		
-		return box;
 	}
 
 }

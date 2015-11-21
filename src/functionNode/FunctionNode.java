@@ -1,6 +1,6 @@
 package functionNode;
 
-import realFunction.MultiVarFunction;
+import realFunction.src.MultiVarFunction;
 
 public abstract class FunctionNode extends MultiVarFunction {
 	protected FunctionNode[] args;

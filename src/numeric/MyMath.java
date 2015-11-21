@@ -1,7 +1,7 @@
 package numeric;
 
-import realFunction.ExpressionFunction;
-import algebra.Vector;
+import algebra.src.Vector;
+import realFunction.src.ExpressionFunction;
 
 public class MyMath {
 	public static double clamp(double x, double xmin, double xmax) {

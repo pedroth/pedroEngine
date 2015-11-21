@@ -1,10 +1,10 @@
 package twoDimEngine.elements;
 
-import java.awt.Color;
-
+import algebra.src.Vec2;
 import twoDimEngine.AbstractDrawAble2D;
 import twoDimEngine.shaders.PaintMethod2D;
-import algebra.Vec2;
+
+import java.awt.*;
 
 public abstract class Element2D extends AbstractDrawAble2D {
 	protected int numVertices;
@@ -40,18 +40,25 @@ public abstract class Element2D extends AbstractDrawAble2D {
 		return colors[0];
 	}
 
+	public void setColor(Color color) {
+		for (int i = 0; i < numVertices; i++) {
+			colors[i] = color;
+		}
+	}
+	
 	public Color getColor(int index) {
 		if (index >= 0 && index < numVertices)
 			return colors[index];
 		return null;
 	}
-	
+
 	public Color[] getColors() {
 		return colors;
 	}
+
 	/**
 	 * return vertex from index
-	 * @param index number between 0 and number of vertices - 1 
+	 * @param index number between 0 and number of vertices - 1
 	 * @return
 	 */
 	public Vec2 getVertex(int index) {
@@ -59,8 +66,9 @@ public abstract class Element2D extends AbstractDrawAble2D {
 			return vertices[index];
 		return null;
 	}
+
 	/**
-	 * 
+	 *
 	 * @param vertex
 	 * @param index from 0 to number of vertices - 1
 	 */
@@ -71,7 +79,7 @@ public abstract class Element2D extends AbstractDrawAble2D {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param color
 	 * @param index
 	 *            index of vertex
@@ -79,12 +87,6 @@ public abstract class Element2D extends AbstractDrawAble2D {
 	public void setColor(Color color, int index) {
 		if (index >= 0 && index < numVertices) {
 			colors[index] = color;
-		}
-	}
-
-	public void setColor(Color color) {
-		for (int i = 0; i < numVertices; i++) {
-			colors[i] = color;
 		}
 	}
 }

@@ -1,10 +1,10 @@
 package twoDimEngine.elements;
 
-import java.awt.Font;
-
+import algebra.src.Vec2;
 import twoDimEngine.BoundingBox;
 import twoDimEngine.shaders.PaintMethod2D;
-import algebra.Vec2;
+
+import java.awt.*;
 
 public class String2D extends Element2D {
 	String string;
@@ -22,20 +22,20 @@ public class String2D extends Element2D {
 		return string;
 	}
 
-	public Font getFont() {
-		return font;
-	}
-
-	public int getFontSize() {
-		return fontSize;
-	}
-
 	public void setString(String string) {
 		this.string = string;
 	}
 
+	public Font getFont() {
+		return font;
+	}
+
 	public void setFont(Font font) {
 		this.font = font;
+	}
+
+	public int getFontSize() {
+		return fontSize;
 	}
 
 	public void setFontSize(int fontSize) {

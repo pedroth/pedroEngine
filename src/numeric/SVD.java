@@ -1,7 +1,7 @@
 package numeric;
 
-import algebra.Matrix;
-import algebra.Vector;
+import algebra.src.Matrix;
+import algebra.src.Vector;
 
 /**
  * 
@@ -30,8 +30,50 @@ public class SVD {
 		}
 	}
 
+	private static Vector superEigen(Matrix conv) {
+		int maxIte = 10000;
+		int ite = 0;
+		double time = 1E-9 * System.nanoTime();
+		double epsilon = 1E-20;
+		Vector eigenV = new Vector(conv.getRows());
+		eigenV.fillRandom(-1, 1);
+		eigenV = Vector.normalize(eigenV);
+		Vector grad = null;
+		Vector eta = null;
+		do {
+			grad = Vector.matrixProd(conv, eigenV);
+			double beta = -(grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(conv, grad)));
+			/**
+			 * you must put a minus since you want to maximize.
+			 */
+			eta = Vector.scalarProd(-0.5 * beta, grad);
+			eta = Vector.orthoProjection(eta, eigenV);
+			eigenV = Vector.add(eigenV, eta);
+			eigenV = Vector.normalize(eigenV);
+			ite++;
+		} while (eta.norm() > epsilon && ite < maxIte);
+		// System.out.println(ite + " time : " + (1E-9 *
+		// System.nanoTime() - time) + " error : " + eta.norm() +
+		// " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
+		return eigenV;
+	}
+
+	public static void main(String[] args) {
+		double[][] m = {{7, 8, 1, 0, 6}, {1, 6, 6, 6, 7}, {1, 4, 8, 2, 4}, {3, 2, 8, 2, 8}, {8, 2, 8, 3, 9}, {5, 4, 7, 1, 7}, {5, 2, 8, 5, 2}, {9, 0, 7, 9, 7}, {5, 1, 2, 3, 1}, {0, 2, 9, 5, 5}};
+		Matrix M = new Matrix(m);
+		SVD svd = new SVD(M);
+		svd.computeSVD();
+		Matrix U = svd.getU();
+		Matrix S = svd.getSigma();
+		Matrix V = svd.getV();
+		System.out.println(Matrix.prod(Matrix.transpose(U), U));
+//		System.out.println(S.toStringMatlab());
+//		System.out.println(V.toStringMatlab());
+//		System.out.println(Matrix.diff(M, Matrix.prod(U, Matrix.prod(S, Matrix.transpose(V)))).toStringMatlab());
+	}
+
 	/**
-	 * 
+	 *
 	 * @param n
 	 *            is the rank of the svd
 	 */
@@ -73,7 +115,7 @@ public class SVD {
 		for (int i = 0; i < n; i++) {
 			v = v.concat(eigenVectors[i]);
 			/**
-			 * there should be a square root on the eigenvalues, 
+			 * there should be a square root on the eigenvalues,
 			 */
 			double singularValue = (eigenValues[i]);
 			sigma.setXY(i + 1, i + 1, singularValue);
@@ -92,7 +134,7 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return diagonal matrix with singular values
 	 */
 	public Matrix getSigma() {
@@ -100,7 +142,7 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return inverse of sigma matrix
 	 */
 	public Matrix getSigmaInv() {
@@ -108,7 +150,7 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return U matrix from SVD decomposition
 	 */
 	public Matrix getU() {
@@ -123,7 +165,7 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return original matrix
 	 */
 	public Matrix getM() {
@@ -131,7 +173,7 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of column vectors of the V matrix
 	 */
 	public Vector[] getEigenVectors() {
@@ -139,52 +181,10 @@ public class SVD {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return array of singular values squared
 	 */
 	public double[] getEigenValues() {
 		return eigenValues;
-	}
-
-	private static Vector superEigen(Matrix conv) {
-		int maxIte = 10000;
-		int ite = 0;
-		double time = 1E-9 * System.nanoTime();
-		double epsilon = 1E-20;
-		Vector eigenV = new Vector(conv.getRows());
-		eigenV.fillRandom(-1, 1);
-		eigenV = Vector.normalize(eigenV);
-		Vector grad = null;
-		Vector eta = null;
-		do {
-			grad = Vector.matrixProd(conv, eigenV);
-			double beta = -(grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(conv, grad)));
-			/**
-			 * you must put a minus since you want to maximize.
-			 */
-			eta = Vector.scalarProd(-0.5 * beta, grad);
-			eta = Vector.orthoProjection(eta, eigenV);
-			eigenV = Vector.add(eigenV, eta);
-			eigenV = Vector.normalize(eigenV);
-			ite++;
-		} while (eta.norm() > epsilon && ite < maxIte);
-		// System.out.println(ite + " time : " + (1E-9 *
-		// System.nanoTime() - time) + " error : " + eta.norm() +
-		// " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
-		return eigenV;
-	}
-
-	public static void main(String[] args) {
-		double[][] m = {{7 , 8 , 1 , 0 , 6} , {1 , 6 , 6 , 6 , 7} , {1 , 4 , 8 , 2 , 4} , {3 , 2 , 8 , 2 , 8} , {8 , 2 , 8 , 3 , 9} , {5 , 4 , 7 , 1 , 7} , {5 , 2 , 8 , 5 , 2} , {9 , 0 , 7 , 9 , 7} , {5 , 1 , 2 , 3 , 1} , {0 , 2 , 9 , 5 , 5}};
-		Matrix M = new Matrix(m);
-		SVD svd = new SVD(M);
-		svd.computeSVD();
-		Matrix U = svd.getU();
-		Matrix S = svd.getSigma();
-		Matrix V = svd.getV();
-		System.out.println(Matrix.prod(Matrix.transpose(U), U));
-//		System.out.println(S.toStringMatlab());
-//		System.out.println(V.toStringMatlab());
-//		System.out.println(Matrix.diff(M, Matrix.prod(U, Matrix.prod(S, Matrix.transpose(V)))).toStringMatlab());
 	}
 }

@@ -1,9 +1,9 @@
 package functionNode;
 
-import java.util.Stack;
+import algebra.src.Vector;
+import realFunction.src.ExpressionFunction;
 
-import realFunction.ExpressionFunction;
-import algebra.Vector;
+import java.util.Stack;
 
 /**
  * 

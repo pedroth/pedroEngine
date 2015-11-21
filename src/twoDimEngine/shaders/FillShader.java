@@ -1,13 +1,13 @@
 package twoDimEngine.shaders;
 
-import java.awt.Graphics;
-
+import algebra.src.Vec2;
 import twoDimEngine.AbstractEngine2D;
 import twoDimEngine.elements.Element2D;
 import twoDimEngine.elements.Point2D;
 import twoDimEngine.elements.Quad2D;
 import twoDimEngine.elements.Triangle2D;
-import algebra.Vec2;
+
+import java.awt.*;
 
 
 public class FillShader extends Wireframe {

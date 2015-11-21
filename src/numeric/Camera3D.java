@@ -1,7 +1,7 @@
 package numeric;
 
-import algebra.Matrix;
-import algebra.Vec3;
+import algebra.src.Matrix;
+import algebra.src.Vec3;
 
 public class Camera3D {
 	/**
@@ -87,28 +87,28 @@ public class Camera3D {
 		return raw;
 	}
 
-	public Vec3 getVelRaw() {
-		return velRaw;
-	}
-
-	public Vec3 getFocalPoint() {
-		return focalPoint;
-	}
-
-	public Vec3 getThrust() {
-		return thrust;
-	}
-
 	public void setRaw(Vec3 raw) {
 		this.raw = raw;
+	}
+
+	public Vec3 getVelRaw() {
+		return velRaw;
 	}
 
 	public void setVelRaw(Vec3 velRaw) {
 		this.velRaw = velRaw;
 	}
 
+	public Vec3 getFocalPoint() {
+		return focalPoint;
+	}
+
 	public void setFocalPoint(Vec3 focalPoint) {
 		this.focalPoint = focalPoint;
+	}
+
+	public Vec3 getThrust() {
+		return thrust;
 	}
 
 	public void setThrust(Vec3 thrust) {

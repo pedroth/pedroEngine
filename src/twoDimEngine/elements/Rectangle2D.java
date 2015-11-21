@@ -1,12 +1,12 @@
 package twoDimEngine.elements;
 
-import java.awt.Color;
-
+import algebra.src.Matrix;
+import algebra.src.Vec2;
 import twoDimEngine.AbstractDrawAble2D;
 import twoDimEngine.BoundingBox;
 import twoDimEngine.shaders.PaintMethod2D;
-import algebra.Matrix;
-import algebra.Vec2;
+
+import java.awt.*;
 
 public class Rectangle2D extends AbstractDrawAble2D {
 	private Vec2 pos;
@@ -37,16 +37,32 @@ public class Rectangle2D extends AbstractDrawAble2D {
 		return pos;
 	}
 
+	public void setPos(Vec2 pos) {
+		this.pos = pos;
+	}
+
 	public double getAngle() {
 		return angle;
+	}
+
+	public void setAngle(double angle) {
+		this.angle = angle;
 	}
 
 	public double getWidth() {
 		return width;
 	}
 
+	public void setWidth(double width) {
+		this.width = width;
+	}
+
 	public double getHeight() {
 		return height;
+	}
+
+	public void setHeight(double height) {
+		this.height = height;
 	}
 
 	public Color[] getColors() {
@@ -54,11 +70,15 @@ public class Rectangle2D extends AbstractDrawAble2D {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return color of the first vertex
 	 */
 	public Color getColor() {
 		return element.getColor();
+	}
+
+	public void setColor(Color color) {
+		element.setColor(color);
 	}
 
 	public Color getColor(int index) {
@@ -66,7 +86,7 @@ public class Rectangle2D extends AbstractDrawAble2D {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return coordinates of rotation center given in model space, where
 	 *         referential is [width,0] and [0,height]
 	 */
@@ -75,7 +95,7 @@ public class Rectangle2D extends AbstractDrawAble2D {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param rotationCenterCoord
 	 *            coordinates of rotation center given in model space, where
 	 *            referential is [width,0] and [0,height]
@@ -85,7 +105,7 @@ public class Rectangle2D extends AbstractDrawAble2D {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param color
 	 * @param index
 	 *            index of vertex
@@ -94,28 +114,8 @@ public class Rectangle2D extends AbstractDrawAble2D {
 		element.setColor(color, index);
 	}
 
-	public void setColor(Color color) {
-		element.setColor(color);
-	}
-
 	public Quad2D getElement() {
 		return element;
-	}
-
-	public void setPos(Vec2 pos) {
-		this.pos = pos;
-	}
-
-	public void setAngle(double angle) {
-		this.angle = angle;
-	}
-
-	public void setWidth(double width) {
-		this.width = width;
-	}
-
-	public void setHeight(double height) {
-		this.height = height;
 	}
 
 	@Override

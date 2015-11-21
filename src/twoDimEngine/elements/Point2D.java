@@ -1,8 +1,8 @@
 package twoDimEngine.elements;
 
+import algebra.src.Vec2;
 import twoDimEngine.BoundingBox;
 import twoDimEngine.shaders.PaintMethod2D;
-import algebra.Vec2;
 
 public class Point2D extends Element2D {
 	
@@ -24,16 +24,15 @@ public class Point2D extends Element2D {
 		else
 			this.radius = radius;
 	}
+
+	public Vec2 getPos() {
+		return getVertex(0);
+	}
 	
 	public void setPos(Vec2 pos) {
 		vertices[0].setX(pos.getX());
 		vertices[0].setY(pos.getY());
 	}
-	
-	public Vec2 getPos() {
-		return getVertex(0);
-	}
-
 
 	@Override
 	public void draw(PaintMethod2D painter) {

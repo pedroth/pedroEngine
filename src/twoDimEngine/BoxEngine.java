@@ -1,16 +1,76 @@
 package twoDimEngine;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-
+import algebra.src.Vec2;
 import twoDimEngine.elements.Quad2D;
 import twoDimEngine.shaders.PaintMethod2D;
-import algebra.Vec2;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BoxEngine extends AbstractEngine2D {
 	private List<AbstractDrawAble2D> things;
 	private Node tree;
+
+	public BoxEngine(int width, int height) {
+		super(width, height);
+		things = new ArrayList<AbstractDrawAble2D>();
+		tree = new Node();
+	}
+
+	private void draw(AbstractDrawAble2D e) {
+		PaintMethod2D painter = e.getMyPainter();
+		if (e.getMyPainter() != null) {
+			e.draw(painter);
+		} else {
+			e.draw(defaultPainter);
+		}
+	}
+
+	public void buildBoundigBoxTree() {
+		tree = new Node();
+		for (AbstractDrawAble2D th : things) {
+			if (th.isDestroyed()) {
+				things.remove(th);
+			} else {
+				tree.insert(new Leaf(th));
+			}
+		}
+	}
+
+	public void addtoList(AbstractDrawAble2D e) {
+		things.add(e);
+	}
+
+	public void addtoList(AbstractDrawAble2D e, PaintMethod2D painter) {
+		e.setMyPainter(painter);
+		things.add(e);
+	}
+
+	public List<AbstractDrawAble2D> getThingsOnRectangle(BoundingBox rect) {
+		List<AbstractDrawAble2D> list = new ArrayList<AbstractDrawAble2D>();
+		tree.retrieve(rect, list);
+		return list;
+	}
+
+	@Override
+	public void drawElements() {
+		BoundingBox view = new BoundingBox(xmin, ymin, xmax, ymax);
+		List<AbstractDrawAble2D> visibleThings = getThingsOnRectangle(view);
+		for (AbstractDrawAble2D thing : visibleThings) {
+			if (thing.isVisible()) {
+				draw(thing);
+			}
+		}
+	}
+
+	public void drawTree() {
+		tree.draw();
+	}
+
+	public void removeAllElements() {
+		things.removeAll(things);
+	}
 
 	private class Node {
 		private Node root;
@@ -27,28 +87,28 @@ public class BoxEngine extends AbstractEngine2D {
 			return root;
 		}
 
-		public Node getLeft() {
-			return left;
-		}
-
-		public Node getRight() {
-			return right;
-		}
-
-		public BoundingBox getRectangle() {
-			return rectangle;
-		}
-
 		public void setRoot(Node root) {
 			this.root = root;
+		}
+
+		public Node getLeft() {
+			return left;
 		}
 
 		public void setLeft(Node left) {
 			this.left = left;
 		}
 
+		public Node getRight() {
+			return right;
+		}
+
 		public void setRight(Node right) {
 			this.right = right;
+		}
+
+		public BoundingBox getRectangle() {
+			return rectangle;
 		}
 
 		public void setRectangle(BoundingBox rectangle) {
@@ -130,7 +190,7 @@ public class BoxEngine extends AbstractEngine2D {
 				}
 			}
 		}
-		
+
 	}
 
 	private class Leaf extends Node {
@@ -164,65 +224,5 @@ public class BoxEngine extends AbstractEngine2D {
 				list.add(thing);
 			}
 		}
-	}
-
-	public BoxEngine(int width, int height) {
-		super(width, height);
-		things = new ArrayList<AbstractDrawAble2D>();
-		tree = new Node();
-	}
-
-	private void draw(AbstractDrawAble2D e) {
-		PaintMethod2D painter = e.getMyPainter();
-		if (e.getMyPainter() != null) {
-			e.draw(painter);
-		} else {
-			e.draw(defaultPainter);
-		}
-	}
-
-	public void buildBoundigBoxTree() {
-		tree = new Node();
-		for (AbstractDrawAble2D th : things) {
-			if(th.isDestroyed()) {
-				things.remove(th);
-			}else {
-				tree.insert(new Leaf(th));
-			}
-		}
-	}
-
-	public void addtoList(AbstractDrawAble2D e) {
-		things.add(e);
-	}
-
-	public void addtoList(AbstractDrawAble2D e, PaintMethod2D painter) {
-		e.setMyPainter(painter);
-		things.add(e);
-	}
-
-	public List<AbstractDrawAble2D> getThingsOnRectangle(BoundingBox rect) {
-		List<AbstractDrawAble2D> list = new ArrayList<AbstractDrawAble2D>();
-		tree.retrieve(rect, list);
-		return list;
-	}
-
-	@Override
-	public void drawElements() {
-		BoundingBox view = new BoundingBox(xmin, ymin, xmax, ymax);
-		List<AbstractDrawAble2D> visibleThings = getThingsOnRectangle(view);
-		for (AbstractDrawAble2D thing : visibleThings) {
-			if (thing.isVisible()) {
-				draw(thing);
-			}
-		}
-	}
-
-	public void drawTree() {
-		tree.draw();
-	}
-
-	public void removeAllElements() {
-		things.removeAll(things);
 	}
 }

@@ -1,9 +1,9 @@
 package numeric;
 
-import java.util.Random;
+import algebra.src.Matrix;
+import algebra.src.Vector;
 
-import algebra.Matrix;
-import algebra.Vector;
+import java.util.Random;
 /**
  * 
  * @author pedro
@@ -42,24 +42,6 @@ public class SimplexPointSampler {
 		random = new Random();
 	}
 
-	/**
-	 * 
-	 * @return symbol, a number between 0 and [dimension of simplex - 1] with
-	 *         probability given by the simplex point
-	 */
-	public int nextSymbol() {
-		int symbol = 0;
-		double r = random.nextDouble();
-		for (int i = 0; i < cdf.length; i++) {
-			double xBound = (i - 1 < 0) ? 0.0 : cdf[i - 1];
-			if(r >= xBound && r < cdf[i]) {
-				symbol = i;
-				break;
-			}
-		}
-		return symbol;
-	}
-	
 	public static void main(String[] args) {
 		test1();
 	}
@@ -77,5 +59,22 @@ public class SimplexPointSampler {
 		for(int i = 0; i < n; i++) {
 			System.out.println(random.nextSymbol());
 		}
+	}
+
+	/**
+	 * @return symbol, a number between 0 and [dimension of simplex - 1] with
+	 * probability given by the simplex point
+	 */
+	public int nextSymbol() {
+		int symbol = 0;
+		double r = random.nextDouble();
+		for (int i = 0; i < cdf.length; i++) {
+			double xBound = (i - 1 < 0) ? 0.0 : cdf[i - 1];
+			if (r >= xBound && r < cdf[i]) {
+				symbol = i;
+				break;
+			}
+		}
+		return symbol;
 	}
 }

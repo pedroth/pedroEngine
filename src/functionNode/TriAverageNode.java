@@ -1,6 +1,6 @@
 package functionNode;
 
-import algebra.Vector;
+import algebra.src.Vector;
 
 public class TriAverageNode extends FunctionNode {
 	

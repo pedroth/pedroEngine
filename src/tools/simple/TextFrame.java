@@ -1,11 +1,9 @@
 package tools.simple;
 
-import java.awt.TextArea;
-
-import javax.swing.JFrame;
+import javax.swing.*;
+import java.awt.*;
 
 public class TextFrame extends JFrame {
-	
 	/**
 	 * 
 	 */

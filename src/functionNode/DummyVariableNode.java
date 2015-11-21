@@ -1,7 +1,7 @@
 package functionNode;
 
-import realFunction.ExpressionFunction;
-import algebra.Vector;
+import algebra.src.Vector;
+import realFunction.src.ExpressionFunction;
 
 public class DummyVariableNode extends FunctionNode {
 	String dummyVarName;

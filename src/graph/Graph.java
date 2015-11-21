@@ -1,20 +1,13 @@
 package graph;
 
-import algebra.Matrix;
+import algebra.src.Matrix;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The type Graph.
  *
- * @author pedro <p> based on https://sites.google.com/site/indy256/algo/graph 17:29 11/03/2015
+ * @author pedro <p> based on https://sites.google.com/site/indy256/algo/graph 17:29 11/03/2015</p>
  */
 public class Graph {
     private Map<Integer, HashSet<Integer>> edges = new HashMap<Integer, HashSet<Integer>>(7);
@@ -46,6 +39,9 @@ public class Graph {
         }
 
         int n = adjacencyMatrix.getColumns();
+        for (int i = 1; i <= n; i++) {
+            addVertex(i);
+        }
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= n; j++) {
                 if (adjacencyMatrix.getXY(i, j) > 0) {
@@ -208,7 +204,7 @@ public class Graph {
             }
         }
         double k = neighbors.size();
-        return k < 1 ? 0.0 : (2 * links / (k * (k - 1)));
+        return k < 2 ? 0.0 : (2 * links / (k * (k - 1)));
     }
 
     private Matrix generateAdjacencyMatrix() {

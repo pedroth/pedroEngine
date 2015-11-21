@@ -1,6 +1,6 @@
 package functionNode;
 
-import algebra.Vector;
+import algebra.src.Vector;
 
 public class ConstantNode extends FunctionNode {
 	private Double value;
