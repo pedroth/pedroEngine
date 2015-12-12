@@ -20,10 +20,7 @@ public class Wireframe extends PaintMethod2D {
 		i2 = (int) engine.IntegerCoordX(x2);
 		j2 = (int) engine.IntegerCoordY(y2);
 		g.setColor(c);
-		Graphics2D g2 = (Graphics2D) g;
-		g2.setStroke(new BasicStroke(3));
-		g2.draw(new java.awt.geom.Line2D.Double(i1,j1,i2,j2));
-//		g.drawLine(i1, j1, i2, j2);
+		g.drawLine(i1, j1, i2, j2);
 	}
 	
 	private void paintPolygon(Element2D e) {

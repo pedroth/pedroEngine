@@ -1,11 +1,10 @@
 package twoDimEngine;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-
 import twoDimEngine.shaders.PaintMethod2D;
 import twoDimEngine.shaders.Wireframe;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public abstract class AbstractEngine2D {
 
@@ -39,12 +38,12 @@ public abstract class AbstractEngine2D {
 		return image;
 	}
 
-	public Color getBackGroundColor() {
-		return backGroundColor;
-	}
-
 	public void setImage(BufferedImage image) {
 		this.image = image;
+	}
+
+	public Color getBackGroundColor() {
+		return backGroundColor;
 	}
 
 	public void setBackGroundColor(Color backGroundColor) {
@@ -92,6 +91,10 @@ public abstract class AbstractEngine2D {
 		return ymax;
 	}
 
+	public PaintMethod2D getDefaultPainter() {
+		return defaultPainter;
+	}
+	
 	public void setDefaultPainter(PaintMethod2D painter) {
 		defaultPainter = painter;
 	}

@@ -1,8 +1,8 @@
 package twoDimEngine;
 
-import java.util.ArrayList;
-
 import twoDimEngine.shaders.PaintMethod2D;
+
+import java.util.ArrayList;
 
 public class TwoDimEngine extends AbstractEngine2D{
 	private ArrayList<AbstractDrawAble2D> elements;
@@ -56,6 +56,14 @@ public class TwoDimEngine extends AbstractEngine2D{
 		} else {
 			e.draw(defaultPainter);
 		}
+	}
+
+	public ArrayList<AbstractDrawAble2D> getElements() {
+		return elements;
+	}
+
+	public void setElements(ArrayList<AbstractDrawAble2D> elements) {
+		this.elements = elements;
 	}
 
 //	public void drawPxl(int x, int y, Color c) {

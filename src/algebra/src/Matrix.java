@@ -209,7 +209,7 @@ public class Matrix {
 			double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
 			grad = Vector.scalarProd(0.5 * t, grad);
 			x = Vector.add(x, grad);
-			// System.out.println(grad.norm() + "\t" +
+			//System.out.println(grad.norm()) + "\t" +
 			// Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
 		} while (grad.norm() > epsilon);
 		// System.out.println(System.nanoTime() * 1E-9 - time);

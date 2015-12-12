@@ -2,11 +2,13 @@ package nlp.lowbow.tests;
 
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
+import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import org.junit.Test;
 
 public class LowBowTests {
 	public static final double HEATTIME = 0.01;
+
 	/**
 	 * Matrix Method
 	 */
@@ -15,7 +17,7 @@ public class LowBowTests {
 		MyText t = new MyText();
 		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
 		low.setSamplesPerTextLength(1.0);
-//		low.setSigma(0.08);
+		// low.setSigma(0.08);
 		low.setSigmaAuto();
 		low.setSmoothingCoeff(0.003);
 		low.build();
@@ -23,7 +25,7 @@ public class LowBowTests {
 		low.heatFlow(HEATTIME, heat);
 		t.write("C:/Users/Pedroth/Desktop/out1.txt", low.generateText());
 	}
-	
+
 	/**
 	 * Sparse Method
 	 */
@@ -33,7 +35,7 @@ public class LowBowTests {
 		t.read("src/nlp/resources/TextExample.txt");
 		LowBow low = new LowBow(t.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
 		low.setSamplesPerTextLength(1.0);
-//		low.setSigma(0.08);
+		// low.setSigma(0.08);
 		low.setSigmaAuto();
 		low.setSmoothingCoeff(0.003);
 		low.build();
@@ -51,7 +53,7 @@ public class LowBowTests {
 		t.read("src/nlp/resources/TextExample.txt");
 		LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
 		low.setSamplesPerTextLength(1.0);
-//		low.setSigma(0.08);
+		// low.setSigma(0.08);
 		low.setSigmaAuto();
 		low.setSmoothingCoeff(0.003);
 		low.build();
@@ -66,11 +68,34 @@ public class LowBowTests {
 		t.read("src/nlp/resources/TextExample.txt");
 		LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
 		low.setSamplesPerTextLength(1.0);
-//		low.setSigma(0.08);
+		// low.setSigma(0.08);
 		low.setSigmaAuto();
 		low.setSmoothingCoeff(0.003);
 		low.build();
 		low.writeMatrixFile("C:/Users/Pedroth/Desktop/out4.txt");
+	}
+
+	@Test
+	public void testLambdaSensitivity() {
+		int samples = 100;
+		double step = 1.0 / (samples - 1);
+		double lambda = 0;
+		MyText t = new MyText();
+		t.read("src/nlp/resources/TextExample.txt");
+		String text = "Hello , please input some text here. For example a c c c b b a c c";
+		LowBow lowOrig = new LowBow(text, new MyTextSplitter());
+		lowOrig.setSigmaAuto();
+		lowOrig.setSamplesPerTextLength(3);
+		lowOrig.build();
+		SparseTimeFlow heatMethod = new SparseTimeFlow(0.01, lowOrig);
+		for (int i = 0; i < samples; i++) {
+			LowBow low = new LowBow(text, new MyTextSplitter());
+			low.setSigmaAuto();
+			low.setSamplesPerTextLength(3);
+			low.heatFlow(lambda, heatMethod);
+			System.out.println(lambda + "\t" + heatMethod.lambdaMeasure());
+			lambda += step;
+		}
 	}
 
 }

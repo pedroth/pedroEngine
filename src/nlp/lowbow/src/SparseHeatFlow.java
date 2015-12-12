@@ -16,7 +16,7 @@ public class SparseHeatFlow implements HeatMethod {
 		/**
 		 * convergence error
 		 */
-		double epsilon = 1E-3;
+		double epsilon = 1E-8;
 		double h = 1E-4;
 		/**
 		 * time l.step of heat
@@ -37,11 +37,11 @@ public class SparseHeatFlow implements HeatMethod {
 		}
 
 		stack.push(Double.MAX_VALUE);
-		
+
 		if(lambda == 0.0) {
 			return;
 		}
-		
+
 		do {
 			acmGrad = 0;
 			for (int i = 1; i < l.curve.length - 1; i++) {
@@ -49,11 +49,11 @@ public class SparseHeatFlow implements HeatMethod {
 				 * second derivative
 				 */
 				Vector d2x = Vector.add(Vector.diff(l.curve[i + 1], Vector.scalarProd(2, l.curve[i])), l.curve[i - 1]);
-				d2x = Vector.scalarProd(lambda * (l.samples - 1), d2x);
+				d2x = Vector.scalarProd(lambda, d2x);
 				/**
 				 * distance from the original l.curve
 				 */
-				grad[i] = Vector.scalarProd((1 - lambda) * l.step, Vector.diff(l.curve[i], l.curve[i]));
+				grad[i] = Vector.scalarProd((1 - lambda), Vector.diff(l.curve[i], l.curve[i]));
 				/**
 				 * gradient calculation
 				 */
@@ -62,7 +62,7 @@ public class SparseHeatFlow implements HeatMethod {
 			}
 			/**
 			 * choosing dt
-			 * 
+			 *
 			 * tried armijo condition and it didnt work
 			 */
 			/**
@@ -80,10 +80,10 @@ public class SparseHeatFlow implements HeatMethod {
 					/**
 					 * compute cost functions
 					 */
-					Vector dx = Vector.scalarProd((l.samples - 1), Vector.diff(auxCurve[i + 1], auxCurve[i]));
+					Vector dx = Vector.diff(auxCurve[i + 1], auxCurve[i]);
 					acmCost[j] += ((1 - lambda) * Vector.diff(l.curve[i], auxCurve[i]).squareNorm() + lambda  * dx.squareNorm());
 				}
-				acmCost[j] *= 0.5 * l.step;
+				acmCost[j] *= 0.5;
 			}
 			/**
 			 * choosing dt, baah
@@ -97,11 +97,11 @@ public class SparseHeatFlow implements HeatMethod {
 			/**
 			 * more cool
 			 */
-			dt = eta * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
+			dt = 0.5 * acmGrad / ((acmCost[2] - 2 * acmCost[1] + acmCost[0]) / (h * h));
 			/**
 			 * end choosing dt
 			 */
-			
+
 			/**
 			 * update l.curve
 			 */
@@ -110,14 +110,16 @@ public class SparseHeatFlow implements HeatMethod {
 				l.curve[i + 1] = Vector.add(l.curve[i + 1], Vector.scalarProd(dt, grad[i + 1]));
 			}
 
+			//System.out.println(acmGrad +"\t" + (acmGrad - lastAcmGrad) + "\t" + dt) ;
+			//System.out.println(acmCost[0]);
+
 			stack.push(new Double(acmGrad));
-			
 			maxCost = Math.max(maxCost, acmGrad);
 			ite++;
-			
+
 //			System.out.println("" + acmCost[0] + "\t" + dt + "\t" + eta + "\t" + (1 - (1.0 / maxCost) * acmGrad) + "\t" + ite);
 //			System.out.printf("%.5f\n" , 1 - (1.0 / maxCost) * acmGrad);
 		} while (acmGrad > epsilon && ite < maxIte);
-		
+
 	}
 }

@@ -72,6 +72,17 @@ public class BoxEngine extends AbstractEngine2D {
 		things.removeAll(things);
 	}
 
+
+	public List<AbstractDrawAble2D> getThings() {
+		return things;
+	}
+
+	public void setThings(List<AbstractDrawAble2D> things) {
+		this.things = things;
+	}
+
+
+
 	private class Node {
 		private Node root;
 		private Node left;

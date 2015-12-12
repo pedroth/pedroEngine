@@ -113,12 +113,6 @@ public class LowBow {
 		System.out.println(low);
 	}
 
-	private double kernel(double x, double myu, double sigma) {
-		double normalization = MyMath.phi((1 - myu) / sigma) - MyMath.phi(-myu / sigma);
-		double gaussian = (1 / (Math.sqrt(2 * Math.PI) * sigma)) * Math.exp(-0.5 * ((x - myu) / sigma) * ((x - myu) / sigma));
-		return gaussian / normalization;
-	}
-
 	private void processText(String in) {
 		text = textSplitter.split(in);
 		int acmIndex = 0;
@@ -137,7 +131,7 @@ public class LowBow {
 	 * As described in the definition 6 of
 	 * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
 	 */
-	private double gamma(double myu, double sigma, int samples, int j) {
+	protected double gamma(double myu, double sigma, int samples, int j) {
 		double acc = 0;
 		double h = 1.0 / (samples - 1);
 		double x = 0;
@@ -145,7 +139,7 @@ public class LowBow {
 		 * trapezoidal method of integration
 		 */
 		for (int i = 0; i < samples - 1; i++) {
-			acc += kernel(x, myu, sigma) * psi(x, j) + kernel(x + h, myu, sigma) * psi(x + h, j);
+			acc += MyMath.kernel(x, myu, sigma) * psi(x, j) + MyMath.kernel(x + h, myu, sigma) * psi(x + h, j);
 			x += h;
 		}
 		return acc * 0.5 * h;
@@ -412,7 +406,12 @@ public class LowBow {
 	}
 	
 	public Vector[] getCurve() {
-		return curve;
+		if (isBuild) {
+			return curve;
+		} else {
+			build();
+			return curve;
+		}
 	}
 
 	public void setCurve(Vector[] curve) {

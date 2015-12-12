@@ -58,6 +58,18 @@ public class MyMath {
 
 		return 0.5 * (1.0 + sign * y);
 	}
+
+	/**
+	 * @param x
+	 * @param myu
+	 * @param sigma
+	 * @return normalized gaussian distribution between [0,1]
+	 */
+	public static double kernel(double x, double myu, double sigma) {
+		double normalization = MyMath.phi((1 - myu) / sigma) - MyMath.phi(-myu / sigma);
+		double gaussian = (1 / (Math.sqrt(2 * Math.PI) * sigma)) * Math.exp(-0.5 * ((x - myu) / sigma) * ((x - myu) / sigma));
+		return gaussian / normalization;
+	}
 	
 	/**
 	 * warning does not accept variables
