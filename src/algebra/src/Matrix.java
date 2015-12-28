@@ -209,13 +209,18 @@ public class Matrix {
 			double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
 			grad = Vector.scalarProd(0.5 * t, grad);
 			x = Vector.add(x, grad);
-			//System.out.println(grad.norm()) + "\t" +
-			// Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
+//			System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
 		} while (grad.norm() > epsilon);
 		// System.out.println(System.nanoTime() * 1E-9 - time);
 		return x;
 	}
 
+	/**
+	 *
+	 * @param m
+	 * @param y
+     * @return solution x, to the linear system m*x = y
+     */
 	public static Vector solveLinearSystem(Matrix m, Vector y) {
 		return solveLinearSystem(m, y, 1E-15);
 	}
@@ -231,6 +236,16 @@ public class Matrix {
 		} else {
 			return Vector.matrixProd(Matrix.prod(Matrix.prod(V, S), Matrix.transpose(U)), y);
 		}
+	}
+
+
+	public static Matrix diag(Vector v) {
+		int n = v.getDim();
+		Matrix matrix = new Matrix(n, n);
+		for (int i = 1; i <= n; i++) {
+			matrix.setXY(i,i, v.getX(i));
+		}
+		return  matrix;
 	}
 
 	/**

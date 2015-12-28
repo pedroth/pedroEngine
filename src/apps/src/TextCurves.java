@@ -94,7 +94,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
      */
     private Vec2[] polygon;
 
-    private HeatMethod heatMethod = new SparseTimeFlow(0.1);
+    private HeatMethod heatMethod = new SparseHeatFlow();
 
 
     public TextCurves(String title, int width, int height) {
@@ -236,7 +236,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                HeatMethod heat = new SparseHeatFlow();
+                HeatMethod heat = heatMethod;
                 heatFlow(lambdaIn, heat);
             }
         });
@@ -252,6 +252,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         flowSolverChoice.add("Sparse");
         flowSolverChoice.add("Matrix");
         flowSolverChoice.add("Kernel");
+        flowSolverChoice.add("GraphLaplacian");
         flowSolverChoice.addItemListener(new ItemListener() {
 
             @Override
@@ -260,8 +261,10 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
                     heatMethod = new SparseHeatFlow();
                 } else if (flowSolverChoice.getSelectedItem().equals("Matrix")) {
                     heatMethod = new MatrixHeatFlow();
-                } else {
+                } else if (flowSolverChoice.getSelectedItem().equals("Kernel")){
                     heatMethod = new HeatKernelFlow();
+                } else {
+                    heatMethod = new GraphLaplacianFlow();
                 }
             }
         });

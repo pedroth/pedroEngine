@@ -9,10 +9,9 @@ public class HeatKernelFlow implements HeatMethod {
     @Override
     public void heatFlow(double lambda, LowBow l) {
         double myu = 0;
-        for (int i = 1; i < l.samples - 1; i++) {
-            l.curve[i] = new Vector(l.numWords);
+        for (int i = 0; i < l.samples; i++) {
             for (int j = 1; j <= l.numWords; j++) {
-                l.curve[i].setX(j, l.gamma(myu, lambda, l.samples, j));
+                l.curve[i].setX(j, i == 0 || i == (l.samples-1) ? l.curve[i].getX(j) : l.gamma(myu, lambda, l.samples, j));
             }
             /**
              * normalization, because the integration is just an approximation

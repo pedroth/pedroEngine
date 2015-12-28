@@ -83,13 +83,13 @@ public class LowBowTests {
 		MyText t = new MyText();
 		t.read("src/nlp/resources/TextExample.txt");
 		String text = "Hello , please input some text here. For example a c c c b b a c c";
-		LowBow lowOrig = new LowBow(text, new MyTextSplitter());
+		LowBow lowOrig = new LowBow(t.getText(), new MyTextSplitter());
 		lowOrig.setSigmaAuto();
 		lowOrig.setSamplesPerTextLength(3);
 		lowOrig.build();
 		SparseTimeFlow heatMethod = new SparseTimeFlow(0.01, lowOrig);
 		for (int i = 0; i < samples; i++) {
-			LowBow low = new LowBow(text, new MyTextSplitter());
+			LowBow low = new LowBow(t.getText(), new MyTextSplitter());
 			low.setSigmaAuto();
 			low.setSamplesPerTextLength(3);
 			low.heatFlow(lambda, heatMethod);

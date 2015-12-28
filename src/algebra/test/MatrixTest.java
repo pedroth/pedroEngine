@@ -1,7 +1,9 @@
 package algebra.test;
 
 import algebra.src.Matrix;
+import algebra.src.Vec3;
 import algebra.src.Vector;
+import numeric.QuadraticFormMinimizer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,5 +27,27 @@ public class MatrixTest {
         Vector vector = new Vector(Matrix.diff(Matrix.prod(m, x), y));
         Assert.assertTrue(vector.norm() < 0.001);
         System.out.println(x);
+    }
+
+    @Test
+    public void MatrixTest2() {
+        Matrix m = new Matrix(new double[][]{{1,-1,0},{-1,2,-1},{0,-1,1}});
+        int samples = 100;
+        for (int i = 0; i < samples; i++) {
+            Vec3 v = new Vec3();
+            v.fillRandom(-100,100);
+            v = Vec3.normalize(v);
+            System.out.println(Vec3.innerProd(v,Vec3.matrixProd(m,v)));
+        }
+    }
+
+    @Test
+    public void MatrixTest3() {
+        Matrix m = new Matrix(new double[][]{{1,0,0},{0,1,0},{0,0,1}});
+        Vector b = new Vector(new double[]{1, 2, 3});
+        QuadraticFormMinimizer quadraticFormMinimizer = new QuadraticFormMinimizer(m, b);
+        Vector vector = new Vector(m.getRows());
+        vector.fillRandom(0,1);
+        System.out.println(Vector.diff(Vector.matrixProd(m, quadraticFormMinimizer.argMin(1E-16, vector)),b).norm());
     }
 }
