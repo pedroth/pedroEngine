@@ -16,7 +16,7 @@ public class LowBowManager {
 	private Simplex simplex;
 
 	public LowBowManager() {
-		lowbows = new ArrayList<LowBow>();
+		lowbows = new ArrayList<>();
 		simplex = new Simplex();
 	}
 	/**
@@ -26,13 +26,13 @@ public class LowBowManager {
 	 */
 	public void add(LowBow l) {
 		lowbows.add(l);
-		Set<String> keys = simplex.getKeySet();
-		int acmIndex = simplex.size();
+		Set<String> keys = l.getSimplex().getKeySet();
+		int accIndex = simplex.size();
 		for (String s : keys) {
 			Integer aux = simplex.get(s);
 			if (aux == null) {
-				acmIndex++;
-				simplex.put(s, acmIndex);
+				accIndex++;
+				simplex.put(s, accIndex);
 			}
 		}
 	}
@@ -136,5 +136,13 @@ public class LowBowManager {
 	public void removeAll() {
 		lowbows.removeAll(lowbows);
 		simplex = new Simplex();
+	}
+
+	public Simplex getSimplex() {
+		return simplex;
+	}
+
+	public void setSimplex(Simplex simplex) {
+		this.simplex = simplex;
 	}
 }

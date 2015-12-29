@@ -56,32 +56,13 @@ public class LowBow {
 
     protected boolean isBuild;
 
-    public LowBow(LowBow l) {
-        super();
-        this.originalText = l.originalText;
-        this.text = l.text;
-        this.textLength = l.textLength;
-        this.textSplitter = l.textSplitter;
-        this.simplex = l.simplex;
-        this.numWords = l.numWords;
-        this.rawCurve = l.rawCurve;
-        this.curve = l.curve;
-        this.pcaCurve = l.pcaCurve;
-        this.samples = l.samples;
-        this.step = l.step;
-        this.sigma = l.sigma;
-        this.samplesPerTextLength = l.samplesPerTextLength;
-        this.smoothingCoeff = l.smoothingCoeff;
-        this.isBuild = l.isBuild;
-    }
-
     public LowBow(String in, TextSplitter textSplitter) {
         originalText = in;
         this.simplex = new Simplex();
         this.textSplitter = textSplitter;
         isBuild = false;
         this.processText(in);
-        sigma = 1.0 / (0.8 * textLength);
+        sigma = getSigmaAuto();
     }
 
     public LowBow(String in, TextSplitter textSplitter, Simplex simplex) {
@@ -90,7 +71,7 @@ public class LowBow {
         this.textSplitter = textSplitter;
         isBuild = false;
         this.processText(in);
-        sigma = 1.0 / (0.8 * textLength);
+        sigma = getSigmaAuto();
     }
 
     /**
@@ -487,7 +468,14 @@ public class LowBow {
      * set sigma acoording to the folowing rule: 1.0 / (2 * textLength)
      */
     public void setSigmaAuto() {
-        this.sigma = 1.0 / (0.8 * this.getTextLength());
+        this.sigma = getSigmaAuto();
+    }
+
+    /**
+     * get sigma acoording to the folowing rule: 1.0 / (2 * textLength)
+     */
+    public double getSigmaAuto() {
+        return 1.0 / (0.8 * this.getTextLength());
     }
 
     /**

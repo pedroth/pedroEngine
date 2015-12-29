@@ -1,7 +1,8 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.script;
 
 import algebra.src.Vector;
 import inputOutput.MyText;
+import nlp.lowbow.src.LowBow;
 import nlp.textSplitter.MyTextSplitter;
 
 public class LowBowSurfaceScript {
@@ -21,7 +22,7 @@ public class LowBowSurfaceScript {
 	
 	public static void main(String[] args) {
 		MyText text = new MyText();
-		text.read("C:/Users/Pedroth/Desktop/research/Text.txt");
+		text.read("src/nlp/resources/TextExample.txt");
 		LowBow low = new LowBow(text.getText(), new MyTextSplitter());
 		low.setSmoothingCoeff(0.03);
 		low.build();

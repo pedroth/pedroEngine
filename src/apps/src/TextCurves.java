@@ -5,6 +5,9 @@ import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
 import nlp.lowbow.src.*;
+import nlp.lowbow.src.GraphLaplacianFlow;
+import nlp.lowbow.src.HeatKernelFlow;
+import nlp.lowbow.src.HeatMethod;
 import nlp.textSplitter.MyTextSplitter;
 import numeric.Camera3D;
 import numeric.MyMath;
@@ -12,7 +15,7 @@ import tools.simple.TextFrame;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.elements.String2D;
-import twoDimEngine.shaders.ExperimentShader;
+import twoDimEngine.shaders.ThickLineShader;
 import twoDimEngine.shaders.PaintMethod2D;
 
 import javax.swing.*;
@@ -21,7 +24,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * @author pedro
@@ -100,7 +102,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     public TextCurves(String title, int width, int height) {
         super(title, width, height);
         engine = new TwoDimEngine(width, height);
-        shader = new ExperimentShader(engine);
+        shader = new ThickLineShader(engine);
         engine.setBackGroundColor(Color.white);
         engine.setCamera(-1, 1, -1, 1);
         /**
@@ -534,13 +536,11 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void addCurveToEngine(LowBow lowbow) {
-        Random r = new Random();
-        Color color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-        ;
-        int randSamples = r.nextInt(5);
+        Color color = Color.getHSBColor((float) Math.random(), 1.0f, 1.0f);
+        int randSamples = (int) Math.round(Math.random() * 5);
 
         for (int i = 0; i < randSamples; i++) {
-            color = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+            color = Color.getHSBColor((float) Math.random(), 1.0f, 1.0f);
         }
 
         int n = lowbow.getSamples();

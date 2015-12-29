@@ -1,6 +1,10 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.script;
 
 import inputOutput.MyText;
+import nlp.lowbow.src.HeatMethod;
+import nlp.lowbow.src.LowBow;
+import nlp.lowbow.src.LowBowSummaryPrepositions;
+import nlp.lowbow.src.SparseHeatFlow;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
@@ -93,7 +97,7 @@ public class LowBowSummaryApp {
 			if(type.equals("normal")) {
 				l = new LowBow(text.getText(), new MyTextSplitter());
 			} else if(type.equals("stopwords")) {
-				l = new LowBow(text.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
+				l = new LowBow(text.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
 			} else if(type.equals("prepositional")) {
 				l = new LowBowSummaryPrepositions(text.getText());
 			} else {

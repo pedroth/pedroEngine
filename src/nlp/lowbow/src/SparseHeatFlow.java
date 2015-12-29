@@ -2,8 +2,6 @@ package nlp.lowbow.src;
 
 import algebra.src.Vector;
 
-import java.util.Stack;
-
 public class SparseHeatFlow implements HeatMethod {
 
     @Override
@@ -39,7 +37,8 @@ public class SparseHeatFlow implements HeatMethod {
                 acmGrad += grad[i].squareNorm();
             }
 
-            dt = 1.0 / (lambda + 1);
+            dt = 1.0 / (lambda + 1.0);
+
             /*
              * update l.curve
              */

@@ -1,9 +1,7 @@
 package nlp.lowbow.src;
 
 import algebra.src.Matrix;
-import algebra.src.Vec3;
 import algebra.src.Vector;
-import numeric.QuadraticFormMinimizer;
 
 /**
  * Created by Pedroth on 12/20/2015.

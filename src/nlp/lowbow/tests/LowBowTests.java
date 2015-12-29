@@ -2,6 +2,7 @@ package nlp.lowbow.tests;
 
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
+import nlp.lowbow.src.HeatMethod;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import org.junit.Test;

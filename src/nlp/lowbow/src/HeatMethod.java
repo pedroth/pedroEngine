@@ -1,11 +1,10 @@
 package nlp.lowbow.src;
+
 /**
- * 
  * @author pedro
- * 
- * computes the heatflow on a lowbow curve
- *
+ *         <p>
+ *         computes the heatflow on a lowbow curve
  */
 public interface HeatMethod {
-	public void heatFlow(double lambda, LowBow l);
+    public void heatFlow(double lambda, LowBow l);
 }
