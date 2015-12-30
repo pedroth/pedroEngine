@@ -1,4 +1,4 @@
-package numeric;
+package numeric.src;
 
 import algebra.src.Matrix;
 import algebra.src.Vec3;

@@ -1,4 +1,4 @@
-package numeric;
+package numeric.src;
 
 import algebra.src.Vector;
 import realFunction.src.ExpressionFunction;

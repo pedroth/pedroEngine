@@ -47,7 +47,6 @@ public class SparseHeatFlow implements HeatMethod {
                 l.curve[i + 1] = Vector.add(l.curve[i + 1], Vector.scalarProd(dt, grad[i + 1]));
             }
             ite++;
-			System.out.println(acmGrad);
         } while (acmGrad > epsilon && ite < maxIte);
     }
 }

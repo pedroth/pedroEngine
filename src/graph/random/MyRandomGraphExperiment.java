@@ -4,7 +4,7 @@ import algebra.src.Matrix;
 import algebra.src.Vector;
 import graph.Graph;
 import inputOutput.MyText;
-import numeric.MyMath;
+import numeric.src.MyMath;
 import realFunction.src.ExpressionFunction;
 import realFunction.src.MultiVarFunction;
 import realFunction.src.UniVarFunction;

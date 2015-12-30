@@ -6,7 +6,7 @@ import algebra.src.Vector;
 import apps.utils.MyFrame;
 import nlp.lowbow.src.LowBow;
 import nlp.lowbow.src.LowBowManager;
-import numeric.Camera3D;
+import numeric.src.Camera3D;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.shaders.ThickLineShader;

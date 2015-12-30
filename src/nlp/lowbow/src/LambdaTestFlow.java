@@ -1,22 +1,25 @@
 package nlp.lowbow.src;
 
+import algebra.src.Matrix;
+import algebra.src.TridiagonalMatrixSolver;
 import algebra.src.Vector;
+import numeric.src.MyMath;
 
 /**
  * Created by Pedroth on 11/28/2015.
  */
-public class SparseTimeFlow implements HeatMethod {
+public class LambdaTestFlow implements HeatMethod {
     private double dt;
     private Vector[] measureCurveOrig;
     private Vector[] measureCurve;
     private Vector[] nullCurve;
     private double maxError;
 
-    public SparseTimeFlow(double dt) {
+    public LambdaTestFlow(double dt) {
         this.dt = dt;
     }
 
-    public SparseTimeFlow(double dt, LowBow lowBow) {
+    public LambdaTestFlow(double dt, LowBow lowBow) {
         this.dt = dt;
 
         measureCurveOrig = new Vector[lowBow.getCurve().length];
@@ -45,48 +48,45 @@ public class SparseTimeFlow implements HeatMethod {
 
     @Override
     public void heatFlow(double lambda, LowBow l) {
-        double acmGrad;
-        int maxIte = 10000;
-        int ite = 0;
-//        lambda = (1- lambda) / (lambda == 0.0 ? 1E-9 : lambda);
-        /**
-         * convergence error
+        // change
+        Vector zeta = new Vector(l.samples);
+        Matrix myu = new Matrix(l.samples, l.samples);
+        /*
+         * build matrix myu
          */
-        double epsilon = 1E-16;
-        /**
-         * time l.step of heat
-         */
-        double dt;
-        Vector[] auxCurve = new Vector[l.curve.length];
-        Vector[] grad = new Vector[l.curve.length];
-        /**
-         * initial condition u(x,0) = u_init(x)
-         */
-        for (int i = 0; i < l.curve.length; i++) {
-            grad[i] = new Vector(l.numWords);
-            auxCurve[i] = l.curve[i].copy();
-        }
-        do {
-            acmGrad = 0;
-            for (int i = 1; i < l.curve.length - 1; i++) {
-                Vector lambdaFactor = Vector.scalarProd(lambda, Vector.add(l.curve[i + 1], l.curve[i - 1]));
-                Vector lambdaPlusFactor = Vector.scalarProd(-(lambda + 1), l.curve[i]);
-                Vector originalFactor = Vector.scalarProd(1 - lambda, auxCurve[i]);
+        for (int i = 1; i <= l.samples; i++) {
 
-                grad[i] = Vector.add(lambdaFactor, Vector.add(lambdaPlusFactor, originalFactor));
-                acmGrad += grad[i].squareNorm();
-            }
+            int j = i;
+            int jminus = Math.max(j - 1, 1);
+            int jplus = Math.min(j + 1, l.samples);
 
-           dt = 0.5 / (lambda + 1);
+            myu.setXY(i, jminus, lambda * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
+            myu.setXY(i, j, -(lambda + 1) * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
+            myu.setXY(i, jplus, lambda * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
+
             /*
-             * update l.curve
+             * adding boundary conditions
              */
-            for (int i = 1; i < l.curve.length - 1; i += 2) {
-                l.curve[i] = Vector.add(l.curve[i], Vector.scalarProd(dt, grad[i]));
-                l.curve[i + 1] = Vector.add(l.curve[i + 1], Vector.scalarProd(dt, grad[i + 1]));
+            myu.setXY(i, j, myu.getXY(i, j) + MyMath.dirac(i - 1) * MyMath.dirac(j - 1) + MyMath.dirac(i - l.samples) * MyMath.dirac(j - l.samples));
+        }
+        for (int j = 1; j <= l.numWords; j++) {
+            /*
+             * build zeta
+             */
+            for (int i = 1; i <= l.samples; i++) {
+                zeta.setX(i, ((lambda - 1) * l.curve[i - 1].getX(j)) * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
+                /*
+                 * boundary condition
+                 */
+                zeta.setX(i, zeta.getX(i) + l.curve[i - 1].getX(j) * (MyMath.dirac(i - 1) + MyMath.dirac(i - l.samples)));
             }
-            ite++;
-        } while (acmGrad > epsilon && ite < maxIte);
+            Vector v = TridiagonalMatrixSolver.solveTridiagonalSystem(myu, zeta);
+            //System.out.println(Vector.diff(Vector.matrixProd(myu,v),zeta));
+            for (int i = 1; i <= l.samples; i++) {
+                l.curve[i - 1].setX(j, v.getX(i));
+            }
+        }
+        //end change
 
         for (int i = 0; i < l.curve.length; i++) {
             measureCurve[i] = l.curve[i];

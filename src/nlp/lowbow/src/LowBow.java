@@ -6,9 +6,9 @@ import algebra.src.Vector;
 import inputOutput.MyText;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
-import numeric.MyMath;
-import numeric.Pca;
-import numeric.SimplexPointSampler;
+import numeric.src.MyMath;
+import numeric.src.Pca;
+import numeric.src.SimplexPointSampler;
 
 import javax.management.RuntimeErrorException;
 import java.io.File;

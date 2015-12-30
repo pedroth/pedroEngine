@@ -1,8 +1,9 @@
 package nlp.lowbow.src;
 
 import algebra.src.Matrix;
+import algebra.src.TridiagonalMatrixSolver;
 import algebra.src.Vector;
-import numeric.MyMath;
+import numeric.src.MyMath;
 
 public class MatrixHeatFlow implements HeatMethod {
 
@@ -43,12 +44,12 @@ public class MatrixHeatFlow implements HeatMethod {
                  */
                 zeta.setX(i, zeta.getX(i) + l.curve[i - 1].getX(j) * (MyMath.dirac(i - 1) + MyMath.dirac(i - l.samples)));
             }
-            Vector v = Matrix.solveLinearSystem(myu, zeta, epsilon);
+
+            Vector v = TridiagonalMatrixSolver.solveTridiagonalSystem(myu, zeta);
             //System.out.println(Vector.diff(Vector.matrixProd(myu,v),zeta));
             for (int i = 1; i <= l.samples; i++) {
                 l.curve[i - 1].setX(j, v.getX(i));
             }
         }
-
     }
 }

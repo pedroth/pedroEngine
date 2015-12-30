@@ -1,7 +1,7 @@
 package nlp.lowbow.src;
 
 import algebra.src.Vector;
-import numeric.Pca;
+import numeric.src.Pca;
 
 import java.util.ArrayList;
 import java.util.Set;

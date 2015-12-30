@@ -1,4 +1,4 @@
-package numeric;
+package numeric.src;
 
 import inputOutput.MyText;
 import nlp.textSplitter.TextSplitter;

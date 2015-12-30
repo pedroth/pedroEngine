@@ -28,7 +28,7 @@ public class TridiagonalMatrixSolver {
 
         for (int i = rows; i >= 2; i--) {
             x.setX(i, x.getX(i) / matrix.getXY(i, i));
-            x.setX(i - 1, x.getX(i - 1) - matrix.getXY(i, i - 1) * x.getX(i));
+            x.setX(i - 1, x.getX(i - 1) - matrix.getXY(i - 1, i) * x.getX(i));
         }
 
         x.setX(1, x.getX(1) / matrix.getXY(1,1));
