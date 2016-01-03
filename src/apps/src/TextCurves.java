@@ -112,7 +112,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         input.setLayout(new GridLayout(1, 2));
         Panel p1 = new Panel(new GridLayout(7, 1));
         input.setResizable(false);
-        input.setSize(width / 2, (int) ((3.0 / 5.0) * width / 2));
+        input.setSize((int) Math.floor(0.6 * width), (int) Math.floor(0.3 * width));
         input.setLocation(width, 0);
         /**
          * Text area
@@ -264,7 +264,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
                     heatMethod = new SparseHeatFlow();
                 } else if (flowSolverChoice.getSelectedItem().equals("Matrix")) {
                     heatMethod = new MatrixHeatFlow();
-                } else if (flowSolverChoice.getSelectedItem().equals("Kernel")){
+                } else if (flowSolverChoice.getSelectedItem().equals("Kernel")) {
                     heatMethod = new HeatKernelFlow();
                 } else if (flowSolverChoice.getSelectedItem().equals("GraphLaplacian")) {
                     heatMethod = new GraphLaplacianFlow();
@@ -295,7 +295,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     public static void main(String[] args) {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        new TextCurves("Teste", (int) (screenSize.getWidth() * 0.65), (int) (screenSize.getHeight() * 0.75));
+        new TextCurves("Teste", (int) (screenSize.getWidth() * 0.60), (int) (screenSize.getHeight() * 0.75));
     }
 
     @Override

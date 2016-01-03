@@ -1,7 +1,6 @@
 package algebra.test;
 
 import algebra.src.Matrix;
-import algebra.src.TridiagonalMatrixSolver;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import numeric.src.QuadraticFormMinimizer;
@@ -54,11 +53,27 @@ public class MatrixTest {
 
     @Test
     public void MatrixTest4() {
-        Matrix m = new Matrix(new double[][]{{1, 0, 0, 0}, {1, -2, 1, 0}, {0, 1, -2, 1}, {0, 0, 0, 1}});
-        Vector y = new Vector(new double[]{0, 0, 0, 1});
+        Matrix m = new Matrix(new double[][]{{1, 0, 0, 0, 0}, {1, -2, 1, 0, 0}, {0, 1, -2, 1, 0}, {0, 0, 1, -2, 1}, {0, 0, 0, 0, 1}});
         System.out.println(m);
+        m = Matrix.prod(Matrix.scalarProd(1, m), m);
+        Vector y = new Vector(new double[]{0, 0, 0, 0, 1});
 
         System.out.println(y);
-        System.out.println(TridiagonalMatrixSolver.solveTridiagonalSystem(m, y));
+        Vector x = Matrix.solveLinearSystem(m, y);
+        System.out.println(x);
+        Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-6);
+    }
+
+
+    @Test
+    public void MatrixTest5() {
+        Matrix m = new Matrix(new double[][]{{1, 2}, {2, 3.999}});
+        System.out.println(m);
+        Vector y = new Vector(new double[]{4, 7.999});
+
+        System.out.println(y);
+        Vector x = Matrix.solveLinearSystem(m, y);
+        System.out.println(x);
+        Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-6);
     }
 }

@@ -5,7 +5,7 @@ import apps.src.LowBowVisualizer;
 import inputOutput.MyText;
 import nlp.lowbow.src.LowBow;
 import nlp.lowbow.src.LowBowManager;
-import nlp.lowbow.src.SparseHeatFlow;
+import nlp.lowbow.src.MatrixHeatFlow;
 import nlp.textSplitter.MyTextSplitter;
 
 import java.util.List;
@@ -35,13 +35,15 @@ public class LowBowFreqTest {
         lowBowManager.build();
 
         List<LowBow> lowBowList = lowBowManager.getLowbows();
-        lowBowList.get(1).heatFlow(0.9999,new SparseHeatFlow());
+        lowBowList.get(1).heatFlow(0.999, new MatrixHeatFlow());
         Vector[] curve = lowBowList.get(0).getCurve();
         Vector[] smoothedCurve = lowBowList.get(1).getCurve();
 
-        for (int i = 0; i < curve.length; i++) {
-            curve[i] = Vector.diff(curve[i],smoothedCurve[i]);
-        }
+        text.write("C:/Users/Pedroth/Desktop/teste2.txt", lowBowList.get(0).generateText());
+
+//        for (int i = 0; i < curve.length; i++) {
+//            curve[i] = Vector.diff(curve[i],smoothedCurve[i]);
+//        }
 
         text.write("C:/Users/Pedroth/Desktop/teste.txt",lowBowList.get(0).generateText());
 

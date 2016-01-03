@@ -77,7 +77,7 @@ public class LowBowTests {
 
     @Test
     public void testLambdaSensitivity() {
-        int samples = 200;
+        int samples = 100;
         double step = 1.0 / (samples - 1);
         double lambda = 0;
         MyText t = new MyText();

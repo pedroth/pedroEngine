@@ -177,14 +177,14 @@ public class Matrix {
 
     /**
      * this solves the following equation m * x = y, where m is a n*n matrix, x
-     * and y are n * 1 matrices or vectors of n dimension
+     * and y are n * 1 matrices or vectors of n dimension, using a least square approach
      *
      * @param m
      * @param y
      * @param epsilon convergence error
      * @return vector with solution to equation m * x = y.
      */
-    public static Vector solveLinearSystem(Matrix m, Vector y, double epsilon) {
+    public static Vector leastSquareLinearSystem(Matrix m, Vector y, double epsilon) {
         double time = System.nanoTime() * 1E-9;
         Matrix normMTrans = Matrix.transpose(m);
         Matrix myu;
@@ -201,9 +201,40 @@ public class Matrix {
             grad = Vector.diff(gamma, Vector.matrixProd(myu, x));
             double d2fdt = Vector.innerProd(grad, Vector.matrixProd(myu, grad));
             double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
-            grad = Vector.scalarProd(0.5 * t, grad);
+            grad = Vector.scalarProd(t, grad);
             x = Vector.add(x, grad);
-//			System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
+            System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
+        } while (grad.norm() > epsilon);
+        // System.out.println(System.nanoTime() * 1E-9 - time);
+        return x;
+    }
+
+    /**
+     * this solves the following equation m * x = y, where m is a n*n matrix, x
+     * and y are n * 1 matrices or vectors of n dimension
+     *
+     * @param m
+     * @param y
+     * @param epsilon convergence error
+     * @return vector with solution to equation m * x = y.
+     */
+    public static Vector solveLinearSystem(Matrix m, Vector y, double epsilon) {
+        double time = System.nanoTime() * 1E-9;
+        Matrix normMTrans = Matrix.transpose(m);
+
+        Vector gamma = Vector.matrixProd(normMTrans, y);
+        Vector x = gamma.copy();
+        Vector grad = null;
+        double t = 1E-3;
+        do {
+            grad = Vector.diff(Vector.matrixProd(m, x), y);
+            double d2fdt = Vector.innerProd(grad, Vector.matrixProd(m, grad));
+            if (d2fdt == 0)
+                return x;
+            t = (grad.squareNorm() / d2fdt);
+            grad = Vector.scalarProd(-t, grad);
+            x = Vector.add(x, grad);
+            System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
         } while (grad.norm() > epsilon);
         // System.out.println(System.nanoTime() * 1E-9 - time);
         return x;

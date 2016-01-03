@@ -1,9 +1,8 @@
 package nlp.lowbow.src;
 
 import algebra.src.Matrix;
-import algebra.src.TridiagonalMatrixSolver;
 import algebra.src.Vector;
-import numeric.src.MyMath;
+import numeric.src.MatrixExponetial;
 
 /**
  * Created by Pedroth on 11/28/2015.
@@ -49,43 +48,45 @@ public class LambdaTestFlow implements HeatMethod {
     @Override
     public void heatFlow(double lambda, LowBow l) {
         // change
-        Vector zeta = new Vector(l.samples);
+        Vector[] zeta = new Vector[l.numWords];
         Matrix myu = new Matrix(l.samples, l.samples);
         /*
          * build matrix myu
          */
         for (int i = 1; i <= l.samples; i++) {
+            int jminus = Math.max(i - 1, 1);
+            int jplus = Math.min(i + 1, l.samples);
 
-            int j = i;
-            int jminus = Math.max(j - 1, 1);
-            int jplus = Math.min(j + 1, l.samples);
-
-            myu.setXY(i, jminus, lambda * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
-            myu.setXY(i, j, -(lambda + 1) * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
-            myu.setXY(i, jplus, lambda * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
-
-            /*
-             * adding boundary conditions
-             */
-            myu.setXY(i, j, myu.getXY(i, j) + MyMath.dirac(i - 1) * MyMath.dirac(j - 1) + MyMath.dirac(i - l.samples) * MyMath.dirac(j - l.samples));
+            myu.setXY(i, jminus, 1);
+            myu.setXY(i, i, -2);
+            myu.setXY(i, jplus, 1);
         }
+
+        myu = Matrix.scalarProd(100.0, myu);
+
+        myu.setXY(1, 1, 0.0);
+        myu.setXY(1, 2, 0);
+        myu.setXY(l.samples, l.samples - 1, 0);
+        myu.setXY(l.samples, l.samples, 0.0);
+
+        // build zeta
         for (int j = 1; j <= l.numWords; j++) {
-            /*
-             * build zeta
-             */
+
+            zeta[j - 1] = new Vector(l.samples);
+
             for (int i = 1; i <= l.samples; i++) {
-                zeta.setX(i, ((lambda - 1) * l.curve[i - 1].getX(j)) * (MyMath.step(i - 2) - MyMath.step(i - l.samples)));
-                /*
-                 * boundary condition
-                 */
-                zeta.setX(i, zeta.getX(i) + l.curve[i - 1].getX(j) * (MyMath.dirac(i - 1) + MyMath.dirac(i - l.samples)));
+                zeta[j - 1].setX(i, l.curve[i - 1].getX(j));
             }
-            Vector v = TridiagonalMatrixSolver.solveTridiagonalSystem(myu, zeta);
-            //System.out.println(Vector.diff(Vector.matrixProd(myu,v),zeta));
+        }
+
+        int samples = 500;
+        for (int j = 1; j <= l.numWords; j++) {
+            Vector v = MatrixExponetial.exp(lambda, myu, zeta[j - 1], samples);
             for (int i = 1; i <= l.samples; i++) {
                 l.curve[i - 1].setX(j, v.getX(i));
             }
         }
+
         //end change
 
         for (int i = 0; i < l.curve.length; i++) {
