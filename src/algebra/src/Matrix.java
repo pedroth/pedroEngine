@@ -332,15 +332,15 @@ public class Matrix {
     }
 
     public String toStringMatlab() {
-        String acm = "";
-        acm += "[";
+        StringBuilder acc = new StringBuilder(rows * columns);
+        acc.append("[");
         for (int i = 1; i <= rows; i++) {
             for (int j = 1; j <= columns; j++) {
-                acm += this.getXY(i, j) + (j <= (columns - 1) ? " , " : " ;");
+                acc.append(this.getXY(i, j) + (j <= (columns - 1) ? " , " : " ;"));
             }
         }
-        acm += "]";
-        return acm;
+        acc.append("]");
+        return acc.toString();
     }
 
     public void fillZeros() {

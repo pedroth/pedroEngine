@@ -4,11 +4,13 @@ import algebra.src.Vec2;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
+import apps.utils.TextFrame;
 import nlp.lowbow.src.*;
+import nlp.lowbow.src.symbolSampler.SymbolAtAverage;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.MyTextSplitter;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
-import tools.simple.TextFrame;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.elements.String2D;
@@ -94,6 +96,8 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     private Vec2[] polygon;
 
     private HeatMethod heatMethod = new MatrixHeatFlow();
+
+    private SymbolSampler symbolSampler = new SymbolAtAverage();
 
 
     public TextCurves(String title, int width, int height) {
@@ -478,7 +482,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
                 if (txtVisibleCheckBox.getState() && projLine[i].isVisible()) {
                     strCurve[j].setVisible(true);
                     strCurve[j].setVertex(projCurve[k], 0);
-                    strCurve[j].setString(lowbow.wordAt(k));
+                    strCurve[j].setString(symbolSampler.nextSymbol(lowbow.getCurve()[k], lowbow.getSimplex()));
                 } else {
                     strCurve[j].setVisible(false);
                 }
@@ -581,16 +585,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             return;
 
         LowBow low = lowList.get(lowList.size() - 1);
-        int n = low.getTextLength();
-        int samples = low.getSamples();
-        double s = (samples - 1.0) / (n - 1.0);
-        String acm = "";
-        for (int i = 0; i < n; i++) {
-            int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
-            acm += low.wordAt(k) + "\n";
-        }
-
-        TextFrame frame = new TextFrame("Generated Text", acm);
+        TextFrame frame = new TextFrame("Generated Text", low.generateText(symbolSampler));
     }
 
     public void pcaCoords() {

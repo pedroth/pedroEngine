@@ -1,4 +1,4 @@
-package tools.random;
+package other;
 
 import inputOutput.MyText;
 import nlp.textSplitter.CharacterSplitter;

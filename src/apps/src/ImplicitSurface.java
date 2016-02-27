@@ -2,7 +2,7 @@ package apps.src;
 
 import algebra.src.Vec2;
 import apps.utils.MyFrame;
-import tools.simple.TextFrame;
+import apps.utils.TextFrame;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.String2D;
 import twoDimEngine.shaders.FillShader;

@@ -1,4 +1,4 @@
-package graph.random;
+package apps.src;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;

@@ -1,4 +1,4 @@
-package tools.random;
+package other;
 
 import tokenizer.SufixTreeTokenizer;
 

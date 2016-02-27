@@ -3,6 +3,7 @@ package nlp.lowbow.src;
 import algebra.src.Vec2;
 import graph.Graph;
 import inputOutput.MyText;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
@@ -171,8 +172,8 @@ public class LowBowSummaryPrepositions extends LowBow {
 	}
 
 	@Override
-	public String generateText() {
-		String acm = super.generateText();
+	public String generateText(SymbolSampler symbolSampler) {
+		String acm = super.generateText(symbolSampler);
 		TextSplitter spliter = new SpaceSplitter();
 		String[] split = spliter.split(acm);
 		for (int i = 0; i < split.length; i++) {

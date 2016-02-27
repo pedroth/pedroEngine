@@ -1,4 +1,4 @@
-package tools.simple;
+package apps.utils;
 
 import javax.swing.*;
 import java.awt.*;

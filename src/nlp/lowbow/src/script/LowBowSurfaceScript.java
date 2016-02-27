@@ -3,26 +3,14 @@ package nlp.lowbow.src.script;
 import algebra.src.Vector;
 import inputOutput.MyText;
 import nlp.lowbow.src.LowBow;
+import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.textSplitter.MyTextSplitter;
 
 public class LowBowSurfaceScript {
 	
-	public static String printMatlabMatrix(Vector[] curve) {
-		String acm = "";
-		acm += "[\t";
-		for (int i = 0; i < curve.length; i++) {
-			for (int j = 1; j <= curve[0].getDim(); j++) {
-				acm += curve[i].getX(j) + ";\t";
-			}
-			acm += ";\t";
-		}
-		acm += "]\n";
-		return acm;
-	}
-	
 	public static void main(String[] args) {
 		MyText text = new MyText();
-		text.read("src/nlp/resources/TextExample.txt");
+		text.read("src/nlp/resources/texts/TextExample.txt");
 		LowBow low = new LowBow(text.getText(), new MyTextSplitter());
 		low.setSmoothingCoeff(0.03);
 		low.build();
@@ -34,7 +22,7 @@ public class LowBowSurfaceScript {
 //		for (int i = 0; i < samples; i++) {
 //			acc+= "x(:," + (i+1) + ") = ";
 //			low.heatFlow(lambda*lambda*lambda, sparse);
-//			acc+= LowBowSurfaceScript.printMatlabMatrix(low.getCurve());
+//			acc+= LowBowSurfaceScript.printMatlabVector(low.getCurve());
 //			System.out.println(lambda*lambda*lambda);
 //			lambda += (1.0 / (samples - 1)); 
 //			acc += ";\n";
@@ -51,6 +39,6 @@ public class LowBowSurfaceScript {
 			}
 		}
 		low.setCurve(curve);
-		System.out.println(low.generateText());
+		System.out.println(low.generateText(new SymbolAtMax()));
 	}
 }

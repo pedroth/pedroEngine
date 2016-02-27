@@ -178,7 +178,10 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
         void draw(LowBowManager lowBowManager, TwoDimEngine twoDimEngine);
     }
 
-    private class PolygonVisual implements LowBowVisualizationMethod {
+
+    /// LowBow Visualization Methods
+
+    public class PolygonVisual implements LowBowVisualizationMethod {
         private boolean isBuild = false;
 
         @Override
@@ -226,4 +229,5 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
             }
         }
     }
+
 }

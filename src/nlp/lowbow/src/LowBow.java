@@ -4,11 +4,11 @@ import algebra.src.Matrix;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import inputOutput.MyText;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
 import numeric.src.MyMath;
 import numeric.src.Pca;
-import numeric.src.SimplexPointSampler;
 
 import javax.management.RuntimeErrorException;
 import java.io.File;
@@ -289,60 +289,6 @@ public class LowBow {
     }
 
     /**
-     * generates word based on the maximum probable word in the curve at myu =
-     * (1 / (samples-1)) * k
-     *
-     * @param k
-     * @return
-     */
-    public String wordAt(int k) {
-        if (!isBuild) {
-            build();
-        }
-
-        String ans = "";
-        if (k < 0 || k > (samples - 1)) {
-            return ans;
-        }
-        Vector v = curve[k];
-        int n = v.getDim();
-        int key = 0;
-        double max = 0;
-        for (int i = 1; i <= n; i++) {
-            double value = v.getX(i);
-            if (max < value) {
-                max = value;
-                key = i;
-            }
-        }
-        ans = simplex.get(key);
-        return ans;
-    }
-
-    /**
-     * generates word in the curve at myu = (1 / (samples-1)) * k, by sampling
-     * the probability distribution of words in the curve at sample k.
-     *
-     * @param k
-     * @return
-     */
-    public String wordAtRandom(int k) {
-        if (!isBuild) {
-            build();
-        }
-
-        String ans = "";
-        if (k < 0 || k > (samples - 1)) {
-            return ans;
-        }
-        Vector v = curve[k];
-        SimplexPointSampler r = new SimplexPointSampler(v.getArray());
-        int key = r.nextSymbol();
-        ans = simplex.get(key + 1);
-        return ans;
-    }
-
-    /**
      * As described in the definition 4 of
      * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
      *
@@ -481,18 +427,18 @@ public class LowBow {
     /**
      * @return text based on the maximum probable word at each sample.
      */
-    public String generateText() {
+    public String generateText(SymbolSampler symbolSampler) {
         if (!isBuild)
             throw new RuntimeErrorException(null, "LowBow not initialized");
         int n = this.getTextLength();
         int samples = this.getSamples();
         double s = (samples - 1.0) / (n - 1.0);
-        String acc = "";
+        StringBuilder acc = new StringBuilder(n);
         for (int i = 0; i < n; i++) {
             int k = (int) Math.floor(MyMath.clamp(s * i, 0, samples - 1));
-            acc += this.wordAt(k) + "\n";
+            acc.append(symbolSampler.nextSymbol(curve[k], simplex) + "\n");
         }
-        return acc;
+        return acc.toString();
     }
 
     public void heatFlow(double lambda, HeatMethod heatM) {

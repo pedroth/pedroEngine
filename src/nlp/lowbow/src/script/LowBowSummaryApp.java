@@ -5,6 +5,7 @@ import nlp.lowbow.src.HeatMethod;
 import nlp.lowbow.src.LowBow;
 import nlp.lowbow.src.LowBowSummaryPrepositions;
 import nlp.lowbow.src.SparseHeatFlow;
+import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
@@ -110,7 +111,7 @@ public class LowBowSummaryApp {
 			System.out.println("computing summary");
 			HeatMethod heat = new SparseHeatFlow();
 			l.heatFlow(lambda, heat);
-			text.write(addressOut, l.generateText());
+			text.write(addressOut, l.generateText(new SymbolAtMax()));
 		} catch(RuntimeException e) {
 			
 		}

@@ -2,6 +2,7 @@ package nlp.lowbow.tests;
 
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
+import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class LowBowTests {
         low.build();
         HeatMethod heat = new MatrixHeatFlow();
         low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out1.txt", low.generateText());
+        t.write("C:/Users/Pedroth/Desktop/out1.txt", low.generateText(new SymbolAtMax()));
     }
 
     /**
@@ -32,7 +33,7 @@ public class LowBowTests {
     @Test
     public void test2() {
         MyText t = new MyText();
-        t.read("src/nlp/resources/TextExample.txt");
+        t.read("src/nlp/resources/texts/TextExample.txt");
         LowBow low = new LowBow(t.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
         low.setSamplesPerTextLength(1.0);
         // low.setSigma(0.08);
@@ -41,7 +42,7 @@ public class LowBowTests {
         low.build();
         HeatMethod heat = new SparseHeatFlow();
         low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out2.txt", low.generateText());
+        t.write("C:/Users/Pedroth/Desktop/out2.txt", low.generateText(new SymbolAtMax()));
     }
 
     /**
@@ -50,7 +51,7 @@ public class LowBowTests {
     @Test
     public void test3() {
         MyText t = new MyText();
-        t.read("src/nlp/resources/TextExample.txt");
+        t.read("src/nlp/resources/texts/TextExample.txt");
         LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
         low.setSamplesPerTextLength(1.0);
         // low.setSigma(0.08);
@@ -59,13 +60,13 @@ public class LowBowTests {
         low.build();
         HeatMethod heat = new SparseHeatFlow();
         low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out3.txt", low.generateText());
+        t.write("C:/Users/Pedroth/Desktop/out3.txt", low.generateText(new SymbolAtMax()));
     }
 
     @Test
     public void test4() {
         MyText t = new MyText();
-        t.read("src/nlp/resources/TextExample.txt");
+        t.read("src/nlp/resources/texts/TextExample.txt");
         LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
         low.setSamplesPerTextLength(1.0);
         // low.setSigma(0.08);
@@ -81,7 +82,7 @@ public class LowBowTests {
         double step = 1.0 / (samples - 1);
         double lambda = 0;
         MyText t = new MyText();
-        t.read("src/nlp/resources/TextExample.txt");
+        t.read("src/nlp/resources/texts/TextExample.txt");
         String text = "Hello , please input some text here. For example a c c c b b a c c";
         LowBow lowOrig = new LowBow(t.getText(), new MyTextSplitter());
         lowOrig.setSigmaAuto();
