@@ -6,6 +6,8 @@ import numeric.src.MatrixExponetial;
 
 /**
  * Created by Pedroth on 11/28/2015.
+ *
+ * Tests how a change in lambda changes the smoothing
  */
 public class LambdaTestFlow implements HeatMethod {
     private double dt;

@@ -2,6 +2,9 @@ package nlp.lowbow.src;
 
 import algebra.src.Vector;
 
+/**
+ * Solves the heat equation with Dirichlet Boundary condition using Euler method
+ */
 public class SparseHeatFlow implements HeatMethod {
 
     @Override

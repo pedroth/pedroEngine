@@ -1,7 +1,6 @@
 package nlp.lowbow.src;
 
 import algebra.src.Vector;
-import numeric.src.Pca;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -11,9 +10,9 @@ import java.util.Set;
  * @author pedro
  * 
  */
-public class LowBowManager {
-	private ArrayList<LowBow> lowbows;
-	private Simplex simplex;
+public class LowBowManager<L extends LowBow> {
+	protected ArrayList<L> lowbows;
+	protected Simplex simplex;
 
 	public LowBowManager() {
 		lowbows = new ArrayList<>();
@@ -24,7 +23,7 @@ public class LowBowManager {
 	 * @param l lowbow curve
 	 * 
 	 */
-	public void add(LowBow l) {
+	public void add(L l) {
 		lowbows.add(l);
 		Set<String> keys = l.getSimplex().getKeySet();
 		int accIndex = simplex.size();
@@ -37,7 +36,7 @@ public class LowBowManager {
 		}
 	}
 
-	private LowBow myUnitAuxiliarInit(LowBow temp, double samplesPerTextLength) {
+	protected LowBow myUnitAuxiliaryInit(LowBow temp, double samplesPerTextLength) {
 		LowBow ans = new LowBow(temp.getOriginalText(), temp.getTextSplitter(), simplex);
 		ans.setSmoothingCoeff(temp.getSmoothingCoeff());
 		ans.build(samplesPerTextLength, temp.getSigma());
@@ -51,8 +50,8 @@ public class LowBowManager {
 		int n = lowbows.size();
 		for (int i = 0; i < n; i++) {
 			LowBow temp = lowbows.get(i);
-			LowBow lowbow = myUnitAuxiliarInit(temp, temp.samplesPerTextLength);
-			lowbows.set(i, lowbow);
+			LowBow lowbow = myUnitAuxiliaryInit(temp, temp.samplesPerTextLength);
+			lowbows.set(i, (L) lowbow);
 		}
 	}
 	/**
@@ -70,39 +69,13 @@ public class LowBowManager {
 		}
 		for (int i = 0; i < n; i++) {
 			LowBow temp = lowbows.get(i);
-			LowBow lowbow = myUnitAuxiliarInit(temp, maxSamples / temp.textLength);
-			lowbows.set(i, lowbow);
-		}
-	}
-	/**
-	 * build pca of all curves
-	 */
-	public void buildPca() {
-		int size = 0;
-		for (LowBow lowbow : lowbows) {
-			size += lowbow.getSamples();
-		}
-		Vector[] data = new Vector[size];
-
-		int n = lowbows.size();
-
-		int index = 0;
-		for (int i = 0; i < n; i++) {
-			Vector[] curve = lowbows.get(i).getCurve();
-			for (int j = 0; j < curve.length; j++) {
-				data[index] = curve[j];
-				index++;
-			}
-		}
-		Pca pca = new Pca();
-		Vector[] pc = pca.getNPca(data, 3);
-		Vector myu = pca.getAverage();
-		for (LowBow lowbow : lowbows) {
-			lowbow.buildPca(pc, myu);
+			LowBow lowbow = myUnitAuxiliaryInit(temp, maxSamples / temp.textLength);
+			lowbows.set(i, (L) lowbow);
 		}
 	}
 
-	public ArrayList<LowBow> getLowbows() {
+
+	public ArrayList<L> getLowbows() {
 		return lowbows;
 	}
 	

@@ -4,6 +4,8 @@ import algebra.src.Vector;
 
 /**
  * Created by Pedroth on 11/23/2015.
+ *
+ * Solves the heat equation with a kernel method
  */
 public class HeatKernelFlow implements HeatMethod {
     @Override

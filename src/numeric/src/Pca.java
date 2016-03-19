@@ -51,7 +51,7 @@ public class Pca {
 	}
 
 	/**
-	 * Conjugate gradient descent in the constraint manifold
+	 * Fast gradient descent in the constraint manifold
 	 *
 	 * @param conv
 	 * @return
@@ -69,7 +69,7 @@ public class Pca {
 		do {
 			grad = Vector.matrixProd(conv, eigenV);
 			double beta = -(grad.squareNorm() / Vector.innerProd(grad, Vector.matrixProd(conv, grad)));
-			/**
+			/*
 			 * you must put a minus since you want to maximize.
 			 */
 			eta = Vector.scalarProd(-0.5 * beta, grad);
@@ -77,11 +77,7 @@ public class Pca {
 			eigenV = Vector.add(eigenV, eta);
 			eigenV = Vector.normalize(eigenV);
 			ite++;
-			// System.out.println(eta.norm());
 		} while (eta.norm() > epsilon && ite < maxIte);
-//		 System.out.println(ite + " time : " + (1E-9 *
-//		 System.nanoTime() - time) + " error : " + eta.norm() +
-//		 " <eta,eigen> : " + Vector.innerProd(eta, eigenV));
 		return eigenV;
 	}
 
@@ -125,7 +121,6 @@ public class Pca {
 		/**
 		 * subtract the average to the data, and compute convariance matrix
 		 */
-
 		Vector[] myData = new Vector[Data.length];
 		Matrix conv = new Matrix(myu.getDim(), myu.getDim());
 		for (int i = 0; i < Data.length; i++) {

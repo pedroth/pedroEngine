@@ -4,6 +4,9 @@ import algebra.src.Matrix;
 import algebra.src.Vector;
 import numeric.src.MatrixExponetial;
 
+/**
+ * Solves the heat equation with Dirichlet Boundary condition using exponential matrix method
+ */
 public class HeatFlow implements HeatMethod {
 
     @Override

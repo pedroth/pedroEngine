@@ -3,8 +3,7 @@ package nlp.lowbow.tests;
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
-import nlp.textSplitter.MyTextSplitter;
-import nlp.textSplitter.StopWordsSplitter;
+import nlp.textSplitter.*;
 import org.junit.Test;
 
 public class LowBowTests {
@@ -77,6 +76,21 @@ public class LowBowTests {
     }
 
     @Test
+    public void example1() {
+        MyText t = new MyText();
+        t.read("C:/Users/pedro/Desktop/research/Text.txt");
+        LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
+        low.setSamplesPerTextLength(1.0);
+        low.setSigma(0.08);
+        low.setSmoothingCoeff(0.003);
+        low.build();
+        HeatMethod heat = new MatrixHeatFlow();
+        low.heatFlow(0.01, heat);
+//		low.writeMatrixFile();
+        System.out.println(low);
+    }
+
+    @Test
     public void testLambdaSensitivity() {
         int samples = 100;
         double step = 1.0 / (samples - 1);
@@ -99,6 +113,23 @@ public class LowBowTests {
             System.out.println(lambda + "\t" + heatMethod.lambdaMeasure());
             lambda += step;
         }
+    }
+
+    @Test
+    public void timeTest() {
+        TextSplitter textSplitter = new RegexSplitter("\\b+[a-z]+\\b");
+        TextSplitter textSplitter2 = new SubsSplitter();
+        MyText text = new MyText();
+        text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
+        String[] split = textSplitter2.split(text.getText().replace("\"", " ").trim());
+        for (String s : split) {
+            System.out.println(s);
+        }
+    }
+
+    @Test
+    public void Test5() {
+
     }
 
 }

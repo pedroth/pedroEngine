@@ -51,8 +51,8 @@ public class MySet {
 		TextSplitter splitter = new TextSplitter() {
 
 			@Override
-			public String[] split(String s) {
-				return s.split("\\r?\\n");
+			public String[] split(String in) {
+				return in.split("\\r?\\n");
 			}
 		};
 		MySet a = new MySet(splitter.split(s1));

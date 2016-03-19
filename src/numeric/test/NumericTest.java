@@ -5,9 +5,13 @@ import algebra.src.Vec2;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import numeric.src.MatrixExponetial;
+import numeric.src.Pca;
 import numeric.src.SVD;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Pedroth on 12/30/2015.
@@ -41,6 +45,21 @@ public class NumericTest {
         double[] eigenValues = svd.getEigenValues();
         for (int i = 0; i < eigenValues.length; i++) {
             System.out.println(eigenValues[i]);
+        }
+    }
+
+    @Test
+    public void testSvdPca() throws Exception {
+        Matrix matrix = new Matrix(new double[][]{{0, -1}, {1, 0}});
+        SVD svd = new SVD(matrix);
+        List<Vector> data = new ArrayList<>(2);
+        data.add(matrix.getSubMatrix(1, 2, 1, 1).toVector());
+        data.add(matrix.getSubMatrix(1, 2, 2, 2).toVector());
+        Pca pca = new Pca(data.toArray(new Vector[2]));
+        Vector[] eigenVectors = pca.getEigenVectors();
+        Vector[] eigenVectors1 = svd.getEigenVectors();
+        for (int i = 0; i < eigenVectors.length; i++) {
+            System.out.println(Vector.diff(eigenVectors[i], eigenVectors1[i]).norm());
         }
     }
 }

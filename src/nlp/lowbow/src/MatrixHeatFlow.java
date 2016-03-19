@@ -5,6 +5,9 @@ import algebra.src.TridiagonalMatrixSolver;
 import algebra.src.Vector;
 import numeric.src.MyMath;
 
+/**
+ * Solves the heat equation with Dirichlet Boundary condition using Matrix method (solves a Tridiagonal System super-fast)
+ */
 public class MatrixHeatFlow implements HeatMethod {
 
     @Override
@@ -12,7 +15,6 @@ public class MatrixHeatFlow implements HeatMethod {
         /*
          * aux variables
          */
-        double epsilon = 1E-8;
         Vector zeta = new Vector(l.samples);
         Matrix myu = new Matrix(l.samples, l.samples);
         /*
@@ -46,7 +48,6 @@ public class MatrixHeatFlow implements HeatMethod {
             }
 
             Vector v = TridiagonalMatrixSolver.solveTridiagonalSystem(myu, zeta);
-            //System.out.println(Vector.diff(Vector.matrixProd(myu,v),zeta));
             for (int i = 1; i <= l.samples; i++) {
                 l.curve[i - 1].setX(j, v.getX(i));
             }

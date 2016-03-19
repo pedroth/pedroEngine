@@ -1,14 +1,14 @@
 package nlp.lowbow.src;
 
 
-import nlp.textSplitter.TextSplitter;
+import nlp.textSplitter.SubsSplitter;
 
 public class LowBowSubtitles extends LowBow {
-    public LowBowSubtitles(String in, TextSplitter textSplitter) {
-        super(in, textSplitter);
+    public LowBowSubtitles(String in) {
+        super(in, new SubsSplitter());
     }
 
-    public LowBowSubtitles(String in, TextSplitter textSplitter, Simplex simplex) {
-        super(in, textSplitter, simplex);
+    public LowBowSubtitles(String in, Simplex simplex) {
+        super(in, new SubsSplitter(), simplex);
     }
 }

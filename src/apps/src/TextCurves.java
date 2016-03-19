@@ -6,7 +6,7 @@ import algebra.src.Vector;
 import apps.utils.MyFrame;
 import apps.utils.TextFrame;
 import nlp.lowbow.src.*;
-import nlp.lowbow.src.symbolSampler.SymbolAtAverage;
+import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.MyTextSplitter;
 import numeric.src.Camera3D;
@@ -58,7 +58,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     /**
      * locally weighted bag of wordsIndex
      */
-    private LowBowManager lowbowM;
+    private LowBowManagerPca lowbowM;
     /**
      * read a text
      */
@@ -97,7 +97,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     private HeatMethod heatMethod = new MatrixHeatFlow();
 
-    private SymbolSampler symbolSampler = new SymbolAtAverage();
+    private SymbolSampler symbolSampler = new SymbolAtMax();
 
 
     public TextCurves(String title, int width, int height) {
@@ -290,7 +290,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         projCurves = new ArrayList<Vec2[]>();
         projLines = new ArrayList<Line2D[]>();
         strCurves = new ArrayList<String2D[]>();
-        lowbowM = new LowBowManager();
+        lowbowM = new LowBowManagerPca();
         centerMass = new Vec3();
         stdev = 0;
 
@@ -401,7 +401,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
          * distance to drawing plane
          */
         double d = 1;
-        ArrayList<LowBow> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getLowbows();
         int n = l.size();
 
         for (int i = 0; i < n; i++) {
@@ -428,7 +428,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     private void updateCurveOnPoly() {
-        ArrayList<LowBow> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getLowbows();
         int n = l.size();
         int wordL = l.get(0).getNumWords();
         if ((polygon == null) || (polygon.length != wordL)) {
@@ -467,7 +467,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     private void updateStringCurve() {
-        ArrayList<LowBow> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getLowbows();
         int n = l.size();
         for (int i = 0; i < n; i++) {
             String2D[] strCurve = strCurves.get(i);
@@ -494,8 +494,8 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
      * update pca curve statistics and update camera.
      */
     private void updateCurveStats() {
-        ArrayList<LowBow> lowbows = lowbowM.getLowbows();
-        LowBow lowbow = lowbows.get(lowbows.size() - 1);
+        ArrayList<LowBowPca> lowbows = lowbowM.getLowbows();
+        LowBowPca lowbow = lowbows.get(lowbows.size() - 1);
         int n = lowbow.getPcaCurve().length;
         Vec3[] pcaCurve = lowbow.getPcaCurve();
         for (int i = 0; i < n; i++) {
@@ -579,7 +579,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void generateText() {
-        ArrayList<LowBow> lowList = lowbowM.getLowbows();
+        ArrayList<LowBowPca> lowList = lowbowM.getLowbows();
 
         if (lowList == null)
             return;
@@ -589,8 +589,8 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void pcaCoords() {
-        ArrayList<LowBow> low = lowbowM.getLowbows();
-        LowBow curve = low.get(low.size() - 1);
+        ArrayList<LowBowPca> low = lowbowM.getLowbows();
+        LowBowPca curve = low.get(low.size() - 1);
         Vec3[] pca = curve.getPcaCurve();
         String[] text = curve.getText();
         for (int i = 0; i < text.length; i++) {
@@ -601,7 +601,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void heatFlow(double lambda, HeatMethod heat) {
-        ArrayList<LowBow> low = lowbowM.getLowbows();
+        ArrayList<LowBowPca> low = lowbowM.getLowbows();
         LowBow curve = low.get(low.size() - 1);
         frameState.setText("Computing heat flow");
         curve.heatFlow(lambda, heat);
@@ -644,7 +644,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             String inString = inOut.getText();
 //			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
 //			LowBow lowbow = new LowBow(inString, new SpaceSplitter());
-            LowBow lowbow = new LowBow(inString, new MyTextSplitter());
+            LowBowPca lowbow = new LowBowPca(inString, new MyTextSplitter());
 //			LowBow lowbow = new LowBow(inString, new CharacterSplitter());
             isReady = true;
             double sigma = 0.02;
@@ -669,7 +669,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             isReady = false;
             isProcess = true;
             updateCurveStats();
-            ArrayList<LowBow> lLowBow = lowbowM.getLowbows();
+            ArrayList<LowBowPca> lLowBow = lowbowM.getLowbows();
             addCurveToEngine(lLowBow.get(lLowBow.size() - 1));
             frameState.setText("");
             frame.setVisible(true);

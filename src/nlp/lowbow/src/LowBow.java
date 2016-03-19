@@ -1,19 +1,13 @@
 package nlp.lowbow.src;
 
 import algebra.src.Matrix;
-import algebra.src.Vec3;
 import algebra.src.Vector;
 import inputOutput.MyText;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
-import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;
 import numeric.src.MyMath;
-import numeric.src.Pca;
 
 import javax.management.RuntimeErrorException;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * Lowbow implementation as described in http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
@@ -38,7 +32,6 @@ public class LowBow {
      */
     protected Matrix rawCurve;
     protected Vector[] curve;
-    protected Vec3[] pcaCurve;
 
     protected int samples;
     /**
@@ -72,24 +65,6 @@ public class LowBow {
         isBuild = false;
         this.processText(in);
         sigma = getSigmaAuto();
-    }
-
-    /**
-     * Example
-     */
-    public static void main(String[] args) {
-        MyText t = new MyText();
-        t.read("C:/Users/pedro/Desktop/research/Text.txt");
-//		LowBow low = new LowBow("a c c c b b a c c", new SpaceSplitter());
-        LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
-        low.setSamplesPerTextLength(1.0);
-        low.setSigma(0.08);
-        low.setSmoothingCoeff(0.003);
-        low.build();
-        HeatMethod heat = new MatrixHeatFlow();
-        low.heatFlow(0.01, heat);
-//		low.writeMatrixFile();
-        System.out.println(low);
     }
 
     private void processText(String in) {
@@ -197,71 +172,6 @@ public class LowBow {
         }
     }
 
-    public void buildPca() {
-        if (!isBuild)
-            throw new RuntimeErrorException(null, "LowBow not initialized");
-        /**
-         * pca
-         */
-        Pca pca = new Pca();
-        Vector[] pc = pca.getNPca(curve, 3);
-        Vector myu = pca.getAverage();
-        pcaCurve = new Vec3[samples];
-        for (int i = 0; i < samples; i++) {
-            Vector v = Vector.diff(curve[i], myu);
-            pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
-        }
-        // writeObjFile(false);
-    }
-
-    /**
-     * @param pc  are the principal components
-     * @param myu is the average point
-     */
-    public void buildPca(Vector[] pc, Vector myu) {
-        if (!isBuild)
-            throw new RuntimeErrorException(null, "LowBow not initialized");
-        /**
-         * pca
-         */
-        pcaCurve = new Vec3[samples];
-        for (int i = 0; i < samples; i++) {
-            Vector v = Vector.diff(curve[i], myu);
-            pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
-        }
-        // writeObjFile(false);
-    }
-
-    /**
-     * @param isPca if true writes the PCA curve, else writes down the first 3
-     *              coordinates of the curve into a .obj file
-     */
-    @SuppressWarnings("unused")
-    private void writeObjFile(boolean isPca) {
-        try {
-            File file = new File("Line.obj");
-
-            // if file doesn't exists, then create it
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            PrintStream bw = new PrintStream(file);
-
-            for (int i = 0; i < curve.length; i++) {
-                if (isPca)
-                    bw.println("v " + pcaCurve[i].getX() + " " + pcaCurve[i].getY() + " " + pcaCurve[i].getZ());
-                else
-                    bw.println("v " + curve[i].getX(1) + " " + curve[i].getX(2) + " " + curve[i].getX(3));
-            }
-            for (int i = 0; i < curve.length - 1; i++) {
-                bw.println("l " + (i + 1) + " " + (i + 2));
-            }
-
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     @SuppressWarnings("unused")
     public void writeMatrixFile(String address) {
@@ -356,10 +266,6 @@ public class LowBow {
 
     public void setCurve(Vector[] curve) {
         this.curve = curve;
-    }
-
-    public Vec3[] getPcaCurve() {
-        return pcaCurve;
     }
 
     public double getSmoothingCoeff() {
