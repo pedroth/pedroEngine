@@ -4,30 +4,30 @@ import inputOutput.MyText;
 import other.TeseProj.TimeInterval;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class SubsSplitter implements TextSplitter {
     private static final HashSet<Character> betaSet = new HashSet<>(2);
     private static final HashSet<Character> betaStarSet = new HashSet<>(2);
+    private static final HashSet<Character> gammaSet = new HashSet<>(1);
 
     static {
         betaSet.add('<');
         betaSet.add('[');
         betaStarSet.add('>');
         betaStarSet.add(']');
+        gammaSet.add('\'');
     }
 
     private List<Subtitle> subtitles = new ArrayList<>(1);
     private List<String> subtitleWords = new ArrayList<>(1);
     private List<Integer> indexWords2Subtitle = new ArrayList<>(1);
     private StringBuilder stringBuilder;
+    private Queue<Character> auxStack;
 
     public static void main(String[] args) {
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-//        text.read("C:/pedro/escolas/ist/Tese/Series/Breaking Bad/Season 1/Breaking Bad S1E01-Pilot.srt");
         SubsSplitter subsSplitter = new SubsSplitter();
         String[] split = subsSplitter.split(text.getText());
         StringBuilder stringBuilder = new StringBuilder(split.length);
@@ -84,6 +84,13 @@ public class SubsSplitter implements TextSplitter {
         this.stringBuilder.append(c);
     }
 
+    private void pushCharToAuxStack(Character c) {
+        if (auxStack == null) {
+            auxStack = new ArrayDeque<>();
+        }
+        auxStack.add(c);
+    }
+
     private void appendStringToSubtitle(Subtitle subtitle) {
         String string = this.stringBuilder.toString();
         if (!string.isEmpty()) {
@@ -98,6 +105,12 @@ public class SubsSplitter implements TextSplitter {
             stateMachine = stateMachine.run(line.charAt(i), subtitle);
         }
         appendStringToSubtitle(subtitle);
+    }
+
+    private void popStackToString() {
+        while (!auxStack.isEmpty()) {
+            this.stringBuilder.append(auxStack.poll());
+        }
     }
 
     interface StateMachine {
@@ -161,6 +174,10 @@ public class SubsSplitter implements TextSplitter {
             if (isBeta) {
                 return new StateThree();
             }
+            if (gammaSet.contains(c)) {
+                pushCharToAuxStack(c);
+                return new StateFour();
+            }
             appendStringToSubtitle(subtitle);
             return new StateTwo();
         }
@@ -193,6 +210,22 @@ public class SubsSplitter implements TextSplitter {
                 return new StateOne();
 
             return this;
+        }
+    }
+
+    class StateFour implements StateMachine {
+
+        @Override
+        public StateMachine run(Character c, Subtitle subtitle) {
+            if (isAlphaBetChar(c)) {
+                pushCharToAuxStack(c);
+                popStackToString();
+                return new StateOne();
+            }
+            if (betaSet.contains(c)) {
+                return new StateThree();
+            }
+            return new StateTwo();
         }
     }
 

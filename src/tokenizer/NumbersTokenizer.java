@@ -11,14 +11,30 @@ import java.util.Vector;
  * little dirty code
  *
  */
-public class NumbersTokenizer extends SufixTreeTokenizer {
+public class NumbersTokenizer extends SuffixTreeTokenizer {
 
 	public NumbersTokenizer(String[] patterns) {
 		super(patterns);
 	}
 
-	
-	
+	public static void main(String args[]) {
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		String[] s = {"x1"};
+		NumbersTokenizer st = new NumbersTokenizer(s);
+		st.init();
+		String line = null;
+		try {
+			line = in.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String[] tokens = st.tokenize(line);
+		for (int i = 0; i < tokens.length; i++) {
+			System.out.println(tokens[i]);
+		}
+	}
+
 	@Override
 	public String[] tokenize(String s) {
 		Node state = super.root;
@@ -79,23 +95,5 @@ public class NumbersTokenizer extends SufixTreeTokenizer {
 			}
 		}
 		return j - i;
-	}
-
-	public static void main(String args[]) {
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		String[] s = { "x1" };
-		NumbersTokenizer st = new NumbersTokenizer(s);
-		st.init();
-		String line = null;
-		try {
-			line = in.readLine();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		String[] tokens = st.tokenize(line);
-		for (int i = 0; i < tokens.length; i++) {
-			System.out.println(tokens[i]);
-		}
 	}
 }

@@ -43,7 +43,17 @@ public class SimplexPointSampler {
 	}
 
 	public static void main(String[] args) {
-		test1();
+		//test1();
+		test2();
+	}
+
+	private static void test2() {
+		double[] v = {0.75, 0, 0, 0.25};
+		SimplexPointSampler simplexPointSampler = new SimplexPointSampler(v);
+		int n = 10000;
+		for (int i = 0; i < n; i++) {
+			System.out.println(simplexPointSampler.nextSymbol());
+		}
 	}
 
 	private static void test1() {

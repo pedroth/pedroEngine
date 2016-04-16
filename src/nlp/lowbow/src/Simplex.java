@@ -21,8 +21,8 @@ public class Simplex {
 
 	public Simplex() {
 		super();
-		wordsIndex = new TreeMap<String, Integer>();
-		wordsIndexInv = new TreeMap<Integer, String>();
+		wordsIndex = new TreeMap<>();
+		wordsIndexInv = new TreeMap<>();
 	}
 
 	public Integer get(String key) {

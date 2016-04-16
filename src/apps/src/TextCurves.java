@@ -6,7 +6,7 @@ import algebra.src.Vector;
 import apps.utils.MyFrame;
 import apps.utils.TextFrame;
 import nlp.lowbow.src.*;
-import nlp.lowbow.src.symbolSampler.SymbolAtMax;
+import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.MyTextSplitter;
 import numeric.src.Camera3D;
@@ -97,7 +97,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     private HeatMethod heatMethod = new MatrixHeatFlow();
 
-    private SymbolSampler symbolSampler = new SymbolAtMax();
+    private SymbolSampler symbolSampler = new SymbolAtMaxPos(0);
 
 
     public TextCurves(String title, int width, int height) {

@@ -3,8 +3,12 @@ package nlp.lowbow.tests;
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
-import nlp.textSplitter.*;
+import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
+import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.StopWordsSplitter;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 public class LowBowTests {
     public static final double HEATTIME = 0.01;
@@ -117,18 +121,44 @@ public class LowBowTests {
 
     @Test
     public void timeTest() {
-        TextSplitter textSplitter = new RegexSplitter("\\b+[a-z]+\\b");
-        TextSplitter textSplitter2 = new SubsSplitter();
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-        String[] split = textSplitter2.split(text.getText().replace("\"", " ").trim());
-        for (String s : split) {
-            System.out.println(s);
+        int samples = 10;
+        ArrayList[] subSamples = new ArrayList[samples];
+        double acc = 0;
+        double mulAcc = 1;
+
+        for (int i = 0; i < samples; i++) {
+            LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+            lowBowSubtitles.build();
+            lowBowSubtitles.heatFlow(acc, new MatrixHeatFlow());
+            String generateText = lowBowSubtitles.generateText(new SymbolAtMaxPos(1));
+            subSamples[i] = new ArrayList<>();
+            String[] split = generateText.split("\n");
+            for (int j = 0; j < split.length; j++) {
+                subSamples[i].add(split[j]);
+            }
+            System.out.println(acc);
+            mulAcc *= 1.0 / 10;
+            acc += 9 * mulAcc;
         }
+
+        StringBuilder stringBuilder = new StringBuilder();
+        int size = subSamples[0].size();
+        for (int j = 0; j < size; j++) {
+            for (int i = 0; i < samples; i++) {
+                stringBuilder.append(subSamples[i].get(j) + ((i == samples - 1) ? "" : ","));
+            }
+            stringBuilder.append("\n");
+        }
+        text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", stringBuilder.toString());
     }
 
     @Test
-    public void Test5() {
+    /**
+     * Test Subtitle LowBow Cut
+     */
+    public void TestSubtitles() {
 
     }
 

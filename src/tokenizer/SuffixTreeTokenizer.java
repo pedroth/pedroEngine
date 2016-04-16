@@ -17,81 +17,36 @@ import java.util.Vector;
  * @author pedro
  * 
  */
-public class SufixTreeTokenizer extends TokenRecognizer {
+public class SuffixTreeTokenizer extends TokenRecognizer {
 	protected Node root;
 
-	/**
-	 * class Node, it has a map <Char,Node>
-	 * 
-	 * @author pedro
-	 * 
-	 */
-	class Node {
-		private Map<Character, Node> map;
-		private Map<Character, Node> failFunction;
-		private boolean finalState;
-		private String token;
-		private String name;
-
-		Node(String name) {
-			map = new HashMap<Character, Node>();
-			failFunction = new HashMap<Character, Node>();
-			this.name = name;
-			finalState = false;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getToken() {
-			return token;
-		}
-
-		public void setToken(String token) {
-			this.token = token;
-		}
-
-		public boolean isFinalState() {
-			return finalState;
-		}
-
-		public void setFinalState(boolean finalState) {
-			this.finalState = finalState;
-		}
-
-		public void put(Character c) {
-			map.put(c, new Node("" + c));
-		}
-
-		public Node get(Character c) {
-			return map.get(c);
-		}
-		
-		public boolean hasNext(Character c) {
-			return this.get(c) != null;
-		}
-
-		public void putFail(Character c, Node n) {
-			failFunction.put(c, n);
-		}
-
-		public Node getFail(Character c) {
-			return failFunction.get(c);
-		}
-		
-		public boolean hasNextFail(Character c) {
-			return failFunction.get(c)!= null;
-		}
-	}
-
-	public SufixTreeTokenizer(String[] patterns) {
+	public SuffixTreeTokenizer(String[] patterns) {
 		super(patterns);
 		root = new Node("root");
+	}
+
+	/**
+	 * ---------------------------------
+	 **/
+
+	public static void main(String args[]) {
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		String[] s = {"x", "exp", "gauss", "euler", "pedro", "sin", "cos",
+				"ln", "sinh", "cosh", "tanh", "acos", "asin", "acosh", "asinh",
+				"she", "hers"};
+		SuffixTreeTokenizer st = new SuffixTreeTokenizer(s);
+		st.init();
+		String line = null;
+		try {
+			line = in.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String[] tokens = st.tokenize(line);
+		for (int i = 0; i < tokens.length; i++) {
+			System.out.println(tokens[i]);
+		}
 	}
 
 	public void init() {
@@ -206,25 +161,71 @@ public class SufixTreeTokenizer extends TokenRecognizer {
 		}
 	}
 
-	/** --------------------------------- **/
+	/**
+	 * class Node, it has a map <Char,Node>
+	 *
+	 * @author pedro
+	 */
+	class Node {
+		private Map<Character, Node> map;
+		private Map<Character, Node> failFunction;
+		private boolean finalState;
+		private String token;
+		private String name;
 
-	public static void main(String args[]) {
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		String[] s = { "x", "exp", "gauss", "euler", "pedro", "sin", "cos",
-				"ln", "sinh", "cosh", "tanh", "acos", "asin", "acosh", "asinh",
-				"she", "hers" };
-		SufixTreeTokenizer st = new SufixTreeTokenizer(s);
-		st.init();
-		String line = null;
-		try {
-			line = in.readLine();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Node(String name) {
+			map = new HashMap<Character, Node>();
+			failFunction = new HashMap<Character, Node>();
+			this.name = name;
+			finalState = false;
 		}
-		String[] tokens = st.tokenize(line);
-		for (int i = 0; i < tokens.length; i++) {
-			System.out.println(tokens[i]);
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getToken() {
+			return token;
+		}
+
+		public void setToken(String token) {
+			this.token = token;
+		}
+
+		public boolean isFinalState() {
+			return finalState;
+		}
+
+		public void setFinalState(boolean finalState) {
+			this.finalState = finalState;
+		}
+
+		public void put(Character c) {
+			map.put(c, new Node("" + c));
+		}
+
+		public Node get(Character c) {
+			return map.get(c);
+		}
+
+		public boolean hasNext(Character c) {
+			return this.get(c) != null;
+		}
+
+		public void putFail(Character c, Node n) {
+			failFunction.put(c, n);
+		}
+
+		public Node getFail(Character c) {
+			return failFunction.get(c);
+		}
+
+		public boolean hasNextFail(Character c) {
+			return failFunction.get(c)!= null;
 		}
 	}
 
