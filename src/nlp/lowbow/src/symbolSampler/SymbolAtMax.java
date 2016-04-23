@@ -15,7 +15,7 @@ public class SymbolAtMax implements SymbolSampler {
     public String nextSymbol(Vector simplex, Simplex symTable) {
         int n = simplex.getDim();
         int key = 0;
-        double max = 0;
+        double max = Double.MIN_VALUE;
         for (int i = 1; i <= n; i++) {
             double value = simplex.getX(i);
             if (max < value) {

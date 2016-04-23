@@ -80,7 +80,7 @@ public class SVD {
         this.eigenVectors = new Vector[n];
         this.eigenValues = new double[n];
         /**
-         * compute convariance matrix, or transpose(m) * m;
+         * compute covariance matrix, or transpose(m) * m;
          */
         Vector[] myData = new Vector[data.length];
         Matrix conv = new Matrix(data[0].getDim(), data[0].getDim());

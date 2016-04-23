@@ -120,7 +120,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void timeTest() {
+    public void lowbowSmoothingGeneratiodnTest() {
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         int samples = 10;
@@ -132,7 +132,7 @@ public class LowBowTests {
             LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
             lowBowSubtitles.build();
             lowBowSubtitles.heatFlow(acc, new MatrixHeatFlow());
-            String generateText = lowBowSubtitles.generateText(new SymbolAtMaxPos(1));
+            String generateText = lowBowSubtitles.generateText(new SymbolAtMaxPos(i == 0 ? 0 : 2));
             subSamples[i] = new ArrayList<>();
             String[] split = generateText.split("\n");
             for (int j = 0; j < split.length; j++) {
@@ -151,7 +151,7 @@ public class LowBowTests {
             }
             stringBuilder.append("\n");
         }
-        text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", stringBuilder.toString());
+        text.write("C:/Users/Pedroth/Desktop/subExperiments4.csv", stringBuilder.toString());
     }
 
     @Test
