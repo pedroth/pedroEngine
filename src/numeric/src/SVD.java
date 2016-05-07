@@ -22,9 +22,9 @@ public class SVD {
         this.m = m;
         int rows = m.getRows();
         int col = m.getColumns();
-        data = new Vector[m.getRows()];
+        data = new Vector[col];
         for (int i = 0; i < data.length; i++) {
-            data[i] = new Vector(Matrix.transpose(m.getSubMatrix(i + 1, i + 1, 1, col)));
+            data[i] = new Vector(m.getSubMatrix(1, rows, i + 1, i + 1));
         }
     }
 
@@ -32,7 +32,7 @@ public class SVD {
         int maxIte = 10000;
         int ite = 0;
         double time = 1E-9 * System.nanoTime();
-        double epsilon = 1E-20;
+        double epsilon = 1E-15;
         Vector eigenV = new Vector(conv.getRows());
         eigenV.fillRandom(-1, 1);
         eigenV = Vector.normalize(eigenV);

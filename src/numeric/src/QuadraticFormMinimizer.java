@@ -17,10 +17,9 @@ public class QuadraticFormMinimizer {
     }
 
     /**
-     *
-     * @param epsilon precision
-     * @param initialValue
-     * @return
+     * @param epsilon      precision
+     * @param initialValue  starting point to search for the minimum. Good starting point improves performance.
+     * @return Vector which minimizes quadratic form
      */
     public Vector argMin(double epsilon, Vector initialValue) {
         Vector x = initialValue.copy();
@@ -29,11 +28,9 @@ public class QuadraticFormMinimizer {
             grad = Vector.diff(b, Vector.matrixProd(matrix, x));
             double d2fdt = Vector.innerProd(grad, Vector.matrixProd(matrix, grad));
             double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
-            grad = Vector.scalarProd(0.5 * t, grad);
+            grad = Vector.scalarProd(t, grad);
             x = Vector.add(x, grad);
-//            System.out.println((Vector.innerProd(x,Vector.matrixProd(matrix,x)) + Vector.innerProd(b,x)) + "\t" + t + "\t" + d2fdt);
         } while (grad.norm() > epsilon);
-        // System.out.println(System.nanoTime() * 1E-9 - time);
         return x;
     }
 }

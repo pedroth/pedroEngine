@@ -65,7 +65,7 @@ public class TextAlignment {
 			}
 		}
 
-		alignment = new ArrayList<Vec2>();
+		alignment = new ArrayList<>();
 		int i = fMat.length - 1;
 		int j = fMat[0].length - 1;
 		maxSim = fMat[i][j];

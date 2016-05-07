@@ -25,7 +25,7 @@ public class MatrixTest {
         System.out.println("time : " + ((System.currentTimeMillis() * 1E-3) - time));
         // System.out.println(x);
         Vector vector = new Vector(Matrix.diff(Matrix.prod(m, x), y));
-        Assert.assertTrue(vector.norm() < 0.001);
+        Assert.assertTrue(vector.norm() < 0.00001);
         System.out.println(x);
     }
 
@@ -48,7 +48,7 @@ public class MatrixTest {
         QuadraticFormMinimizer quadraticFormMinimizer = new QuadraticFormMinimizer(m, b);
         Vector vector = new Vector(m.getRows());
         vector.fillRandom(0, 1);
-        System.out.println(Vector.diff(Vector.matrixProd(m, quadraticFormMinimizer.argMin(1E-16, vector)), b).norm());
+        Assert.assertTrue(Vector.diff(Vector.matrixProd(m, quadraticFormMinimizer.argMin(1E-16, vector)), b).norm() < 1E-16);
     }
 
     @Test

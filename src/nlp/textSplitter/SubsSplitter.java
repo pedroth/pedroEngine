@@ -1,7 +1,7 @@
 package nlp.textSplitter;
 
 import inputOutput.MyText;
-import other.TeseProj.TimeInterval;
+import utils.TimeInterval;
 
 import java.time.LocalTime;
 import java.util.*;

@@ -37,12 +37,22 @@ public class Matrix {
         }
     }
 
+    /**
+     * build a matrix with a two dimensional array
+     *
+     * @param m 2-dim array
+     */
     public Matrix(double[][] m) {
         matrix = m;
         rows = m.length;
         columns = m[0].length;
     }
 
+    /**
+     * Builds a row vector
+     *
+     * @param v 1-dim array
+     */
     public Matrix(double[] v) {
         rows = 1;
         columns = v.length;
@@ -53,13 +63,30 @@ public class Matrix {
     }
 
     /**
+     * Build a matrix from a set of column vectors
+     *
+     * @param v
+     */
+    public Matrix(Vector[] v) {
+        assert v != null;
+        this.rows = v[0].getDim();
+        this.columns = v.length;
+        this.matrix = new double[this.rows][this.columns];
+        for (int i = 0; i < this.rows; i++) {
+            for (int j = 0; j < this.columns; j++) {
+                matrix[i][j] = v[j].getX(i - 1);
+            }
+        }
+    }
+
+    /**
      * @param a n * m matrix
      * @param b n * m matrix
      * @return the sum of matrix a and b if input correct null otherwise
      */
     public static Matrix add(Matrix a, Matrix b) {
         Matrix c = null;
-        double r = 0;
+        double r;
         if (a.getRows() == b.getRows() && a.getColumns() == b.getColumns()) {
             c = new Matrix(a.getRows(), a.getColumns());
             for (int j = 1; j <= a.getColumns(); j++) {
@@ -102,7 +129,7 @@ public class Matrix {
      * @return return a * b if they fulfill the constraints
      */
     public static Matrix prod(Matrix a, Matrix b) {
-        Matrix c = null;
+        Matrix c;
         double sumIdentity;
         if (a.getColumns() == b.getRows()) {
             c = new Matrix(a.getRows(), b.getColumns());
@@ -185,7 +212,6 @@ public class Matrix {
      * @return vector with solution to equation m * x = y.
      */
     public static Vector leastSquareLinearSystem(Matrix m, Vector y, double epsilon) {
-        double time = System.nanoTime() * 1E-9;
         Matrix normMTrans = Matrix.transpose(m);
         Matrix myu;
 
@@ -196,7 +222,7 @@ public class Matrix {
 
         Vector gamma = Vector.matrixProd(normMTrans, y);
         Vector x = gamma.copy();
-        Vector grad = null;
+        Vector grad;
         do {
             grad = Vector.diff(gamma, Vector.matrixProd(myu, x));
             double d2fdt = Vector.innerProd(grad, Vector.matrixProd(myu, grad));
@@ -205,7 +231,6 @@ public class Matrix {
             x = Vector.add(x, grad);
             System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
         } while (grad.norm() > epsilon);
-        // System.out.println(System.nanoTime() * 1E-9 - time);
         return x;
     }
 
@@ -219,13 +244,12 @@ public class Matrix {
      * @return vector with solution to equation m * x = y.
      */
     public static Vector solveLinearSystem(Matrix m, Vector y, double epsilon) {
-        double time = System.nanoTime() * 1E-9;
         Matrix normMTrans = Matrix.transpose(m);
 
         Vector gamma = Vector.matrixProd(normMTrans, y);
         Vector x = gamma.copy();
-        Vector grad = null;
-        double t = 1E-3;
+        Vector grad;
+        double t;
         do {
             grad = Vector.diff(Vector.matrixProd(m, x), y);
             double d2fdt = Vector.innerProd(grad, Vector.matrixProd(m, grad));
@@ -234,9 +258,7 @@ public class Matrix {
             t = (grad.squareNorm() / d2fdt);
             grad = Vector.scalarProd(-t, grad);
             x = Vector.add(x, grad);
-            System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
         } while (grad.norm() > epsilon);
-        // System.out.println(System.nanoTime() * 1E-9 - time);
         return x;
     }
 
@@ -270,6 +292,19 @@ public class Matrix {
             matrix.setXY(i, i, v.getX(i));
         }
         return matrix;
+    }
+
+    public static double squareNorm(Matrix m) {
+        double acc = 0;
+        int rows = m.getRows();
+        for (int i = 1; i <= rows; i++) {
+            for (int j = 1; j <= m.getColumns(); j++) {
+                double mXY = m.getXY(i, j);
+                acc += mXY * mXY;
+            }
+        }
+
+        return acc;
     }
 
     /**
@@ -324,9 +359,9 @@ public class Matrix {
         StringBuilder s = new StringBuilder(this.rows * this.columns * 2);
         for (int i = 1; i <= this.getRows(); i++) {
             for (int j = 1; j <= this.getColumns(); j++) {
-                s.append(String.format("%.10f", this.getXY(i, j)) + (j == columns ? "" : "\t"));
+                s.append(String.format("%.10f", this.getXY(i, j))).append(j == columns ? "" : "\t");
             }
-            s.append(String.format("\n"));
+            s.append("\n");
         }
         return s.toString();
     }
@@ -336,7 +371,7 @@ public class Matrix {
         acc.append("[");
         for (int i = 1; i <= rows; i++) {
             for (int j = 1; j <= columns; j++) {
-                acc.append(this.getXY(i, j) + (j <= (columns - 1) ? " , " : " ;"));
+                acc.append(this.getXY(i, j)).append(j <= (columns - 1) ? " , " : " ;");
             }
         }
         acc.append("]");
