@@ -6,7 +6,9 @@ import algebra.src.Vec3;
 import algebra.src.Vector;
 import inputOutput.CsvReader;
 import numeric.src.MatrixExponetial;
+import numeric.src.Pca;
 import numeric.src.SVD;
+import numeric.src.SymmetricEigen;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,8 +45,13 @@ public class NumericTest {
         Matrix S = svd.getSigma();
         Matrix U = svd.getU();
         Matrix prod = Matrix.prod(U, Matrix.prod(S, Matrix.transpose(V)));
+        System.out.println(U);
+        System.out.println(S);
+        System.out.println(V);
         System.out.println(prod);
         Assert.assertTrue(Matrix.squareNorm(Matrix.diff(matrix, prod)) < 1E-20);
+        double cos45 = Math.sqrt(2) / 2;
+        Assert.assertTrue(Vector.diff(new Vec3(-cos45, 0, cos45), new Vector(U.getSubMatrix(1, 3, 2, 2))).norm() < 1E-3 || Vector.diff(new Vec3(cos45, 0, -cos45), new Vector(U.getSubMatrix(1, 3, 2, 2))).norm() < 1E-3);
     }
 
     @Test
@@ -65,12 +72,63 @@ public class NumericTest {
     @Test
     public void PCATest() {
         CsvReader table = new CsvReader();
-        table.read("src/numeric/test/resource/testData.csv");
-
+        table.read("src/numeric/test/resource/testData2.csv");
+        int[] size = table.getSize();
+        Vector[] data = new Vector[size[0]];
+        for (int i = 0; i < size[0]; i++) {
+            data[i] = new Vector(size[1]);
+            for (int j = 0; j < size[1]; j++) {
+                data[i].setX(j + 1, Double.valueOf(table.get(new Integer[]{i, j})));
+            }
+        }
+        double time = System.currentTimeMillis();
+        Pca pca = new Pca(data);
+        System.out.println((System.currentTimeMillis() - time) * 1E-3);
+        Vector[] eigenVectors = pca.getEigenVectors();
+        double[] eigenValues = pca.getEigenValues();
+        double cos45 = -Math.sqrt(2) / 2;
+        for (Vector eigenVector : eigenVectors) {
+            System.out.println(eigenVector);
+        }
+        for (double eigenValue : eigenValues) {
+            System.out.println(eigenValue);
+        }
+        Assert.assertTrue(Vector.diff(eigenVectors[0], new Vec2(cos45, cos45)).norm() < 1E-3 || Vector.diff(eigenVectors[0], new Vec2(-cos45, -cos45)).norm() < 1E-3);
     }
 
     @Test
     public void testEigenValue() {
+        Matrix matrix = new Matrix(new double[][]{{1, -1, 0}, {-1, 2, -1}, {0, -1, 1}});
+        SymmetricEigen eigen = new SymmetricEigen(matrix);
+        Vector[] eigenVectors = eigen.getEigenVectors();
+        Double[] eigenValues = eigen.getEigenValues();
+        for (Vector eigenVector : eigenVectors) {
+            System.out.println(eigenVector);
+        }
+        for (Double eigenValue : eigenValues) {
+            System.out.println(eigenValue);
+        }
+        double cos45 = Math.sqrt(2) / 2;
+        Assert.assertTrue(Vector.diff(eigenVectors[1], new Vec3(cos45, 0, -cos45)).norm() < 1E-3 || Vector.diff(eigenVectors[1], new Vec3(-cos45, 0, cos45)).norm() < 1E-3);
+    }
 
+
+    @Test
+    public void eigenVsSvd() {
+        double n = 100;
+        for (int j = 0; j < n; j++) {
+            Matrix matrix = new Matrix(new double[][]{{-1, 1, 0}, {1, -2, 1}, {0, 1, -1}});
+            int columns = matrix.getColumns();
+            int rows = matrix.getRows();
+            Vector data[] = new Vector[columns];
+            for (int i = 1; i <= columns; i++) {
+                data[i - 1] = new Vector(matrix.getSubMatrix(1, rows, i, i));
+            }
+            SVD svd = new SVD(matrix);
+            double time = System.currentTimeMillis();
+            svd.computeSVD();
+            System.out.println(1E-3 * (System.currentTimeMillis() - time));
+            System.out.println(svd.getSigma());
+        }
     }
 }

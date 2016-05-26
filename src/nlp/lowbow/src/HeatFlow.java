@@ -14,7 +14,7 @@ public class HeatFlow implements HeatMethod {
         Vector[] zeta = new Vector[l.numWords];
         Matrix myu = new Matrix(l.samples, l.samples);
         /*
-         * build matrix myu
+         * build laplacian matrix
          */
         for (int i = 1; i <= l.samples; i++) {
             int jminus = Math.max(i - 1, 1);

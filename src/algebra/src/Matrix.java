@@ -6,6 +6,7 @@ import realFunction.src.LinearFunction;
 import realFunction.src.UniVarFunction;
 
 import java.util.Random;
+import java.util.function.Function;
 
 public class Matrix {
     private double[][] matrix;
@@ -75,6 +76,18 @@ public class Matrix {
         for (int i = 0; i < this.rows; i++) {
             for (int j = 0; j < this.columns; j++) {
                 matrix[i][j] = v[j].getX(i - 1);
+            }
+        }
+    }
+
+
+    public Matrix(Matrix matrix) {
+        this.matrix = new double[rows][columns];
+        this.rows = matrix.rows;
+        this.columns = matrix.columns;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                setXY(i + 1, j + 1, matrix.getXY(i + 1, j + 1));
             }
         }
     }
@@ -366,16 +379,8 @@ public class Matrix {
         return s.toString();
     }
 
-    public String toStringMatlab() {
-        StringBuilder acc = new StringBuilder(rows * columns);
-        acc.append("[");
-        for (int i = 1; i <= rows; i++) {
-            for (int j = 1; j <= columns; j++) {
-                acc.append(this.getXY(i, j)).append(j <= (columns - 1) ? " , " : " ;");
-            }
-        }
-        acc.append("]");
-        return acc.toString();
+    public String toString(Function<Matrix, String> function) {
+        return function.apply(this);
     }
 
     public void fillZeros() {

@@ -6,11 +6,18 @@ import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.StopWordsSplitter;
+import nlp.utils.LowBowPrinter;
 import org.junit.Test;
 
 import java.util.ArrayList;
 
+/**
+ * The type Low bow tests.
+ */
 public class LowBowTests {
+    /**
+     * The constant HEATTIME.
+     */
     public static final double HEATTIME = 0.01;
 
     /**
@@ -66,6 +73,9 @@ public class LowBowTests {
         t.write("C:/Users/Pedroth/Desktop/out3.txt", low.generateText(new SymbolAtMax()));
     }
 
+    /**
+     * Test 4.
+     */
     @Test
     public void test4() {
         MyText t = new MyText();
@@ -76,9 +86,11 @@ public class LowBowTests {
         low.setSigmaAuto();
         low.setSmoothingCoeff(0.003);
         low.build();
-        low.writeMatrixFile("C:/Users/Pedroth/Desktop/out4.txt");
     }
 
+    /**
+     * Example 1.
+     */
     @Test
     public void example1() {
         MyText t = new MyText();
@@ -90,10 +102,12 @@ public class LowBowTests {
         low.build();
         HeatMethod heat = new MatrixHeatFlow();
         low.heatFlow(0.01, heat);
-//		low.writeMatrixFile();
         System.out.println(low);
     }
 
+    /**
+     * Test lambda sensitivity.
+     */
     @Test
     public void testLambdaSensitivity() {
         int samples = 100;
@@ -119,6 +133,9 @@ public class LowBowTests {
         }
     }
 
+    /**
+     * Texts under different smoothing
+     */
     @Test
     public void lowbowSmoothingGeneratiodnTest() {
         MyText text = new MyText();
@@ -154,12 +171,25 @@ public class LowBowTests {
         text.write("C:/Users/Pedroth/Desktop/subExperiments4.csv", stringBuilder.toString());
     }
 
+    /**
+     * Test subtitles.
+     */
     @Test
     /**
      * Test Subtitle LowBow Cut
      */
     public void TestSubtitles() {
 
+    }
+
+    @Test
+    public void printLowBow() {
+        MyText text = new MyText();
+        text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
+        LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+        lowBowSubtitles.build();
+        text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", lowBowSubtitles.toString(new LowBowPrinter()));
+        System.out.println(lowBowSubtitles.getSimplex().toString());
     }
 
 }

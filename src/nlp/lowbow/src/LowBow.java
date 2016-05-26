@@ -2,12 +2,12 @@ package nlp.lowbow.src;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import inputOutput.MyText;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import numeric.src.MyMath;
 
 import javax.management.RuntimeErrorException;
+import java.util.function.Function;
 
 /**
  * Lowbow implementation as described in http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
@@ -65,6 +65,19 @@ public class LowBow {
         isBuild = false;
         this.processText(in);
         sigma = getSigmaAuto();
+    }
+
+    public LowBow(LowBow lowBow) {
+        this.originalText = lowBow.getOriginalText();
+        this.simplex = lowBow.getSimplex();
+        this.textSplitter = lowBow.getTextSplitter();
+        isBuild = false;
+        this.processText(this.originalText);
+        sigma = getSigmaAuto();
+    }
+
+    public LowBow(Matrix rawCurve) {
+
     }
 
     private void processText(String in) {
@@ -130,6 +143,7 @@ public class LowBow {
         rawCurve = new Matrix(textLength, numWords);
         int n = rawCurve.getRows();
         int m = rawCurve.getColumns();
+        smoothingCoeff = Math.max(0.0, smoothingCoeff);
         double norm = 1 + smoothingCoeff * m;
         for (int i = 1; i <= n; i++) {
             if (smoothingCoeff == 0.0) {
@@ -140,7 +154,6 @@ public class LowBow {
                 }
             }
         }
-
         resample(samplesPerTextLength, sigma);
         isBuild = true;
     }
@@ -172,32 +185,6 @@ public class LowBow {
         }
     }
 
-
-    @SuppressWarnings("unused")
-    public void writeMatrixFile(String address) {
-        MyText t1 = new MyText();
-
-        String acc = "";
-
-        acc += " x = [\t";
-        for (int i = 1; i <= rawCurve.getRows(); i++) {
-            for (int j = 1; j <= rawCurve.getColumns(); j++) {
-                acc += rawCurve.getXY(i, j) + ",\t";
-            }
-            acc += ";\t";
-        }
-        acc += "]\n";
-        acc += "curve = [\t";
-        for (int i = 0; i < curve.length; i++) {
-            for (int j = 1; j <= curve[0].getDim(); j++) {
-                acc += curve[i].getX(j) + ",\t";
-            }
-            acc += ";\t";
-        }
-        acc += "]\n";
-        t1.write(address, acc);
-    }
-
     /**
      * As described in the definition 4 of
      * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
@@ -218,6 +205,10 @@ public class LowBow {
 
     public String toString() {
         return "text length : " + textLength + " number of wordsIndex : " + numWords;
+    }
+
+    public String toString(Function<LowBow, String> function) {
+        return function.apply(this);
     }
 
     public String getOriginalText() {

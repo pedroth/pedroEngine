@@ -89,19 +89,14 @@ public class SVD {
             conv = Matrix.add(conv, Matrix.prod(myData[i], Matrix.transpose(myData[i])));
         }
 
-        /**
-         * compute eigenVectors
-         */
-        for (int i = 0; i < n; i++) {
-            Vector aux = superEigen(conv);
-            this.eigenValues[i] = Math.sqrt(Vector.innerProd(aux, Vector.matrixProd(conv, aux)));
-            this.eigenVectors[i] = aux;
-            conv.fillZeros();
-            for (int j = 0; j < data.length; j++) {
-                myData[j] = Vector.orthoProjection(myData[j], aux);
-                conv = Matrix.add(conv, Matrix.prod(myData[j], Matrix.transpose(myData[j])));
-            }
+        SymmetricEigen symmetricEigen = new SymmetricEigen(conv);
+        eigenVectors = symmetricEigen.getEigenVectors();
+        Double[] eigenValues = symmetricEigen.getEigenValues();
+        for (int i = 0; i < eigenValues.length; i++) {
+            double sqrt = Math.sqrt(Math.abs(eigenValues[i]));
+            this.eigenValues[i] = sqrt;
         }
+
         /**
          * construct sigma and v
          */
@@ -113,7 +108,7 @@ public class SVD {
             /**
              * there should be a square root on the eigenvalues,
              */
-            double singularValue = (eigenValues[i]);
+            double singularValue = (this.eigenValues[i]);
             sigma.setXY(i + 1, i + 1, singularValue);
             sigmaInv.setXY(i + 1, i + 1, 1 / singularValue);
         }

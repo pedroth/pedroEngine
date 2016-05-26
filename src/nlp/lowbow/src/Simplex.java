@@ -46,4 +46,11 @@ public class Simplex {
 		return wordsIndex.keySet();
 	}
 
+	@Override
+	public String toString() {
+		return "Simplex{" +
+				"wordsIndex=" + wordsIndex +
+				", wordsIndexInv=" + wordsIndexInv +
+				'}';
+	}
 }

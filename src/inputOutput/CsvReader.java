@@ -4,12 +4,14 @@ import table.src.HyperTable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The type Csv reader.
  */
 public class CsvReader extends HyperTable<Integer, String> {
     private MyText textReader;
+    private int[] size = new int[]{0, 0};
     private HashMap<String, Boolean> delimiters = new HashMap<>(3);
 
     /**
@@ -40,6 +42,8 @@ public class CsvReader extends HyperTable<Integer, String> {
                 this.set(index, elements[j]);
             }
         }
+        size[0] = split.length;
+        size[1] = split[0].split(regex).length;
     }
 
     private String buildRegex() {
@@ -59,6 +63,7 @@ public class CsvReader extends HyperTable<Integer, String> {
 
     /**
      * Add delimiter. Special characters should be put with an extra left slash e.g \t -> \\t
+     * @param delimiter the delimiter
      */
     public void addDelimiter(String delimiter) {
         delimiters.put(delimiter, true);
@@ -66,8 +71,22 @@ public class CsvReader extends HyperTable<Integer, String> {
 
     /**
      * Remove delimiter.
+     * @param delimiter the delimiter
      */
     public void removeDelimiter(String delimiter) {
         delimiters.remove(delimiter);
+    }
+
+    /**
+     * Get size.
+     *
+     * @return the int [ ]
+     */
+    public int[] getSize() {
+        return size;
+    }
+
+    public <O> O map(Function<CsvReader, O> function) {
+        return function.apply(this);
     }
 }
