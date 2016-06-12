@@ -2,7 +2,7 @@ package apps.src;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import algebra.utils.MatrixPrinter;
+import algebra.utils.MatlabMatrixPrinter;
 import graph.Graph;
 import inputOutput.MyText;
 import numeric.src.MyMath;
@@ -344,28 +344,4 @@ public class MyRandomGraphExperiment {
         text.write(desktopAddress + File.separator + "graphStats.m", degrees.toString());
 //		text.write(desktopAddress + File.separator + "graphStats.csv", graph.toStringGephi());
     }
-
-    class MatlabMatrixPrinter implements MatrixPrinter {
-
-        @Override
-        public String before() {
-            return "[";
-        }
-
-        @Override
-        public String after() {
-            return "]";
-        }
-
-        @Override
-        public String line() {
-            return ";";
-        }
-
-        @Override
-        public String separator() {
-            return ",";
-        }
-    }
-
 }

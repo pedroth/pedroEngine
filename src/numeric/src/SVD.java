@@ -80,7 +80,7 @@ public class SVD {
         this.eigenVectors = new Vector[n];
         this.eigenValues = new double[n];
         /**
-         * compute covariance matrix, or transpose(m) * m;
+         * compute covariance matrix, or m * transpose(m);
          */
         Vector[] myData = new Vector[data.length];
         Matrix conv = new Matrix(data[0].getDim(), data[0].getDim());
@@ -98,13 +98,13 @@ public class SVD {
         }
 
         /**
-         * construct sigma and v
+         * Construct sigma and v
          */
-        this.v = new Matrix();
+        this.u = new Matrix();
         this.sigma = new Matrix(n, n);
         this.sigmaInv = new Matrix(n, n);
         for (int i = 0; i < n; i++) {
-            v = v.concat(eigenVectors[i]);
+            u = u.concat(eigenVectors[i]);
             /**
              * there should be a square root on the eigenvalues,
              */
@@ -114,9 +114,9 @@ public class SVD {
         }
 
         if (m.getRows() > 100 || m.getColumns() > 100) {
-            u = Matrix.prodParallel(m, Matrix.prodParallel(v, sigmaInv));
+            v = Matrix.prodParallel(Matrix.transpose(m), Matrix.prodParallel(u, sigmaInv));
         } else {
-            u = Matrix.prod(m, Matrix.prod(v, sigmaInv));
+            v = Matrix.prod(Matrix.transpose(m), Matrix.prod(u, sigmaInv));
         }
     }
 

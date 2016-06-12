@@ -44,7 +44,6 @@ public class Matrix {
             throw new AlgebraException("number of rows and columns must be positive integers");
         } else {
             constructMatrix(rows, columns);
-
             this.fillZeros();
         }
     }
@@ -328,9 +327,9 @@ public class Matrix {
         Matrix S = svd.getSigmaInv();
         Matrix V = svd.getV();
         if (m.getRows() >= 100 || m.getColumns() >= 100) {
-            return Vector.matrixProd(Matrix.prodParallel(Matrix.prodParallel(V, S), Matrix.transpose(U)), y);
+            return Vector.matrixProdParallel(V, Vector.matrixProdParallel(S, Vector.matrixProdParallel(Matrix.transpose(U), y)));
         } else {
-            return Vector.matrixProd(Matrix.prod(Matrix.prod(V, S), Matrix.transpose(U)), y);
+            return Vector.matrixProd(V, Vector.matrixProd(S, Vector.matrixProd(Matrix.transpose(U), y)));
         }
     }
 
