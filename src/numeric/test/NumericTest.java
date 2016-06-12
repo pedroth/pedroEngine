@@ -1,14 +1,12 @@
 package numeric.test;
 
+
 import algebra.src.Matrix;
 import algebra.src.Vec2;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import inputOutput.CsvReader;
-import numeric.src.MatrixExponetial;
-import numeric.src.Pca;
-import numeric.src.SVD;
-import numeric.src.SymmetricEigen;
+import numeric.src.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -130,5 +128,21 @@ public class NumericTest {
             System.out.println(1E-3 * (System.currentTimeMillis() - time));
             System.out.println(svd.getSigma());
         }
+    }
+
+    @Test
+    public void QuadraticFormTest1() {
+        Matrix matrix = new Matrix(new double[][]{{1, 2}, {2, 3.999}});
+        Vector b = new Vec2(4, 7.999);
+        QuadraticFormMinimizer quadraticFormMinimizer = new QuadraticFormMinimizer(matrix, b);
+        double time = System.currentTimeMillis();
+        quadraticFormMinimizer.argMin(1E-12, b);
+        System.out.println((System.currentTimeMillis() - time) * 1E-3);
+        time = System.currentTimeMillis();
+        Vec2 initial = new Vec2();
+        initial.fillRandom(-1, 1);
+        quadraticFormMinimizer.argMin(1E-12, initial);
+        System.out.println((System.currentTimeMillis() - time) * 1E-3);
+
     }
 }

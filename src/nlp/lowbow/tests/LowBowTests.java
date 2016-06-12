@@ -1,5 +1,7 @@
 package nlp.lowbow.tests;
 
+import algebra.src.Matrix;
+import inputOutput.CsvReader;
 import inputOutput.MyText;
 import nlp.lowbow.src.*;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
@@ -8,6 +10,7 @@ import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.utils.LowBowPrinter;
 import org.junit.Test;
+import utils.Csv2Matrix;
 
 import java.util.ArrayList;
 
@@ -190,6 +193,20 @@ public class LowBowTests {
         lowBowSubtitles.build();
         text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", lowBowSubtitles.toString(new LowBowPrinter()));
         System.out.println(lowBowSubtitles.getSimplex().toString());
+    }
+
+
+    @Test
+    public void readLowBow() {
+        CsvReader csvReader = new CsvReader();
+        csvReader.read("C:/Users/Pedroth/Desktop/lowbow.csv");
+        Matrix lowBow = csvReader.map(Csv2Matrix.getInstance());
+        MyText text = new MyText();
+        text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
+        LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+        lowBowSubtitles.build();
+        lowBowSubtitles.setCurve(Matrix.transpose(lowBow).getVectorColumns());
+        System.out.println(lowBowSubtitles.generateText(new SymbolAtMax()));
     }
 
 }

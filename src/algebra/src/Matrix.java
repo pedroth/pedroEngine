@@ -8,10 +8,14 @@ import realFunction.src.UniVarFunction;
 import java.util.Random;
 import java.util.function.Function;
 
+/**
+ * The type Matrix.
+ */
 public class Matrix {
-    private double[][] matrix;
+    private double[] matrix;
     private int rows;
     private int columns;
+
 
     /**
      * creates empty matrix
@@ -22,18 +26,25 @@ public class Matrix {
     }
 
     /**
+     * Instantiates a new Matrix.
+     *
      * @param rows    number of rows of the matrix. Must be a positive integer
-     *                bigger than zero, {1,2, ...}
+     *                bigger than zero,
+     *                {
+     *                1,2, ...
+     *                }
      * @param columns number of columns of the matrix. Must be a positive integer
-     *                bigger than zero, {1,2, ...}
+     *                bigger than zero,
+     *                {
+     *                1,2, ...
+     *                }
      */
     public Matrix(int rows, int columns) {
         if (rows < 1 && columns < 1) {
             throw new AlgebraException("number of rows and columns must be positive integers");
         } else {
-            matrix = new double[rows][columns];
-            this.rows = rows;
-            this.columns = columns;
+            constructMatrix(rows, columns);
+
             this.fillZeros();
         }
     }
@@ -44,9 +55,12 @@ public class Matrix {
      * @param m 2-dim array
      */
     public Matrix(double[][] m) {
-        matrix = m;
-        rows = m.length;
-        columns = m[0].length;
+        constructMatrix(m.length, m[0].length);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                this.setXY(i + 1, j + 1, m[i][j]);
+            }
+        }
     }
 
     /**
@@ -55,36 +69,34 @@ public class Matrix {
      * @param v 1-dim array
      */
     public Matrix(double[] v) {
-        rows = 1;
-        columns = v.length;
-        matrix = new double[rows][columns];
+        constructMatrix(1, v.length);
         for (int i = 0; i < columns; i++) {
-            matrix[0][i] = v[i];
+            setXY(1, i + 1, v[i]);
         }
     }
 
     /**
      * Build a matrix from a set of column vectors
      *
-     * @param v
+     * @param v the v
      */
     public Matrix(Vector[] v) {
         assert v != null;
-        this.rows = v[0].getDim();
-        this.columns = v.length;
-        this.matrix = new double[this.rows][this.columns];
+        constructMatrix(v[0].getDim(), v.length);
         for (int i = 0; i < this.rows; i++) {
             for (int j = 0; j < this.columns; j++) {
-                matrix[i][j] = v[j].getX(i - 1);
+                setXY(i + 1, j + 1, v[j].getX(i - 1));
             }
         }
     }
 
-
+    /**
+     * Instantiates a new Matrix. Copy constructor.
+     *
+     * @param matrix the matrix
+     */
     public Matrix(Matrix matrix) {
-        this.matrix = new double[rows][columns];
-        this.rows = matrix.rows;
-        this.columns = matrix.columns;
+        constructMatrix(matrix.getRows(), matrix.getColumns());
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < columns; j++) {
                 setXY(i + 1, j + 1, matrix.getXY(i + 1, j + 1));
@@ -93,6 +105,8 @@ public class Matrix {
     }
 
     /**
+     * Add matrix.
+     *
      * @param a n * m matrix
      * @param b n * m matrix
      * @return the sum of matrix a and b if input correct null otherwise
@@ -113,6 +127,8 @@ public class Matrix {
     }
 
     /**
+     * Diff matrix.
+     *
      * @param a n * m matrix
      * @param b n * m matrix
      * @return the subtraction of matrix a and b if input correct null otherwise
@@ -125,6 +141,8 @@ public class Matrix {
     }
 
     /**
+     * Scalar prod.
+     *
      * @param r scalar
      * @param m matrix
      * @return matrix multiplied by r
@@ -137,6 +155,8 @@ public class Matrix {
     }
 
     /**
+     * Prod matrix.
+     *
      * @param a n * m matrix
      * @param b m * l matrix
      * @return return a * b if they fulfill the constraints
@@ -163,6 +183,8 @@ public class Matrix {
     }
 
     /**
+     * Prod parallel.
+     *
      * @param a n * m matrix
      * @param b m * l matrix
      * @return the product of matrix a and b if input correct null otherwise
@@ -209,6 +231,12 @@ public class Matrix {
         return c;
     }
 
+    /**
+     * Transpose matrix.
+     *
+     * @param m the m
+     * @return the matrix
+     */
     public static Matrix transpose(Matrix m) {
         Matrix ans = m.copy();
         ans.transpose();
@@ -219,8 +247,8 @@ public class Matrix {
      * this solves the following equation m * x = y, where m is a n*n matrix, x
      * and y are n * 1 matrices or vectors of n dimension, using a least square approach
      *
-     * @param m
-     * @param y
+     * @param m       the m
+     * @param y       the y
      * @param epsilon convergence error
      * @return vector with solution to equation m * x = y.
      */
@@ -251,8 +279,8 @@ public class Matrix {
      * this solves the following equation m * x = y, where m is a n*n matrix, x
      * and y are n * 1 matrices or vectors of n dimension
      *
-     * @param m
-     * @param y
+     * @param m       the m
+     * @param y       the y
      * @param epsilon convergence error
      * @return vector with solution to equation m * x = y.
      */
@@ -276,14 +304,23 @@ public class Matrix {
     }
 
     /**
-     * @param m
-     * @param y
+     * Solve linear system.
+     *
+     * @param m the m
+     * @param y the y
      * @return solution x, to the linear system m*x = y
      */
     public static Vector solveLinearSystem(Matrix m, Vector y) {
         return solveLinearSystem(m, y, 1E-15);
     }
 
+    /**
+     * Solve linear system sVD.
+     *
+     * @param m the m
+     * @param y the y
+     * @return the vector
+     */
     public static Vector solveLinearSystemSVD(Matrix m, Vector y) {
         SVD svd = new SVD(m);
         svd.computeSVD();
@@ -297,7 +334,12 @@ public class Matrix {
         }
     }
 
-
+    /**
+     * Diag matrix.
+     *
+     * @param v the v
+     * @return the matrix
+     */
     public static Matrix diag(Vector v) {
         int n = v.getDim();
         Matrix matrix = new Matrix(n, n);
@@ -307,6 +349,12 @@ public class Matrix {
         return matrix;
     }
 
+    /**
+     * Square norm.
+     *
+     * @param m the m
+     * @return the double
+     */
     public static double squareNorm(Matrix m) {
         double acc = 0;
         int rows = m.getRows();
@@ -320,50 +368,101 @@ public class Matrix {
         return acc;
     }
 
+    private void constructMatrix(int rows, int columns) {
+        this.rows = rows;
+        this.columns = columns;
+        this.matrix = new double[rows * columns];
+    }
+
     /**
-     * @param x index for the rows where its domain is {1,2, ... , number of
-     *          rows}
-     * @param y index for the columns where its domain is {1,2, ... , number
-     *          of columns}
+     * Gets xY.
+     *
+     * @param x index for the rows where its domain is
+     *          {
+     *          1,2, ... , number of
+     *          rows
+     *          }
+     * @param y index for the columns where its domain is
+     *          {
+     *          1,2, ... , number
+     *          of columns
+     *          }
      * @return value of the matrix at x and y.
      */
     public double getXY(int x, int y) {
         double r;
         if (checkInputIndex(x, y))
-            r = matrix[x - 1][y - 1];
+            r = matrix[y - 1 + columns * (x - 1)];
         else
             throw new AlgebraException("index out of matrix. (x,y) : ( " + x + " , " + y + " )");
         return r;
     }
 
     /**
-     * @param x index for the rows where its domain is {1,2, ... , number of
-     *          rows}
-     * @param y index for the columns where its domain is {1,2, ... , number
-     *          of columns}
+     * Sets xY.
+     *
+     * @param x index for the rows where its domain is
+     *          {
+     *          1,2, ... , number of
+     *          rows
+     *          }
+     * @param y index for the columns where its domain is
+     *          {
+     *          1,2, ... , number
+     *          of columns
+     *          }
      * @param n value to store at x and y.
      */
     public void setXY(int x, int y, double n) {
         if (checkInputIndex(x, y))
-            matrix[x - 1][y - 1] = n;
+            matrix[y - 1 + columns * (x - 1)] = n;
         else
             throw new AlgebraException("index out of matrix");
     }
 
+    /**
+     * Get matrix.
+     *
+     * @return the double [ ] [ ]
+     */
     public double[][] getMatrix() {
-        return matrix;
+        double[][] ans = new double[this.getRows()][this.getColumns()];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                ans[i][j] = this.getXY(i + 1, j + 1);
+            }
+        }
+        return ans;
     }
 
+    /**
+     * Sets matrix.
+     *
+     * @param matrix the matrix
+     */
     public void setMatrix(double[][] matrix) {
-        this.rows = matrix.length;
-        this.columns = matrix[0].length;
-        this.matrix = matrix;
+        constructMatrix(matrix.length, matrix[0].length);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                this.setXY(i + 1, j + 1, matrix[i][j]);
+            }
+        }
     }
 
+    /**
+     * Gets rows.
+     *
+     * @return the rows
+     */
     public int getRows() {
         return rows;
     }
 
+    /**
+     * Gets columns.
+     *
+     * @return the columns
+     */
     public int getColumns() {
         return columns;
     }
@@ -379,10 +478,19 @@ public class Matrix {
         return s.toString();
     }
 
+    /**
+     * To string.
+     *
+     * @param function the function
+     * @return the string
+     */
     public String toString(Function<Matrix, String> function) {
         return function.apply(this);
     }
 
+    /**
+     * Fill zeros.
+     */
     public void fillZeros() {
         for (int i = 1; i <= this.getRows(); i++) {
             for (int j = 1; j <= this.getColumns(); j++) {
@@ -391,6 +499,11 @@ public class Matrix {
         }
     }
 
+    /**
+     * Fill void.
+     *
+     * @param x the x
+     */
     public void fill(double x) {
         for (int i = 1; i <= this.getRows(); i++) {
             for (int j = 1; j <= this.getColumns(); j++) {
@@ -399,6 +512,12 @@ public class Matrix {
         }
     }
 
+    /**
+     * Fill random.
+     *
+     * @param xmin the xmin
+     * @param xmax the xmax
+     */
     public void fillRandom(double xmin, double xmax) {
         Random r = new Random();
         for (int i = 1; i <= this.getRows(); i++) {
@@ -409,10 +528,12 @@ public class Matrix {
         }
     }
 
-    /**
-     * static
-     */
 
+    /**
+     * Apply function.
+     *
+     * @param f the f
+     */
     public void applyFunction(UniVarFunction f) {
         for (int i = 1; i <= this.getRows(); i++) {
             for (int j = 1; j <= this.getColumns(); j++) {
@@ -423,6 +544,9 @@ public class Matrix {
         }
     }
 
+    /**
+     * transpose matrix
+     */
     public void transpose() {
         Matrix m;
         m = new Matrix(this.getColumns(), this.getRows());
@@ -437,6 +561,8 @@ public class Matrix {
     }
 
     /**
+     * Gets sub matrix.
+     *
      * @param xmin lower bound row coordinate
      * @param xmax upper bound row coordinate
      * @param ymin lower bound column coordinate
@@ -460,10 +586,13 @@ public class Matrix {
     }
 
     /**
+     * Sets sub matrix.
+     *
      * @param xmin lower bound row coordinate
      * @param xmax upper bound row coordinate
      * @param ymin lower bound column coordinate
      * @param ymax upper bound column coordinate
+     * @param m    the m
      * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ...
      * ymax]
      */
@@ -479,6 +608,9 @@ public class Matrix {
         }
     }
 
+    /**
+     * Set matrix to identity matrix
+     */
     public void identity() {
         this.fillZeros();
         for (int i = 1; i <= this.getRows(); i++) {
@@ -486,6 +618,11 @@ public class Matrix {
         }
     }
 
+    /**
+     * Copy matrix.
+     *
+     * @return the matrix
+     */
     public Matrix copy() {
         Matrix r = new Matrix(this.getRows(), this.getColumns());
         for (int i = 1; i <= this.getRows(); i++) {
@@ -497,6 +634,8 @@ public class Matrix {
     }
 
     /**
+     * To vector.
+     *
      * @return vector with dimension rows * columns, whose elements are taken
      * column-wise.
      */
@@ -511,6 +650,12 @@ public class Matrix {
 
     }
 
+    /**
+     * Reshape void.
+     *
+     * @param rows    the rows
+     * @param columns the columns
+     */
     public void reshape(int rows, int columns) {
         Matrix ans;
         if (rows * columns == this.rows * this.columns) {
@@ -527,6 +672,12 @@ public class Matrix {
         }
     }
 
+    /**
+     * Concat matrix.
+     *
+     * @param m the m
+     * @return the matrix
+     */
     public Matrix concat(Matrix m) {
         Matrix ans = null;
         if (m.rows == this.rows) {
@@ -543,16 +694,40 @@ public class Matrix {
         return ans;
     }
 
+    public Vector[] getVectorColumns() {
+        int columns = this.getColumns();
+        Vector[] vectors = new Vector[columns];
+        for (int i = 1; i <= columns; i++) {
+            vectors[i - 1] = new Vector(this.getSubMatrix(1, this.getRows(), i, i));
+        }
+        return vectors;
+    }
+
     private boolean checkInputIndex(int x, int y) {
         return x <= this.getRows() && x > 0 && y <= this.getColumns() && y > 0;
     }
 
     private class MatrixParallelProd implements Runnable {
-        int up, down;
+        /**
+         * The Up.
+         */
+        int up, /**
+         * The Down.
+         */
+        down;
         private Matrix a;
         private Matrix b;
         private Matrix output;
 
+        /**
+         * Instantiates a new Matrix parallel prod.
+         *
+         * @param up     the up
+         * @param down   the down
+         * @param a      the a
+         * @param b      the b
+         * @param output the output
+         */
         public MatrixParallelProd(int up, int down, Matrix a, Matrix b, Matrix output) {
             super();
             this.up = up;

@@ -1,6 +1,7 @@
 package table.src;
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Created by Pedroth on 4/25/2016.
@@ -8,7 +9,7 @@ import java.util.*;
  * @param <I> the type parameter of the Indexing variable
  * @param <E> the type parameter of the stored object
  */
-public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
+public class HyperTable<I, E> implements Table<I, E>, Iterable<HyperTable<I, E>.Leaf> {
     private int dimension;
     private Node table;
     private int numOfElements;
@@ -98,7 +99,7 @@ public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
     }
 
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<Leaf> iterator() {
         return new HyperTableIterator();
     }
 
@@ -114,6 +115,10 @@ public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
             stringBuilder.append(next.toString()).append("\n");
         }
         return stringBuilder.toString();
+    }
+
+    public String toString(Function<HyperTable, String> printer) {
+        return printer.apply(this);
     }
 
     /**
@@ -161,7 +166,7 @@ public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
     }
 
 
-    class HyperTableIterator implements Iterator<E> {
+    class HyperTableIterator implements Iterator<Leaf> {
         private HyperTableLeafIterator hyperTableLeafIterator;
 
         public HyperTableIterator() {
@@ -174,8 +179,8 @@ public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
         }
 
         @Override
-        public E next() {
-            return hyperTableLeafIterator.next().getElement();
+        public Leaf next() {
+            return hyperTableLeafIterator.next();
         }
     }
 
@@ -234,7 +239,7 @@ public class HyperTable<I, E> implements Table<I, E>, Iterable<E> {
         }
     }
 
-    private class Leaf extends Node {
+    public class Leaf extends Node {
         private E element;
         private I[] index;
 
