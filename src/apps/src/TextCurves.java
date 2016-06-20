@@ -194,7 +194,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             }
         });
         /**
-         * Poly Simplex
+         * Poly AbstractSimplex
          */
         simplexOnPolyButton = new Button("Barycentric");
         simplexOnPolyButton.addActionListener(new ActionListener() {
@@ -516,7 +516,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     @Override
-    public void updateDraw(Graphics g) {
+    public void updateDraw() {
         engine.clearImageWithBackground();
         camera.update(dt);
         if (simplexOnPolyState == 1) {
@@ -528,7 +528,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         updateStringCurve();
         engine.drawElements();
         this.setTitle("Fps : " + this.getFps());
-        engine.paintImage(g);
+        drawImage(engine.getImage());
     }
 
     public void reset() {

@@ -3,6 +3,7 @@ package twoDimEngine;
 import algebra.src.Matrix;
 import algebra.src.Vec2;
 import algebra.src.Vector;
+import numeric.src.MyMath;
 
 public class BoundingBox {
 	private double xmin, ymax, xmax, ymin;
@@ -206,18 +207,10 @@ public class BoundingBox {
 		Vec2[] ans = new Vec2[v.length];
 		for (int i = 0; i < v.length; i++) {
 			ans[i] = Vec2.normalize(Vec2.add(
-					Vec2.normalize(Vec2.diff(v[i], v[mod(i - 1, v.length)])),
+					Vec2.normalize(Vec2.diff(v[i], v[MyMath.positiveMod(i - 1, v.length)])),
 					Vec2.normalize(Vec2.diff(v[i], v[(i + 1) % v.length]))));
 		}
 		return ans;
-	}
-
-	private int mod(int x, int y) {
-		if (x < 0) {
-			return y + (x % y);
-		} else {
-			return x % y;
-		}
 	}
 
 	/**
@@ -237,7 +230,7 @@ public class BoundingBox {
 				index = i;
 			}
 		}
-		minDistance = Math.min(minDistance, lineDistance(vertex[mod(index - 1, vertex.length)], vertex[index], x));
+		minDistance = Math.min(minDistance, lineDistance(vertex[MyMath.positiveMod(index - 1, vertex.length)], vertex[index], x));
 		minDistance = Math.min(minDistance, lineDistance(vertex[index], vertex[(index + 1) % vertex.length], x));
 		return minDistance;
 	}

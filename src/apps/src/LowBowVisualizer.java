@@ -69,12 +69,12 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     @Override
-    public void updateDraw(Graphics g) {
+    public void updateDraw() {
         engine.clearImageWithBackground();
         lowBowVisualizationMethod.draw(lowBowManager, engine);
         engine.drawElements();
         this.setTitle("Fps : " + this.getFps());
-        engine.paintImage(g);
+        engine.paintImage(this.getGraphics());
     }
 
     @Override

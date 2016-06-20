@@ -97,36 +97,30 @@ public class BuildPage {
         return files;
     }
 
-    public static void buildJava() {
-        String path = "C:/pedro/visualExperiments/JavaExperiments";
+    public static void buildPages(String path, PageBuilder pageBuilder) {
+
 
         String[] directories = getDir(path);
 
         for (int i = 0; i < directories.length; i++) {
-            buildJavaPage(directories[i], path + "/" + directories[i]);
-            System.out.println(directories[i]);
-        }
-        System.out.println(Arrays.toString(directories));
-    }
-
-    public static void buildJs() {
-        String path = "C:/pedro/visualExperiments/JsExperiments";
-
-        String[] directories = getDir(path);
-
-        for (int i = 0; i < directories.length; i++) {
-            buildJsPage(directories[i], path + "/" + directories[i]);
+            pageBuilder.build(directories[i], path + "/" + directories[i]);
             System.out.println(directories[i]);
         }
         System.out.println(Arrays.toString(directories));
     }
 
     public static void BuildWeb() {
-        buildJava();
-        buildJs();
+        String pathJava = "C:/pedro/visualExperiments/JavaExperiments";
+        String pathJs = "C:/pedro/visualExperiments/JsExperiments";
+        buildPages(pathJava, (name, address) -> buildJavaPage(name, address));
+        buildPages(pathJs, (name, address) -> buildJsPage(name, address));
     }
 
     public static void main(String[] args) {
         BuildWeb();
+    }
+
+    interface PageBuilder {
+        void build(String name, String address);
     }
 }

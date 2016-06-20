@@ -392,7 +392,7 @@ public class ImplicitSurface extends MyFrame {
     }
 
     @Override
-    public void updateDraw(Graphics g) {
+    public void updateDraw() {
         engine.clearImageWithBackground();
         /**
          * render image
@@ -422,7 +422,7 @@ public class ImplicitSurface extends MyFrame {
             fps.setString(format.format(aux));
         }
         engine.drawElements();
-        engine.paintImage(g);
+        engine.paintImage(this.getGraphics());
     }
 
     @Override

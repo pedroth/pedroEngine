@@ -50,13 +50,13 @@ public class Test extends MyFrame {
 	}
 
 	@Override
-	public void updateDraw(Graphics g) {
+	public void updateDraw() {
 		engine.clearImageWithBackground();
 		engine.buildBoundigBoxTree();
 
 		engine.drawTree();
 		engine.drawElements();
-		engine.paintImage(g);
+		engine.paintImage(this.getGraphics());
 	}
 
 	@Override

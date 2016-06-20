@@ -84,4 +84,12 @@ public class MyMath {
 		in.init();
 		return in.compute(new Vector(new double[] {}));
 	}
+
+	public static int positiveMod(int x, int y) {
+		if (x < 0) {
+			return y + (x % y);
+		} else {
+			return x % y;
+		}
+	}
 }

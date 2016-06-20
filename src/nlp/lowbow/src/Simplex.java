@@ -48,7 +48,7 @@ public class Simplex {
 
 	@Override
 	public String toString() {
-		return "Simplex{" +
+		return "AbstractSimplex{" +
 				"wordsIndex=" + wordsIndex +
 				", wordsIndexInv=" + wordsIndexInv +
 				'}';

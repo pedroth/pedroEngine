@@ -24,9 +24,8 @@ public class MatrixExponetial {
         omega = Matrix.add(omega, Matrix.scalarProd(1.0 / m, matrix));
 
         int n = (int) Math.floor(t * m);
-
         for (int i = 0; i < n; i++) {
-            x = Vector.matrixProd(omega, x);
+            x = Vector.matrixProdParallel(omega, x);
         }
         return x;
     }
@@ -46,7 +45,7 @@ public class MatrixExponetial {
         do {
             xOld = x.copy();
             x = exp(t, matrix, initial, n++);
-        } while (Vector.diff(xOld, x).squareNorm() < epsilon);
+        } while (Vector.diff(xOld, x).squareNorm() > epsilon);
         return x;
     }
 

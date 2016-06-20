@@ -191,6 +191,7 @@ public class LowBowTests {
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
         lowBowSubtitles.build();
+//        lowBowSubtitles.heatFlow(250, new HeatFlow());
         text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", lowBowSubtitles.toString(new LowBowPrinter()));
         System.out.println(lowBowSubtitles.getSimplex().toString());
     }
@@ -205,8 +206,10 @@ public class LowBowTests {
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
         lowBowSubtitles.build();
+        SymbolAtMax symbolSampler = new SymbolAtMax();
+        text.write("C:/Users/Pedroth/Desktop/normalText.txt", lowBowSubtitles.generateText(symbolSampler));
         lowBowSubtitles.setCurve(Matrix.transpose(lowBow).getVectorColumns());
-        System.out.println(lowBowSubtitles.generateText(new SymbolAtMax()));
+        text.write("C:/Users/Pedroth/Desktop/FreqText.txt", lowBowSubtitles.generateText(symbolSampler));
     }
 
 }
