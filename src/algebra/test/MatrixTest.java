@@ -7,9 +7,7 @@ import numeric.src.SymmetricEigen;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by Pedroth on 11/21/2015.
- */
+
 public class MatrixTest {
 
     @Test

@@ -1,18 +1,12 @@
 package numeric.test;
 
 
-import algebra.src.Matrix;
-import algebra.src.Vec2;
-import algebra.src.Vec3;
-import algebra.src.Vector;
+import algebra.src.*;
 import inputOutput.CsvReader;
 import numeric.src.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by Pedroth on 12/30/2015.
- */
 public class NumericTest {
 
     @Test
@@ -98,6 +92,25 @@ public class NumericTest {
     public void testEigenValue() {
         Matrix matrix = new Matrix(new double[][]{{1, -1, 0}, {-1, 2, -1}, {0, -1, 1}});
         SymmetricEigen eigen = new SymmetricEigen(matrix);
+        Vector[] eigenVectors = eigen.getEigenVectors();
+        Double[] eigenValues = eigen.getEigenValues();
+        for (Vector eigenVector : eigenVectors) {
+            System.out.println(eigenVector);
+        }
+        for (Double eigenValue : eigenValues) {
+            System.out.println(eigenValue);
+        }
+        double cos45 = Math.sqrt(2) / 2;
+        Assert.assertTrue(Vector.diff(eigenVectors[1], new Vec3(cos45, 0, -cos45)).norm() < 1E-3 || Vector.diff(eigenVectors[1], new Vec3(-cos45, 0, cos45)).norm() < 1E-3);
+    }
+
+    @Test
+    public void testTridiagonalEigen() {
+        TridiagonalMatrix matrix = new TridiagonalMatrix(new double[]{1, 2, 1}, new double[]{-1, -1}, new double[]{-1, -1});
+        SymmetricEigen eigen = new SymmetricEigen(matrix);
+        Assert.assertTrue(matrix.getXY(2, 3) == -1);
+        Assert.assertTrue(matrix.getXY(1, 3) == 0);
+        Assert.assertTrue(matrix.getColumns() == 3);
         Vector[] eigenVectors = eigen.getEigenVectors();
         Double[] eigenValues = eigen.getEigenValues();
         for (Vector eigenVector : eigenVectors) {

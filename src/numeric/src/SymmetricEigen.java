@@ -96,7 +96,7 @@ public class SymmetricEigen {
          * It maximizes positive definite matrices and minimizes negative definite matrices
          */
         do {
-            grad = Vector.matrixProd(symMatrix, eigenV);
+            grad = eigenV.matrixProd(symMatrix);
             double quadraticForm = Vector.innerProd(grad, Vector.matrixProd(symMatrix, grad));
             /*
              * beta is negative when matrix is positive definite and positive when it is negative definite.

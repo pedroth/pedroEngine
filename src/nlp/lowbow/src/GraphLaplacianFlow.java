@@ -1,7 +1,6 @@
 package nlp.lowbow.src;
 
-import algebra.src.Matrix;
-import algebra.src.TridiagonalMatrixSolver;
+import algebra.src.TridiagonalMatrix;
 import algebra.src.Vector;
 
 /**
@@ -16,7 +15,7 @@ public class GraphLaplacianFlow implements HeatMethod {
          * aux variables
          */
         Vector zeta = new Vector(l.samples);
-        Matrix myu = new Matrix(l.samples, l.samples);
+        TridiagonalMatrix myu = new TridiagonalMatrix(l.samples);
         /*
          * build matrix myu
          */
@@ -42,7 +41,7 @@ public class GraphLaplacianFlow implements HeatMethod {
             for (int i = 1; i <= l.samples; i++) {
                 zeta.setX(i, ((lambda - 1) * l.curve[i - 1].getX(j)));
             }
-            Vector v = TridiagonalMatrixSolver.solveTridiagonalSystem(myu, Vector.scalarProd(-1, zeta));
+            Vector v = myu.solveTridiagonalSystem(Vector.scalarProd(-1, zeta));
             for (int i = 1; i <= l.samples; i++) {
                 l.curve[i - 1].setX(j, v.getX(i));
             }

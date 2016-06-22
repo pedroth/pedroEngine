@@ -45,10 +45,23 @@ public class Vector extends Matrix {
     }
 
     public static Vector matrixProd(Matrix m, Vector v) {
-        Vector ret;
-        Matrix m1 = prod(m, v);
-        ret = new Vector(m1);
-        return ret;
+        if (m.getColumns() != v.getDim()) {
+            throw new AlgebraException("Matrix columns must be the same as vector dimension");
+        }
+        int rows = m.getRows();
+        Vector ans = new Vector(rows);
+        for (int i = 0; i < rows; i++) {
+            double acc = 0;
+            for (int j = 0; j < m.getColumns(); j++) {
+                acc += m.getXY(i + 1, j + 1) * v.getX(j + 1);
+            }
+            ans.setX(i + 1, acc);
+        }
+        return ans;
+    }
+
+    public static Vector matrixProd(TridiagonalMatrix m, Vector v) {
+        return m.prod(v);
     }
 
     public static Vector matrixProdParallel(Matrix m, Vector v) {
@@ -188,5 +201,13 @@ public class Vector extends Matrix {
             ans[i] = this.getX(i + 1);
         }
         return ans;
+    }
+
+    public Vector matrixProd(Matrix m) {
+        return Vector.matrixProd(m, this);
+    }
+
+    public Vector matrixProd(TridiagonalMatrix m) {
+        return Vector.matrixProd(m, this);
     }
 }

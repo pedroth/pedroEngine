@@ -12,9 +12,9 @@ import java.util.function.Function;
  * The type Matrix.
  */
 public class Matrix {
+    protected int rows;
+    protected int columns;
     private double[] matrix;
-    private int rows;
-    private int columns;
 
 
     /**

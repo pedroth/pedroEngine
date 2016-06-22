@@ -1,6 +1,7 @@
 package nlp.lowbow.src;
 
 import algebra.src.Matrix;
+import algebra.src.TridiagonalMatrix;
 import algebra.src.Vector;
 import numeric.src.MatrixExponetial;
 
@@ -51,7 +52,7 @@ public class LambdaTestFlow implements HeatMethod {
     public void heatFlow(double lambda, LowBow l) {
         // change
         Vector[] zeta = new Vector[l.numWords];
-        Matrix myu = new Matrix(l.samples, l.samples);
+        Matrix myu = new TridiagonalMatrix(l.samples);
         /*
          * build matrix myu
          */
