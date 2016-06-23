@@ -30,10 +30,11 @@ public class MatrixTest {
     public void MatrixTest2() {
         Matrix m = new Matrix(new double[][]{{1, -1, 0}, {-1, 2, -1}, {0, -1, 1}});
         SymmetricEigen eigen = new SymmetricEigen(m);
-        Vector[] eigenVectors = eigen.getEigenVectors();
-        for (Vector eigenVector : eigenVectors) {
-            System.out.println(eigenVector);
+        Double[] eigenValues = eigen.getEigenValues();
+        for (double eigenValue : eigenValues) {
+            System.out.println(eigenValue);
         }
+        Assert.assertTrue(Math.abs(eigenValues[0] - 3) < 1E-3);
     }
 
     @Test

@@ -3,9 +3,6 @@ package nlp.lowbow.src;
 import algebra.src.Vector;
 import numeric.src.Pca;
 
-/**
- * Created by Pedroth on 2/28/2016.
- */
 public class LowBowManagerPca extends LowBowManager<LowBowPca> {
 
     /**

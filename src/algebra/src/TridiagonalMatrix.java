@@ -95,13 +95,14 @@ public class TridiagonalMatrix extends Matrix {
         }
     }
 
-    public Vector prod(Vector v) {
+    @Override
+    public Vector prodVector(Vector v) {
         int dim = v.getDim();
         Vector ans = new Vector(dim);
         if (dim == n) {
             for (int i = 0; i < dim; i++) {
                 if (i == 0) {
-                    ans.setX(i + 1, a[i] * v.getX(i + 1) + b[i] * v.getX(i + 1));
+                    ans.setX(i + 1, a[i] * v.getX(i + 1) + b[i] * v.getX(i + 2));
                 } else if (i == dim - 1) {
                     ans.setX(i + 1, a[i] * v.getX(i + 1) + c[i - 1] * v.getX(i));
                 } else {

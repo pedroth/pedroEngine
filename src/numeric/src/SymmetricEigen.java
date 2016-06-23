@@ -75,7 +75,7 @@ public class SymmetricEigen {
     }
 
     private Double computeEigenValue(Vector v) {
-        return Vector.innerProd(v, Vector.matrixProd(symMatrix, v));
+        return Vector.innerProd(v, symMatrix.prodVector(v));
     }
 
     /**
@@ -96,7 +96,7 @@ public class SymmetricEigen {
          * It maximizes positive definite matrices and minimizes negative definite matrices
          */
         do {
-            grad = eigenV.matrixProd(symMatrix);
+            grad = symMatrix.prodVector(eigenV);
             double quadraticForm = Vector.innerProd(grad, Vector.matrixProd(symMatrix, grad));
             /*
              * beta is negative when matrix is positive definite and positive when it is negative definite.

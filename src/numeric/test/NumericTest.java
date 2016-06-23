@@ -123,6 +123,16 @@ public class NumericTest {
         Assert.assertTrue(Vector.diff(eigenVectors[1], new Vec3(cos45, 0, -cos45)).norm() < 1E-3 || Vector.diff(eigenVectors[1], new Vec3(-cos45, 0, cos45)).norm() < 1E-3);
     }
 
+    @Test
+    public void testTridiagonalEigen2() {
+        TridiagonalMatrix matrix = new TridiagonalMatrix(new double[]{1, 2, 1}, new double[]{-1, -1}, new double[]{-1, -1});
+        Vec3 v = new Vec3(1, 2, 3);
+        Vec3 ans = new Vec3(-1, 0, 1);
+        Vector test = matrix.prodVector(v);
+        System.out.println(test);
+        Assert.assertTrue(Vector.diff(ans, test).norm() < 1E-3);
+    }
+
 
     @Test
     public void eigenVsSvd() {

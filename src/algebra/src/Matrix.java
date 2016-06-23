@@ -326,11 +326,7 @@ public class Matrix {
         Matrix U = svd.getU();
         Matrix S = svd.getSigmaInv();
         Matrix V = svd.getV();
-        if (m.getRows() >= 100 || m.getColumns() >= 100) {
-            return Vector.matrixProdParallel(V, Vector.matrixProdParallel(S, Vector.matrixProdParallel(Matrix.transpose(U), y)));
-        } else {
-            return Vector.matrixProd(V, Vector.matrixProd(S, Vector.matrixProd(Matrix.transpose(U), y)));
-        }
+        return V.prodVector(S.prodVector(Matrix.transpose(U).prodVector(y)));
     }
 
     /**
@@ -464,6 +460,24 @@ public class Matrix {
      */
     public int getColumns() {
         return columns;
+    }
+
+
+    public Vector prodVector(Vector v) {
+        if (this.getColumns() != v.getDim()) {
+            throw new AlgebraException("Matrix columns must be the same as vector dimension");
+        }
+        int rows = this.getRows();
+        // defensive copy
+        Vector ans = new Vector(rows);
+        for (int i = 0; i < rows; i++) {
+            double acc = 0;
+            for (int j = 0; j < this.getColumns(); j++) {
+                acc += this.getXY(i + 1, j + 1) * v.getX(j + 1);
+            }
+            ans.setX(i + 1, acc);
+        }
+        return ans;
     }
 
     public String toString() {

@@ -25,7 +25,7 @@ public class MatrixExponetial {
 
         int n = (int) Math.floor(t * m);
         for (int i = 0; i < n; i++) {
-            x = x.matrixProd(omega);
+            x = omega.prodVector(x);
         }
         return x;
     }
