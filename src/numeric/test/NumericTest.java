@@ -6,6 +6,7 @@ import inputOutput.CsvReader;
 import numeric.src.*;
 import org.junit.Assert;
 import org.junit.Test;
+import utils.StopWatch;
 
 public class NumericTest {
 
@@ -24,8 +25,9 @@ public class NumericTest {
         Matrix matrix = new Matrix(new double[][]{{0, 0, 0}, {1, -2, 1}, {0, 0, 0}});
         Vector initial = new Vec3(0, 0, 1);
         double alpha = 1;
-        int n = 5000;
+        int n = 10000;
         Vector x = MatrixExponetial.exp(alpha, matrix, initial, n);
+        System.out.println(x);
     }
 
     @Test
@@ -166,6 +168,23 @@ public class NumericTest {
         initial.fillRandom(-1, 1);
         quadraticFormMinimizer.argMin(1E-12, initial);
         System.out.println((System.currentTimeMillis() - time) * 1E-3);
+    }
 
+    @Test
+    public void superEigenTest() {
+        int n = 3;
+        Matrix laplacian = new LineLaplacian(n);
+        SymmetricEigen symmetricEigen = new SymmetricEigen(laplacian);
+        StopWatch stopWatch = new StopWatch();
+        symmetricEigen.computeEigen(1E-10, n, new IntrinsicEigenAlgo());
+        System.out.println("\n" + stopWatch.getEleapsedTime() + "\n");
+        symmetricEigen.orderEigenValuesAndVector();
+        for (Double eigenValue : symmetricEigen.getEigenValues()) {
+            System.out.println(eigenValue);
+        }
+        System.out.println("\n");
+        for (Vector vector : symmetricEigen.getEigenVectors()) {
+            System.out.println(vector);
+        }
     }
 }

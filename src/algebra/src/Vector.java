@@ -81,7 +81,8 @@ public class Vector extends Matrix {
     }
 
     public static Vector normalize(Vector v) {
-        Vector ret = Vector.scalarProd(1 / v.norm(), v);
+        double norm = v.norm();
+        Vector ret = norm == 0.0 ? new Vector(v) : Vector.scalarProd(1 / norm, v);
         return ret;
     }
 

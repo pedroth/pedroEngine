@@ -3,6 +3,9 @@ package numeric.src;
 import algebra.src.Matrix;
 import algebra.src.Vec3;
 
+/**
+ * The type Camera 3 d.
+ */
 public class Camera3D {
 	/**
 	 * camera dynamics
@@ -31,7 +34,10 @@ public class Camera3D {
 	private Vec3 eye;
 	private Matrix camBasis;
 	private Matrix inverseCamBasis;
-	
+
+	/**
+	 * Instantiates a new Camera 3 d.
+	 */
 	public Camera3D() {
 		raw = new Vec3(1, 0, 0);
 		velRaw = new Vec3();
@@ -68,7 +74,12 @@ public class Camera3D {
 				* cosP * sinT + focalPoint.getY(), r * sinP + focalPoint.getZ());
 		inverseCamBasis = Matrix.transpose(camBasis);
 	}
-	
+
+	/**
+	 * Update void.
+	 *
+	 * @param dt the dt
+	 */
 	public void update(double dt) {
 		dt = Math.min(dt, 0.05);
 		double accX = (thrust.getX() - velRaw.getX());
@@ -83,46 +94,101 @@ public class Camera3D {
 		orbit();
 	}
 
+	/**
+	 * Gets raw.
+	 *
+	 * @return the raw
+	 */
 	public Vec3 getRaw() {
 		return raw;
 	}
 
+	/**
+	 * Sets raw.
+	 *
+	 * @param raw the raw
+	 */
 	public void setRaw(Vec3 raw) {
 		this.raw = raw;
 	}
 
+	/**
+	 * Gets vel raw.
+	 *
+	 * @return the vel raw
+	 */
 	public Vec3 getVelRaw() {
 		return velRaw;
 	}
 
+	/**
+	 * Sets vel raw.
+	 *
+	 * @param velRaw the vel raw
+	 */
 	public void setVelRaw(Vec3 velRaw) {
 		this.velRaw = velRaw;
 	}
 
+	/**
+	 * Gets focal point.
+	 *
+	 * @return the focal point
+	 */
 	public Vec3 getFocalPoint() {
 		return focalPoint;
 	}
 
+	/**
+	 * Sets focal point.
+	 *
+	 * @param focalPoint the focal point
+	 */
 	public void setFocalPoint(Vec3 focalPoint) {
 		this.focalPoint = focalPoint;
 	}
 
+	/**
+	 * Gets thrust.
+	 *
+	 * @return the thrust
+	 */
 	public Vec3 getThrust() {
 		return thrust;
 	}
 
+	/**
+	 * Sets thrust.
+	 *
+	 * @param thrust the thrust
+	 */
 	public void setThrust(Vec3 thrust) {
 		this.thrust = thrust;
 	}
 
+	/**
+	 * Gets eye.
+	 *
+	 * @return the eye
+	 */
 	public Vec3 getEye() {
 		return eye;
 	}
 
+	/**
+	 * Gets cam basis. 1st column is the x-axis, 2nd is the y-axis and 3rd is the z-axis
+	 *
+	 * @return the cam basis
+	 */
 	public Matrix getCamBasis() {
 		return camBasis;
 	}
 
+	/**
+	 * Gets inverse cam basis.
+	 *
+	 * @return the inverse cam basis
+	 */
 	public Matrix getInverseCamBasis() {
 		return inverseCamBasis;
 	}

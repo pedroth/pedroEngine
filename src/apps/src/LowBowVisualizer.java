@@ -28,6 +28,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
      * Camera
      */
     private Camera3D camera;
+
     private LowBowManager lowBowManager;
     /**
      * mouse coordinates

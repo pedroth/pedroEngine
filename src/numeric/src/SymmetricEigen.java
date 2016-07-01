@@ -2,14 +2,16 @@ package numeric.src;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;
+import algorithms.QuickSortWithPermutation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Pedroth on 4/23/2016.
+ * The type Symmetric eigen.
  */
 public class SymmetricEigen {
+    private static EigenAlgo eigenAlgo = new SuperEigenAlgo();
     private final Matrix symMatrix;
     private Vector[] eigenVectors;
     private Double[] eigenValues;
@@ -30,6 +32,20 @@ public class SymmetricEigen {
         this.symMatrix = symMatrix;
     }
 
+    /**
+     * Gram schmit ortho.
+     *
+     * @param x            the x
+     * @param eigenVectors the eigen vectors
+     * @return the vector
+     */
+    public static Vector gramSchmitOrtho(Vector x, List<Vector> eigenVectors) {
+        for (Vector eigenVector : eigenVectors) {
+            x = Vector.orthoProjection(x, eigenVector);
+        }
+        return x;
+    }
+
     private boolean checkIfSym(Matrix symMatrix) {
         int rows = symMatrix.getRows();
         int columns = symMatrix.getColumns();
@@ -48,24 +64,39 @@ public class SymmetricEigen {
      * Compute eigen.
      */
     public void computeEigen() {
-        computeEigen(1E-10, symMatrix.getRows());
+        computeEigen(1E-10, symMatrix.getRows(), eigenAlgo);
     }
 
     /**
      * Compute eigen.
      *
      * @param epsilon the epsilon
+     * @param dim     the dim
      */
     public void computeEigen(double epsilon, int dim) {
-        int n = Math.min(symMatrix.getRows(), dim);
+        computeEigen(epsilon, dim, eigenAlgo);
+    }
+
+    /**
+     * Compute eigen.
+     *
+     * @param epsilon   the epsilon
+     * @param dim       the dim
+     * @param eigenAlgo the eigen algo
+     */
+    public void computeEigen(double epsilon, int dim, EigenAlgo eigenAlgo) {
+        int rows = symMatrix.getRows();
+        int n = Math.min(rows, dim);
         List<Vector> eigenVectors = new ArrayList<>(n);
         List<Double> eigenValues = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
-            Vector initial = new Vector(symMatrix.getRows());
+//            StopWatch stopWatch = new StopWatch();
+            Vector initial = new Vector(rows);
             initial.fillRandom(-1, 1);
+            initial = gramSchmitOrtho(initial, eigenVectors);
             initial = Vector.normalize(initial);
-            gramSchmitOrtho(initial, eigenVectors);
-            Vector v = superEigen(initial, eigenVectors, epsilon);
+            Vector v = eigenVectors.size() != rows - 1 ? eigenAlgo.superEigen(symMatrix, initial, eigenVectors, epsilon) : initial;
+//            System.out.println(stopWatch.getEleapsedTime());
             eigenValues.add(computeEigenValue(v));
             eigenVectors.add(v);
         }
@@ -76,54 +107,6 @@ public class SymmetricEigen {
 
     private Double computeEigenValue(Vector v) {
         return Vector.innerProd(v, symMatrix.prodVector(v));
-    }
-
-    /**
-     * Super eigen.
-     *
-     * @param initialCondition the initial condition vector in Sphere
-     * @param eigenVectors     the eigen vectors
-     * @param epsilon          the epsilon
-     * @return vector
-     */
-    public Vector superEigen(Vector initialCondition, List<Vector> eigenVectors, double epsilon) {
-        int maxIte = 10000;
-        int ite = 0;
-        Vector eigenV = new Vector(initialCondition);
-        Vector grad;
-        Vector eta;
-        /*
-         * It maximizes positive definite matrices and minimizes negative definite matrices
-         */
-        do {
-            grad = symMatrix.prodVector(eigenV);
-            double quadraticForm = Vector.innerProd(grad, Vector.matrixProd(symMatrix, grad));
-            /*
-             * beta is negative when matrix is positive definite and positive when it is negative definite.
-             */
-            double beta = -(grad.squareNorm() / (quadraticForm == 0.0 ? epsilon * Math.random() : quadraticForm));
-            eta = Vector.scalarProd(beta, grad);
-            /*
-             * project differential to constraint space
-             */
-            eta = Vector.orthoProjection(eta, eigenV);
-            eta = gramSchmitOrtho(eta, eigenVectors);
-            /*
-             * gradient ascend if is positive
-             */
-            eigenV = Vector.diff(eigenV, eta);
-            eigenV = gramSchmitOrtho(eigenV, eigenVectors);
-            eigenV = Vector.normalize(eigenV);
-            ite++;
-        } while (eta.norm() > epsilon && ite < maxIte);
-        return eigenV;
-    }
-
-    private Vector gramSchmitOrtho(Vector x, List<Vector> eigenVectors) {
-        for (Vector eigenVector : eigenVectors) {
-            x = Vector.orthoProjection(x, eigenVector);
-        }
-        return x;
     }
 
     /**
@@ -161,5 +144,21 @@ public class SymmetricEigen {
             computeEigen();
         }
         return eigenValues;
+    }
+
+    /**
+     * Order eigen values and vectors in a natural order
+     */
+    public void orderEigenValuesAndVector() {
+        Double[] eigenValues = getEigenValues();
+        QuickSortWithPermutation quickSortWithPermutation = new QuickSortWithPermutation();
+        quickSortWithPermutation.sort(eigenValues);
+        int[] permutation = quickSortWithPermutation.getPermutation();
+        Vector[] eigenVectors = getEigenVectors();
+        Vector[] permutedEigenVectors = new Vector[eigenVectors.length];
+        for (int i = 0; i < eigenVectors.length; i++) {
+            permutedEigenVectors[i] = eigenVectors[permutation[i]];
+        }
+        this.eigenVectors = permutedEigenVectors;
     }
 }

@@ -6,6 +6,7 @@ import numeric.src.QuadraticFormMinimizer;
 import numeric.src.SymmetricEigen;
 import org.junit.Assert;
 import org.junit.Test;
+import utils.StopWatch;
 
 
 public class MatrixTest {
@@ -16,14 +17,22 @@ public class MatrixTest {
         Matrix m = new Matrix(ls);
         double[][] ys = {{6}, {7}, {8}, {3}, {7}, {5}, {3}, {4}, {6}, {2}};
         Vector y = new Vector(new Matrix(ys));
-        double time = System.currentTimeMillis() * 1E-3;
-        Vector x = Matrix.solveLinearSystemSVD(m, y);
-        System.out.println("time : " + ((System.currentTimeMillis() * 1E-3) - time));
-        // System.out.println(x);
-        Vector vector = new Vector(Matrix.diff(Matrix.prod(m, x), y));
-        System.out.println(vector.norm());
-        Assert.assertTrue(vector.norm() < 0.00001);
-        System.out.println(x);
+        StopWatch stopWatch = new StopWatch();
+        Vector x0 = Matrix.solveLinearSystemSVD(m, y);
+        System.out.println("time : " + stopWatch.getEleapsedTime());
+        stopWatch.resetTime();
+        Vector x1 = Matrix.solveLinearSystem(m, y);
+        System.out.println("time :  " + stopWatch.getEleapsedTime());
+        stopWatch.resetTime();
+        Vector x2 = Matrix.leastSquareLinearSystem(m, y, 1E-15);
+        System.out.println("time : " + stopWatch.getEleapsedTime());
+
+        Vector diff0 = Vector.diff(m.prodVector(x0), y);
+        Vector diff1 = Vector.diff(m.prodVector(x1), y);
+        Vector diff2 = Vector.diff(m.prodVector(x2), y);
+
+        System.out.println(diff0.norm());
+        Assert.assertTrue(diff0.norm() < 0.00001);
     }
 
     @Test
@@ -53,23 +62,48 @@ public class MatrixTest {
         System.out.println(m);
         m = Matrix.prod(Matrix.scalarProd(1, m), m);
         Vector y = new Vector(new double[]{0, 0, 0, 0, 1});
-
-        System.out.println(y);
+        StopWatch stopWatch = new StopWatch();
         Vector x = Matrix.solveLinearSystem(m, y);
-        System.out.println(x);
+        System.out.println(stopWatch.getEleapsedTime());
         Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-6);
     }
 
 
     @Test
     public void MatrixTest5() {
-        Matrix m = new Matrix(new double[][]{{1, 2}, {2, 3.999}});
+        Matrix m = new Matrix(new double[][]{{100000000000.0, 2}, {2, 0.00001}});
         System.out.println(m);
         Vector y = new Vector(new double[]{4, 7.999});
-
-        System.out.println(y);
+        StopWatch stopWatch = new StopWatch();
         Vector x = Matrix.solveLinearSystem(m, y);
-        System.out.println(x);
-        Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-6);
+        System.out.println(stopWatch.getEleapsedTime());
+        Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-3);
     }
+
+
+    @Test
+    public void MatrixTestFast() {
+        int n = 3;
+        double sigma = 1;
+        Matrix m = new Matrix(n, n);
+        Vector y = new Vector(n);
+        y.fillRandom(-sigma, sigma);
+        Vector eigenValues = new Vector(n);
+        double initial = 1E-6;
+        double exp = 1E3;
+        for (int i = 0; i < n; i++) {
+            eigenValues.setX(i + 1, initial);
+            initial *= exp;
+        }
+        Matrix diag = Matrix.diag(eigenValues);
+        m = Matrix.add(m, diag);
+        StopWatch stopWatch = new StopWatch();
+        Vector x = Matrix.solveLinearSystem(m, y);
+        System.out.println(stopWatch.getEleapsedTime());
+        double norm = Vector.diff(Vector.matrixProd(m, x), y).norm();
+        System.out.println(norm);
+        Assert.assertTrue(norm < 0.1);
+    }
+
+
 }

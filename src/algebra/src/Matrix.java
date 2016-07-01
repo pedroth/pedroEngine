@@ -5,6 +5,8 @@ import numeric.src.SVD;
 import realFunction.src.LinearFunction;
 import realFunction.src.UniVarFunction;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -262,16 +264,7 @@ public class Matrix {
 
         Vector gamma = Vector.matrixProd(normMTrans, y);
         Vector x = gamma.copy();
-        Vector grad;
-        do {
-            grad = Vector.diff(gamma, Vector.matrixProd(myu, x));
-            double d2fdt = Vector.innerProd(grad, Vector.matrixProd(myu, grad));
-            double t = (d2fdt != 0) ? (grad.squareNorm() / d2fdt) : 0.5;
-            grad = Vector.scalarProd(t, grad);
-            x = Vector.add(x, grad);
-            System.out.println(grad.norm() + "\t" + Vector.diff(Vector.matrixProd(m, x), y).norm() + "\t" + t);
-        } while (grad.norm() > epsilon);
-        return x;
+        return solveLinearSystem(normMTrans, gamma, epsilon);
     }
 
     /**
@@ -289,13 +282,13 @@ public class Matrix {
         Vector gamma = Vector.matrixProd(normMTrans, y);
         Vector x = gamma.copy();
         Vector grad;
-        double t;
         do {
             grad = Vector.diff(Vector.matrixProd(m, x), y);
             double d2fdt = Vector.innerProd(grad, Vector.matrixProd(m, grad));
-            if (d2fdt == 0)
+            if (d2fdt == 0) {
                 return x;
-            t = (grad.squareNorm() / d2fdt);
+            }
+            double t = (grad.squareNorm() / d2fdt);
             grad = Vector.scalarProd(-t, grad);
             x = Vector.add(x, grad);
         } while (grad.norm() > epsilon);
@@ -328,6 +321,56 @@ public class Matrix {
         Matrix V = svd.getV();
         return V.prodVector(S.prodVector(Matrix.transpose(U).prodVector(y)));
     }
+
+    /**
+     * this solves the following equation m * x = y, where m is a n*n matrix, x
+     * and y are n * 1 matrices or vectors of n dimension.
+     * <p>
+     * Note: does not guarantees low error
+     *
+     * @param m the m
+     * @param y the y
+     * @return vector with solution to equation m * x = y.
+     */
+    public static Vector solveLinearSystemFast(Matrix m, Vector y) {
+        Matrix normMTrans = Matrix.transpose(m);
+        Vector gamma = Vector.matrixProd(normMTrans, y);
+        Vector x = gamma.copy();
+        int dim = x.getDim();
+        int ite = 0;
+        Vector grad;
+        Queue<Vector> orthoGradients = new LinkedList<>();
+        Vector gradOrtho;
+        double epsilon = 1E-3;
+        do {
+            grad = Vector.diff(Vector.matrixProd(m, x), y);
+            gradOrtho = gramSchmitOrtho(grad, orthoGradients);
+            orthoGradients.add(gradOrtho);
+            double d2fdt = Vector.innerProd(gradOrtho, Vector.matrixProd(m, gradOrtho));
+            if (d2fdt == 0) {
+                d2fdt = 0.5;
+            }
+            double t = (Vector.innerProd(grad, gradOrtho) / d2fdt);
+            gradOrtho = Vector.scalarProd(-t, gradOrtho);
+            x = Vector.add(x, gradOrtho);
+//            ite++;
+//            if (ite % (2 * dim) == 0) {
+//                for (int i = 0; i < dim; i++) {
+//                    orthoGradients.poll();
+//                }
+//            }
+            System.out.println(gradOrtho.norm() + "\t" + grad.norm());
+        } while (gradOrtho.norm() > epsilon);
+        return x;
+    }
+
+    private static Vector gramSchmitOrtho(Vector x, Queue<Vector> eigenVectors) {
+        for (Vector eigenVector : eigenVectors) {
+            x = Vector.orthoProjection(x, eigenVector);
+        }
+        return x;
+    }
+
 
     /**
      * Diag matrix.

@@ -2,9 +2,6 @@ package algorithms;
 
 import java.util.Stack;
 
-/**
- * Created by Pedroth on 4/10/2016.
- */
 public class QuickSortWithPermutation implements Sort {
     private int[] permutation;
 
