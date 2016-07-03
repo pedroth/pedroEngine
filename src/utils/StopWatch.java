@@ -10,7 +10,7 @@ public class StopWatch {
      * Instantiates a new Stop watch.
      */
     public StopWatch() {
-        this.time = System.currentTimeMillis();
+        this.time = System.nanoTime();
     }
 
     /**
@@ -19,7 +19,7 @@ public class StopWatch {
      * @return the eleapsed time
      */
     public double getEleapsedTime() {
-        return (System.currentTimeMillis() - time) / 1000;
+        return (System.nanoTime() - time) / 1E9;
     }
 
     /**

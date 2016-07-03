@@ -1,9 +1,6 @@
 package apps.src;
 
-import algebra.src.Matrix;
-import algebra.src.Vec2;
-import algebra.src.Vec3;
-import algebra.src.Vector;
+import algebra.src.*;
 import apps.utils.MyFrame;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
@@ -53,6 +50,7 @@ public class EigenSimulation extends MyFrame {
      */
     private Matrix symMatrix;
     private Double[] eigenValues;
+    private Vector[] eigenVector;
     /*
      * Camera
      */
@@ -109,6 +107,7 @@ public class EigenSimulation extends MyFrame {
         SymmetricEigen symmetricEigen = new SymmetricEigen(this.symMatrix);
         symmetricEigen.orderEigenValuesAndVector();
         eigenValues = symmetricEigen.getEigenValues();
+        eigenVector = symmetricEigen.getEigenVectors();
 
         //display frame
         this.init();
@@ -118,7 +117,7 @@ public class EigenSimulation extends MyFrame {
         Matrix symMatrix = new Matrix(3, 3);
         symMatrix.fillRandom(-10, 10);
         symMatrix = Matrix.add(symMatrix, Matrix.transpose(symMatrix));
-        new EigenSimulation("Eigen Simulation", 500, 500, symMatrix);
+        new EigenSimulation("Eigen Simulation", 500, 500, new TridiagonalMatrix(new double[]{4, 2, 1}, new double[]{0, 0}, new double[]{0, 0}));
     }
 
     /**
@@ -215,11 +214,16 @@ public class EigenSimulation extends MyFrame {
         int n = sqrtSamples;
         double xmin = engine.getXmin(), xmax = engine.getXmax();
         double ymin = engine.getYmin(), ymax = engine.getYmax();
+        double dx = (xmax - xmin) / n;
+        double dy = (ymax - ymin) / n;
+        int upperBound = (int) ((1.0 / dx) * ((1.5 / camera.getRaw().getX()) - xmin));
+        upperBound = Math.min(upperBound, n);
+        int lowerBound = n - upperBound;
         double[] dir = new double[3];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                dir[0] = xmin + ((xmax - xmin) / n) * i;
-                dir[1] = ymin + ((ymax - ymin) / n) * j;
+        for (int i = lowerBound; i < upperBound; i++) {
+            for (int j = lowerBound; j < upperBound; j++) {
+                dir[0] = xmin + dx * i;
+                dir[1] = ymin + dy * j;
                 dir[2] = 1;
                 Vector direction = new Vector(dir);
                 direction = camera.getCamBasis().prodVector(direction);
@@ -236,13 +240,14 @@ public class EigenSimulation extends MyFrame {
     @Override
     public void updateDraw() {
         engine.clearImageWithBackground();
+        initColorBuffer(sqrtSamples);
         /**
          * render image
          * */
         Graphics image = engine.getImageGraphics();
         camera.update(dt);
         raytrace();
-        int index = 0;
+        int index;
         for (int i = 0; i < sqrtSamples; i++) {
             for (int j = 0; j < sqrtSamples; j++) {
                 double x = (1.0 * widthChanged / sqrtSamples) * i;
@@ -469,7 +474,10 @@ public class EigenSimulation extends MyFrame {
 
         @Override
         public Vec3 getRgbFromIntensity(double intensity) {
-            return new Vec3((1 / (1 + Math.exp(-20 * (intensity - 0.1)))), (1 / (1 + Math.exp(-20 * (intensity - 0.5)))), (1 / (1 + Math.exp(-20 * (intensity - 0.75)))));
+            double red = MyMath.clamp((10.0 / 4.0) * intensity, 0, 1);
+            double green = MyMath.clamp((10.0 / 4.0) * (intensity - 0.4), 0, 1);
+            double blue = MyMath.clamp(5 * (intensity - 0.8), 0, 1);
+            return new Vec3(red, green, blue);
         }
     }
 
@@ -478,36 +486,33 @@ public class EigenSimulation extends MyFrame {
 
         @Override
         public Vec3 getColor(Vec3 inter, Sphere sphere) {
+            double omega = 10;
             Vec3 n = Vec3.diff(inter, sphere.getPos());
-            Vec3 curlT = getCurl(inter, sphere);
-            curlT = Vec3.normalize(curlT);
-            double alpha = -Vec3.innerProd(n, curlT);
+            n = Vec3.normalize(n);
+
+            Vec3 t = Vec3.matrixProd(symMatrix, n);
+            t = Vec3.orthoProjection(t, n);
+            t = Vec3.normalize(t);
+
+            Vec3 b = Vec3.vectorProduct(n, t);
+            b = Vec3.normalize(b);
+
+            Camera3D camAux = new Camera3D();
+            camAux.setRaw(new Vec3(1, Math.atan2(inter.getY(), inter.getX()), Math.asin(inter.getZ())));
+            camAux.update(0);
+
+            Vector grad1 = camAux.getInverseCamBasis().prodVector(t);
+            grad1 = Vector.normalize(grad1);
+
+            Vector grad2 = camAux.getInverseCamBasis().prodVector(b);
+            grad2 = Vector.normalize(grad2);
+
+            double theta = Math.atan2(grad1.getX(2), grad1.getX(1));
+            double alpha = Math.sin(omega * theta);
             alpha = MyMath.clamp(alpha, -1, 1);
-            alpha = (alpha - 1.0) / 2.0;
+            alpha = (alpha + 1) / (2.0);
             HeatShader heatShader = new HeatShader();
             return heatShader.getRgbFromIntensity(alpha);
-        }
-
-        private Vec3 getCurl(Vec3 inter, Sphere s) {
-            double epsilon = 10;
-            Vec3 tx = dT(inter, new Vec3(epsilon, 0, 0), epsilon, s);
-            Vec3 ty = dT(inter, new Vec3(0, epsilon, 0), epsilon, s);
-            Vec3 tz = dT(inter, new Vec3(0, 0, epsilon), epsilon, s);
-            return new Vec3(ty.getZ() - tz.getY(), tz.getX() - tx.getZ(), tx.getY() - ty.getX());
-        }
-
-        private Vec3 dT(Vec3 x, Vec3 h, double epsilon, Sphere s) {
-            Vec3 pos = s.getPos();
-            Vec3 n = Vec3.diff(x, pos);
-            Vec3 nh = Vec3.diff(Vec3.add(x, h), pos);
-            Vec3 t = getT(n);
-            Vec3 th = getT(nh);
-            return Vec3.scalarProd(1 / epsilon, Vec3.diff(th, t));
-        }
-
-        private Vec3 getT(Vec3 n) {
-            Vec3 t = Vec3.matrixProd(symMatrix, n);
-            return Vec3.orthoProjection(t, n);
         }
     }
 
