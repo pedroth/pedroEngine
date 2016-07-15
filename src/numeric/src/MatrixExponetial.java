@@ -21,10 +21,8 @@ public class MatrixExponetial {
 
         //defensive copy
         Vector x = initial.copy();
-        omega = Matrix.add(omega, Matrix.scalarProd(1.0 / m, matrix));
-
-        int n = (int) Math.floor(t * m);
-        for (int i = 0; i < n; i++) {
+        omega = Matrix.add(omega, Matrix.scalarProd((t / (m - 1)), matrix));
+        for (int i = 0; i < m; i++) {
             x = omega.prodVector(x);
         }
         return x;

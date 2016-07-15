@@ -111,6 +111,10 @@ public class Vec2 extends Vector {
 		this.setX(2, y);
 	}
 
+	public double getAngle() {
+		return Math.atan2(this.getY(), this.getX());
+	}
+
 //	public static void main(String[] args) {
 //		Vec2 v = new Vec2(1, 0);
 //		v.setX(v.getX() + 1.0);

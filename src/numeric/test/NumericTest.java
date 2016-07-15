@@ -15,7 +15,7 @@ public class NumericTest {
         Matrix matrix = new Matrix(new double[][]{{0, -1}, {1, 0}});
         Vector initial = new Vec2(1, 0);
         double alpha = 8 * Math.PI;
-        int n = 2000;
+        int n = 50000;
         Vector x = MatrixExponetial.exp(alpha, matrix, initial, n);
         Assert.assertTrue(Vector.diff(x, new Vec2(Math.cos(alpha), Math.sin(alpha))).norm() < 0.01);
     }
@@ -172,7 +172,7 @@ public class NumericTest {
 
     @Test
     public void superEigenTest() {
-        int n = 3;
+        int n = 10;
         Matrix laplacian = new LineLaplacian(n);
         SymmetricEigen symmetricEigen = new SymmetricEigen(laplacian);
         StopWatch stopWatch = new StopWatch();
@@ -187,4 +187,5 @@ public class NumericTest {
             System.out.println(vector);
         }
     }
+
 }
