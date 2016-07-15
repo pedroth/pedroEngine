@@ -3,7 +3,6 @@ package numeric.src;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import algorithms.QuickSortWithPermutation;
-import utils.StopWatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,13 +90,11 @@ public class SymmetricEigen {
         List<Vector> eigenVectors = new ArrayList<>(n);
         List<Double> eigenValues = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
-            StopWatch stopWatch = new StopWatch();
             Vector initial = new Vector(rows);
             initial.fillRandom(-1, 1);
             initial = gramSchmitOrtho(initial, eigenVectors);
             initial = Vector.normalize(initial);
             Vector v = eigenVectors.size() != rows - 1 ? eigenAlgo.superEigen(symMatrix, initial, eigenVectors, epsilon) : initial;
-            System.out.println(stopWatch.getEleapsedTime());
             eigenValues.add(computeEigenValue(v));
             eigenVectors.add(v);
         }

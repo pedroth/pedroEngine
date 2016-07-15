@@ -186,7 +186,7 @@ public class BoundingBox {
 			m = m.concat(u[i]);
 		}
 		x = Vec2.diff(x, v[0]);
-		Vector ans = Matrix.solveLinearSystem(m, x);
+		Vector ans = Matrix.leastSquareLinearSystem(m, x, 1E-10);
 		Vector res = new Vector(4);
 		for (int i = 1; i <= 4; i++) {
 			if (i == 1) {

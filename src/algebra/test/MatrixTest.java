@@ -21,18 +21,15 @@ public class MatrixTest {
         Vector x0 = Matrix.solveLinearSystemSVD(m, y);
         System.out.println("time : " + stopWatch.getEleapsedTime());
         stopWatch.resetTime();
-        Vector x1 = Matrix.solveLinearSystem(m, y);
-        System.out.println("time :  " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
         Vector x2 = Matrix.leastSquareLinearSystem(m, y, 1E-15);
         System.out.println("time : " + stopWatch.getEleapsedTime());
 
         Vector diff0 = Vector.diff(m.prodVector(x0), y);
-        Vector diff1 = Vector.diff(m.prodVector(x1), y);
         Vector diff2 = Vector.diff(m.prodVector(x2), y);
 
         System.out.println(diff0.norm());
         Assert.assertTrue(diff0.norm() < 0.00001);
+        Assert.assertTrue(diff2.norm() < 0.00001);
     }
 
     @Test
@@ -78,31 +75,6 @@ public class MatrixTest {
         Vector x = Matrix.solveLinearSystem(m, y);
         System.out.println(stopWatch.getEleapsedTime());
         Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-3);
-    }
-
-
-    @Test
-    public void MatrixTestFast() {
-        int n = 3;
-        double sigma = 1;
-        Matrix m = new Matrix(n, n);
-        Vector y = new Vector(n);
-        y.fillRandom(-sigma, sigma);
-        Vector eigenValues = new Vector(n);
-        double initial = 1E-6;
-        double exp = 1E3;
-        for (int i = 0; i < n; i++) {
-            eigenValues.setX(i + 1, initial);
-            initial *= exp;
-        }
-        Matrix diag = Matrix.diag(eigenValues);
-        m = Matrix.add(m, diag);
-        StopWatch stopWatch = new StopWatch();
-        Vector x = Matrix.solveLinearSystem(m, y);
-        System.out.println(stopWatch.getEleapsedTime());
-        double norm = Vector.diff(Vector.matrixProd(m, x), y).norm();
-        System.out.println(norm);
-        Assert.assertTrue(norm < 0.1);
     }
 
 

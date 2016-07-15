@@ -5,8 +5,6 @@ import numeric.src.SVD;
 import realFunction.src.LinearFunction;
 import realFunction.src.UniVarFunction;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -264,7 +262,7 @@ public class Matrix {
 
         Vector gamma = Vector.matrixProd(normMTrans, y);
         Vector x = gamma.copy();
-        return solveLinearSystem(normMTrans, gamma, epsilon);
+        return solveLinearSystem(myu, gamma, epsilon);
     }
 
     /**
@@ -320,55 +318,6 @@ public class Matrix {
         Matrix S = svd.getSigmaInv();
         Matrix V = svd.getV();
         return V.prodVector(S.prodVector(Matrix.transpose(U).prodVector(y)));
-    }
-
-    /**
-     * this solves the following equation m * x = y, where m is a n*n matrix, x
-     * and y are n * 1 matrices or vectors of n dimension.
-     * <p>
-     * Note: does not guarantees low error
-     *
-     * @param m the m
-     * @param y the y
-     * @return vector with solution to equation m * x = y.
-     */
-    public static Vector solveLinearSystemFast(Matrix m, Vector y) {
-        Matrix normMTrans = Matrix.transpose(m);
-        Vector gamma = Vector.matrixProd(normMTrans, y);
-        Vector x = gamma.copy();
-        int dim = x.getDim();
-        int ite = 0;
-        Vector grad;
-        Queue<Vector> orthoGradients = new LinkedList<>();
-        Vector gradOrtho;
-        double epsilon = 1E-3;
-        do {
-            grad = Vector.diff(Vector.matrixProd(m, x), y);
-            gradOrtho = gramSchmitOrtho(grad, orthoGradients);
-            orthoGradients.add(gradOrtho);
-            double d2fdt = Vector.innerProd(gradOrtho, Vector.matrixProd(m, gradOrtho));
-            if (d2fdt == 0) {
-                d2fdt = 0.5;
-            }
-            double t = (Vector.innerProd(grad, gradOrtho) / d2fdt);
-            gradOrtho = Vector.scalarProd(-t, gradOrtho);
-            x = Vector.add(x, gradOrtho);
-//            ite++;
-//            if (ite % (2 * dim) == 0) {
-//                for (int i = 0; i < dim; i++) {
-//                    orthoGradients.poll();
-//                }
-//            }
-            System.out.println(gradOrtho.norm() + "\t" + grad.norm());
-        } while (gradOrtho.norm() > epsilon);
-        return x;
-    }
-
-    private static Vector gramSchmitOrtho(Vector x, Queue<Vector> eigenVectors) {
-        for (Vector eigenVector : eigenVectors) {
-            x = Vector.orthoProjection(x, eigenVector);
-        }
-        return x;
     }
 
 
