@@ -84,7 +84,7 @@ public class Matrix {
         constructMatrix(v[0].getDim(), v.length);
         for (int i = 0; i < this.rows; i++) {
             for (int j = 0; j < this.columns; j++) {
-                setXY(i + 1, j + 1, v[j].getX(i - 1));
+                setXY(i + 1, j + 1, v[j].getX(i + 1));
             }
         }
     }
@@ -161,24 +161,7 @@ public class Matrix {
      * @return return a * b if they fulfill the constraints
      */
     public static Matrix prod(Matrix a, Matrix b) {
-        Matrix c;
-        double sumIdentity;
-        if (a.getColumns() == b.getRows()) {
-            c = new Matrix(a.getRows(), b.getColumns());
-            for (int j = 1; j <= a.getRows(); j++) {
-                for (int k = 1; k <= b.getColumns(); k++) {
-                    sumIdentity = 0;
-                    for (int i = 1; i <= a.getColumns(); i++) {
-                        double prod = a.getXY(j, i) * b.getXY(i, k);
-                        sumIdentity = sumIdentity + prod;
-                    }
-                    c.setXY(j, k, sumIdentity);
-                }
-            }
-        } else {
-            throw new AlgebraException("the number of columns of the first matrix must be equal to the number of lines of the second one");
-        }
-        return c;
+        return a.prod(b);
     }
 
     /**
@@ -189,45 +172,7 @@ public class Matrix {
      * @return the product of matrix a and b if input correct null otherwise
      */
     public static Matrix prodParallel(Matrix a, Matrix b) {
-        Matrix c = null;
-
-        if (a.getColumns() == b.getRows()) {
-            c = new Matrix(a.getRows(), b.getColumns());
-            int nCores = Runtime.getRuntime().availableProcessors();
-            int quotient = a.getRows() / nCores;
-            int remainder = a.getRows() % nCores;
-            if (quotient == 0) {
-                nCores = a.getRows();
-                quotient = a.getRows() / nCores;
-                remainder = a.getRows() % nCores;
-            }
-            Thread[] threads = new Thread[nCores];
-            if (remainder != 0) {
-                quotient = a.getRows() / (nCores - 1);
-                remainder = a.getRows() % (nCores - 1);
-
-                for (int i = 0; i < (nCores - 1); i++) {
-                    threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, a, b, c));
-                    threads[i].start();
-                }
-                int lastIndex = 1 + (nCores - 1) * quotient;
-                threads[nCores - 1] = new Thread(c.new MatrixParallelProd(lastIndex, remainder + lastIndex - 1, a, b, c));
-                threads[nCores - 1].start();
-            } else {
-                for (int i = 0; i < nCores; i++) {
-                    threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, a, b, c));
-                    threads[i].start();
-                }
-            }
-            for (int i = 0; i < nCores; i++) {
-                try {
-                    threads[i].join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return c;
+        return a.prodParallel(b);
     }
 
     /**
@@ -329,7 +274,7 @@ public class Matrix {
      */
     public static Matrix diag(Vector v) {
         int n = v.getDim();
-        Matrix matrix = new Matrix(n, n);
+        Matrix matrix = new Diagonal(n);
         for (int i = 1; i <= n; i++) {
             matrix.setXY(i, i, v.getX(i));
         }
@@ -470,6 +415,70 @@ public class Matrix {
             ans.setX(i + 1, acc);
         }
         return ans;
+    }
+
+
+    public Matrix prod(Matrix b) {
+        Matrix c;
+        double sumIdentity;
+        if (this.getColumns() == b.getRows()) {
+            c = new Matrix(this.getRows(), b.getColumns());
+            for (int j = 1; j <= this.getRows(); j++) {
+                for (int k = 1; k <= b.getColumns(); k++) {
+                    sumIdentity = 0;
+                    for (int i = 1; i <= this.getColumns(); i++) {
+                        double prod = this.getXY(j, i) * b.getXY(i, k);
+                        sumIdentity = sumIdentity + prod;
+                    }
+                    c.setXY(j, k, sumIdentity);
+                }
+            }
+        } else {
+            throw new AlgebraException("the number of columns of the first matrix must be equal to the number of lines of the second one");
+        }
+        return c;
+    }
+
+    public Matrix prodParallel(Matrix b) {
+        Matrix c = null;
+
+        if (this.getColumns() == b.getRows()) {
+            c = new Matrix(this.getRows(), b.getColumns());
+            int nCores = Runtime.getRuntime().availableProcessors();
+            int quotient = this.getRows() / nCores;
+            int remainder = this.getRows() % nCores;
+            if (quotient == 0) {
+                nCores = this.getRows();
+                quotient = this.getRows() / nCores;
+                remainder = this.getRows() % nCores;
+            }
+            Thread[] threads = new Thread[nCores];
+            if (remainder != 0) {
+                quotient = this.getRows() / (nCores - 1);
+                remainder = this.getRows() % (nCores - 1);
+
+                for (int i = 0; i < (nCores - 1); i++) {
+                    threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, this, b, c));
+                    threads[i].start();
+                }
+                int lastIndex = 1 + (nCores - 1) * quotient;
+                threads[nCores - 1] = new Thread(c.new MatrixParallelProd(lastIndex, remainder + lastIndex - 1, this, b, c));
+                threads[nCores - 1].start();
+            } else {
+                for (int i = 0; i < nCores; i++) {
+                    threads[i] = new Thread(c.new MatrixParallelProd(1 + i * quotient, (i + 1) * quotient, this, b, c));
+                    threads[i].start();
+                }
+            }
+            for (int i = 0; i < nCores; i++) {
+                try {
+                    threads[i].join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return c;
     }
 
     public String toString() {
@@ -701,9 +710,20 @@ public class Matrix {
 
     public Vector[] getVectorColumns() {
         int columns = this.getColumns();
+        int rows = this.getRows();
         Vector[] vectors = new Vector[columns];
         for (int i = 1; i <= columns; i++) {
-            vectors[i - 1] = new Vector(this.getSubMatrix(1, this.getRows(), i, i));
+            vectors[i - 1] = new Vector(this.getSubMatrix(1, rows, i, i));
+        }
+        return vectors;
+    }
+
+    public Vector[] getRowsVectors() {
+        int rows = this.getRows();
+        int columns = this.getColumns();
+        Vector[] vectors = new Vector[rows];
+        for (int i = 1; i <= rows; i++) {
+            vectors[i - 1] = new Vector(Matrix.transpose(this.getSubMatrix(i, i, 1, columns)));
         }
         return vectors;
     }

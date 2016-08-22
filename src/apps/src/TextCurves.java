@@ -260,20 +260,32 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         flowSolverChoice.add("Kernel");
         flowSolverChoice.add("GraphLaplacian");
         flowSolverChoice.add("HeatExponential");
+        flowSolverChoice.add("EigenHeat");
         flowSolverChoice.addItemListener(new ItemListener() {
 
             @Override
             public void itemStateChanged(ItemEvent e) {
-                if (flowSolverChoice.getSelectedItem().equals("Sparse")) {
-                    heatMethod = new SparseHeatFlow();
-                } else if (flowSolverChoice.getSelectedItem().equals("Matrix")) {
-                    heatMethod = new MatrixHeatFlow();
-                } else if (flowSolverChoice.getSelectedItem().equals("Kernel")) {
-                    heatMethod = new HeatKernelFlow();
-                } else if (flowSolverChoice.getSelectedItem().equals("GraphLaplacian")) {
-                    heatMethod = new GraphLaplacianFlow();
-                } else {
-                    heatMethod = new HeatFlow();
+                switch (flowSolverChoice.getSelectedItem()) {
+                    case "Sparse":
+                        heatMethod = new SparseHeatFlow();
+                        break;
+                    case "Matrix":
+                        heatMethod = new MatrixHeatFlow();
+                        break;
+                    case "Kernel":
+                        heatMethod = new HeatKernelFlow();
+                        break;
+                    case "GraphLaplacian":
+                        heatMethod = new GraphLaplacianFlow();
+                        break;
+                    case "HeatExponential":
+                        heatMethod = new HeatFlow();
+                        break;
+                    case "EigenHeat":
+                        heatMethod = new LaplacianEigenFlow();
+                        break;
+                    default:
+                        break;
                 }
             }
         });

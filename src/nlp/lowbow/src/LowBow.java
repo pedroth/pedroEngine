@@ -15,7 +15,7 @@ import java.util.function.Function;
  * @author pedro
  */
 public class LowBow {
-    protected String originalText;
+    protected final String originalText;
     protected String[] text;
     protected int textLength;
     protected TextSplitter textSplitter;
@@ -23,6 +23,9 @@ public class LowBow {
      * vocabulary represented as a simplex
      */
     protected Simplex simplex;
+    /**
+     * number of distinct words
+     */
     protected int numWords;
     /**
      * n by m matrix where n is the number of words and m is the number of words
@@ -74,10 +77,6 @@ public class LowBow {
         isBuild = false;
         this.processText(this.originalText);
         sigma = getSigmaAuto();
-    }
-
-    public LowBow(Matrix rawCurve) {
-
     }
 
     private void processText(String in) {
@@ -204,7 +203,7 @@ public class LowBow {
     }
 
     public String toString() {
-        return "text length : " + textLength + " number of wordsIndex : " + numWords;
+        return "text length : " + textLength + " number of distinct words : " + numWords;
     }
 
     public String toString(Function<LowBow, String> function) {
@@ -221,6 +220,12 @@ public class LowBow {
 
     public Simplex getSimplex() {
         return simplex;
+    }
+
+    public void setSimplex(Simplex simplex) {
+        this.simplex = simplex;
+        this.processText(this.originalText);
+        isBuild = false;
     }
 
     /**
@@ -267,9 +272,12 @@ public class LowBow {
      * @param smoothingCoeff positive real value
      */
     public void setSmoothingCoeff(double smoothingCoeff) {
+
         if (smoothingCoeff <= 0)
             throw new RuntimeErrorException(null, "smoothing coeff must be > 0");
+
         this.smoothingCoeff = smoothingCoeff;
+        isBuild = false;
     }
 
     public double getSigma() {
@@ -280,9 +288,12 @@ public class LowBow {
      * @param sigma positive real value
      */
     public void setSigma(double sigma) {
+
         if (sigma <= 0)
             throw new RuntimeErrorException(null, "sigma must be > 0");
+
         this.sigma = sigma;
+        isBuild = false;
     }
 
     public double getSamplesPerTextLength() {
@@ -295,8 +306,9 @@ public class LowBow {
     public void setSamplesPerTextLength(double samplesPerTextLength) {
         if (samplesPerTextLength <= 0)
             throw new RuntimeErrorException(null, "samples per text length must be > 0");
-        this.samplesPerTextLength = samplesPerTextLength;
 
+        this.samplesPerTextLength = samplesPerTextLength;
+        isBuild = false;
     }
 
     public TextSplitter getTextSplitter() {
@@ -305,13 +317,15 @@ public class LowBow {
 
     public void setTextSplitter(TextSplitter textSplitter) {
         this.textSplitter = textSplitter;
+        this.processText(this.originalText);
+        isBuild = false;
     }
 
     /**
      * set sigma acoording to the folowing rule: 1.0 / (2 * textLength)
      */
     public void setSigmaAuto() {
-        this.sigma = getSigmaAuto();
+        this.setSigma(getSigmaAuto());
     }
 
     /**

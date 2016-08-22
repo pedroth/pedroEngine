@@ -2,7 +2,6 @@ package algebra.src;
 
 
 import algebra.utils.AlgebraException;
-import numeric.src.SymmetricEigen;
 import utils.StopWatch;
 
 /**
@@ -37,14 +36,15 @@ public class LineLaplacian extends TridiagonalMatrix {
 
     public static void main(String[] args) {
         StopWatch stopWatch = new StopWatch();
-        int n = 10000;
-        for (int i = 10000; i <= n; i++) {
+        int n = 100;
+        LineLaplacian laplacian = null;
+        for (int i = n; i <= n; i++) {
             stopWatch.resetTime();
-            LineLaplacian laplacian = new LineLaplacian(i);
-            System.out.println(stopWatch.getEleapsedTime());
+            laplacian = new LineLaplacian(i);
             Double[] eigenValues = laplacian.getEigenValues();
             System.out.println(i + "\t" + stopWatch.getEleapsedTime());
         }
+        System.out.println(laplacian.getEigenVectors()[99]);
     }
 
     /**
@@ -60,9 +60,29 @@ public class LineLaplacian extends TridiagonalMatrix {
     }
 
     private void buildEigen() {
-        SymmetricEigen symmetricEigen = new SymmetricEigen(this);
-        this.eigenValues = symmetricEigen.getEigenValues();
-        this.eigenVectors = symmetricEigen.getEigenVectors();
+        int n = this.getRows();
+        eigenVectors = new Vector[n];
+        eigenValues = new Double[n];
+
+        for (int j = 1; j <= n; j++) {
+            //construct eigen value
+            double theta = Math.PI * (j - 1.0) / (2.0 * n);
+            eigenValues[j - 1] = 4.0 * Math.sin(theta) * Math.sin(theta);
+
+            //construct eigen vector
+            eigenVectors[j - 1] = new Vector(n);
+            if (j == 1) {
+                double sqrt = 1 / Math.sqrt(n);
+                for (int i = 1; i <= n; i++) {
+                    eigenVectors[j - 1].setX(i, sqrt);
+                }
+            } else {
+                for (int i = 1; i <= n; i++) {
+                    theta = (Math.PI * (i - 0.5) * (j - 1.0)) / n;
+                    eigenVectors[j - 1].setX(i, Math.sqrt(2.0 / n) * Math.cos(theta));
+                }
+            }
+        }
         hasEigen = true;
     }
 

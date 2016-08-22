@@ -11,6 +11,7 @@ import java.util.*;
  */
 public class Graph {
     private Map<Integer, HashSet<Integer>> edges = new HashMap<Integer, HashSet<Integer>>(7);
+    private Map<Integer, Map<String, Object>> vertexProperties = new HashMap<>(7);
 
     private int numVertex;
 
@@ -110,12 +111,12 @@ public class Graph {
     }
 
     /**
-     * Gets edges.
+     * Gets adj vertex.
      *
      * @param u the u
-     * @return the edges
+     * @return the adj vertex
      */
-    public Set<Integer> getEdges(int u) {
+    public Set<Integer> getAdjVertex(int u) {
         return edges.get(u);
     }
 
@@ -170,6 +171,20 @@ public class Graph {
             degreeValues.add(edges.get(i).size());
         }
         return degreeValues;
+    }
+
+    /**
+     * Gets degree.
+     *
+     * @param u the u
+     * @return the degree
+     */
+    public int getDegree(int u) {
+        HashSet<Integer> adjU = edges.get(u);
+        if (adjU != null) {
+            return adjU.size();
+        }
+        return 0;
     }
 
     /**
@@ -267,5 +282,37 @@ public class Graph {
             }
         }
         return distances;
+    }
+
+    /**
+     * Put vertex property.
+     *
+     * @param <T> the type parameter
+     * @param i   the i
+     * @param str the str
+     * @param obj the obj
+     */
+    public <T> void putVertexProperty(Integer i, String str, T obj) {
+        if (!vertexProperties.containsKey(i)) {
+            vertexProperties.put(i, new HashMap<>());
+        }
+        if (!vertexProperties.get(i).containsKey(str)) {
+            vertexProperties.get(i).put(str, obj);
+        }
+    }
+
+    /**
+     * Gets vertex property.
+     *
+     * @param i   the i
+     * @param str the str
+     * @return the vertex property
+     */
+    public <T> T getVertexProperty(Integer i, String str) {
+        Map<String, Object> stringObjectMap = vertexProperties.get(i);
+        if (stringObjectMap == null) {
+            return null;
+        }
+        return (T) stringObjectMap.get(str);
     }
 }

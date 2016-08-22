@@ -26,6 +26,6 @@ public class StopWatch {
      * Reset time.
      */
     public void resetTime() {
-        this.time = System.currentTimeMillis();
+        this.time = System.nanoTime();
     }
 }

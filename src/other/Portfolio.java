@@ -8,7 +8,7 @@ import java.util.*;
 
 public class Portfolio {
 
-	
+
 	public static double dist(String x, String y) {
 //		String sBig = x.length() > y.length() ? x:y;
 //		String sSmall = x.length() <= y.length() ? x:y;
@@ -18,14 +18,14 @@ public class Portfolio {
 //			acc += (Math.abs(sBig.charAt(i) - (i < sSmall.length() ? sSmall.charAt(i):0)) != 0) ? cost : 0;
 //		}
 //		return acc;
-		
+
 		CharacterSplitter splitter = new CharacterSplitter();
 		String[] s1 = splitter.split(x);
 		String[] s2 = splitter.split(y);
 		TextAlignment align = new TextAlignment();
 		align.align(s1, s2);
 		return align.getMaxNormSim();
-		
+
 	}
 
 	public static void main(String[] args) {
@@ -53,12 +53,12 @@ public class Portfolio {
 		/*
 		 * Printing
 		 */
-		String strAcc = "";
+		StringBuilder stringBuilder = new StringBuilder();
 		Set<String> keys = mapTagsToCount.keySet();
 		for (String k : keys) {
-			strAcc += k + "\t" + mapTagsToCount.get(k) + "\n";
+			stringBuilder.append(k + "\t" + mapTagsToCount.get(k) + "\n");
 		}
-		t1.write("C:/Users/Pedroth/Desktop/TagsHist.txt", strAcc);
+		t1.write("C:/Users/Pedroth/Desktop/TagsHist.txt", stringBuilder.toString());
 		/*
 		 * distance matrix
 		 */
@@ -72,19 +72,19 @@ public class Portfolio {
 		/*
 		 * Print distance matrix 
 		 */
-		strAcc = "\t";
+		stringBuilder = new StringBuilder(dist.length * dist.length).append("\t");
 		for (int i = 0; i < dist.length; i++) {
-			strAcc += keysArray[i]+"\t"; 
+			stringBuilder.append(keysArray[i] + ",");
 		}
-		strAcc+= "\n";
+		stringBuilder.append("\n");
 		for (int i = 0; i < dist.length; i++) {
-			strAcc += keysArray[i] + "\t"; 
+			stringBuilder.append(keysArray[i] + ",");
 			for (int j = 0; j < dist.length; j++) {
-				strAcc += dist[i][j] + "\t";
+				stringBuilder.append(dist[i][j] + ",");
 			}
-			strAcc+= "\n";
+			stringBuilder.append("\n");
 		}
-		t1.write("C:/Users/Pedroth/Desktop/TagsDist.txt", strAcc);
+		t1.write("C:/Users/Pedroth/Desktop/TagsDist.txt", stringBuilder.toString());
 		
 		/*
 		 * Clustering
@@ -117,12 +117,12 @@ public class Portfolio {
 		/*
 		 * Printing
 		 */
-		strAcc = "";
+		stringBuilder = new StringBuilder(mapCluster.keySet().size());
 		keys = mapCluster.keySet();
 		for (String k : keys) {
-			strAcc += k + "\t" + mapCluster.get(k) + "\n";
+			stringBuilder.append(k + "\t" + mapCluster.get(k) + "\n");
 			System.out.println(k + "\t" + clusters.get(k));
 		}
-		t1.write("C:/Users/Pedroth/Desktop/TagsClusterHist.txt", strAcc);
+		t1.write("C:/Users/Pedroth/Desktop/TagsClusterHist.txt", stringBuilder.toString());
 	}
 }

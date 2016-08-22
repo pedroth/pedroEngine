@@ -21,6 +21,13 @@ public class Vector extends Matrix {
         this.transpose();
     }
 
+    public Vector(Double[] v) {
+        super(v.length, 1);
+        for (int i = 0; i < v.length; i++) {
+            this.setX(i + 1, v[i]);
+        }
+    }
+
     /**
      * @param v n * 1 matrix, can be used as copy method
      */

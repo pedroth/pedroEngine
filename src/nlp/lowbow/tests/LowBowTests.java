@@ -7,7 +7,6 @@ import nlp.lowbow.src.*;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.textSplitter.MyTextSplitter;
-import nlp.textSplitter.StopWordsSplitter;
 import nlp.utils.LowBowPrinter;
 import org.junit.Test;
 import utils.Csv2Matrix;
@@ -18,96 +17,6 @@ import java.util.ArrayList;
  * The type Low bow tests.
  */
 public class LowBowTests {
-    /**
-     * The constant HEATTIME.
-     */
-    public static final double HEATTIME = 0.01;
-
-    /**
-     * Matrix Method
-     */
-    @Test
-    public void test1() {
-        MyText t = new MyText();
-        LowBow low = new LowBow(t.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
-        low.setSamplesPerTextLength(1.0);
-        // low.setSigma(0.08);
-        low.setSigmaAuto();
-        low.setSmoothingCoeff(0.003);
-        low.build();
-        HeatMethod heat = new MatrixHeatFlow();
-        low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out1.txt", low.generateText(new SymbolAtMax()));
-    }
-
-    /**
-     * Sparse Method
-     */
-    @Test
-    public void test2() {
-        MyText t = new MyText();
-        t.read("src/nlp/resources/texts/TextExample.txt");
-        LowBow low = new LowBow(t.getText(), new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
-        low.setSamplesPerTextLength(1.0);
-        // low.setSigma(0.08);
-        low.setSigmaAuto();
-        low.setSmoothingCoeff(0.003);
-        low.build();
-        HeatMethod heat = new SparseHeatFlow();
-        low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out2.txt", low.generateText(new SymbolAtMax()));
-    }
-
-    /**
-     * low bow with prepositions
-     */
-    @Test
-    public void test3() {
-        MyText t = new MyText();
-        t.read("src/nlp/resources/texts/TextExample.txt");
-        LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
-        low.setSamplesPerTextLength(1.0);
-        // low.setSigma(0.08);
-        low.setSigmaAuto();
-        low.setSmoothingCoeff(0.003);
-        low.build();
-        HeatMethod heat = new SparseHeatFlow();
-        low.heatFlow(HEATTIME, heat);
-        t.write("C:/Users/Pedroth/Desktop/out3.txt", low.generateText(new SymbolAtMax()));
-    }
-
-    /**
-     * Test 4.
-     */
-    @Test
-    public void test4() {
-        MyText t = new MyText();
-        t.read("src/nlp/resources/texts/TextExample.txt");
-        LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(t.getText());
-        low.setSamplesPerTextLength(1.0);
-        // low.setSigma(0.08);
-        low.setSigmaAuto();
-        low.setSmoothingCoeff(0.003);
-        low.build();
-    }
-
-    /**
-     * Example 1.
-     */
-    @Test
-    public void example1() {
-        MyText t = new MyText();
-        t.read("C:/Users/pedro/Desktop/research/Text.txt");
-        LowBow low = new LowBow(t.getText(), new StopWordsSplitter("wordsLists/stopWords.txt"));
-        low.setSamplesPerTextLength(1.0);
-        low.setSigma(0.08);
-        low.setSmoothingCoeff(0.003);
-        low.build();
-        HeatMethod heat = new MatrixHeatFlow();
-        low.heatFlow(0.01, heat);
-        System.out.println(low);
-    }
-
     /**
      * Test lambda sensitivity.
      */
@@ -174,15 +83,28 @@ public class LowBowTests {
         text.write("C:/Users/Pedroth/Desktop/subExperiments4.csv", stringBuilder.toString());
     }
 
-    /**
-     * Test subtitles.
-     */
-    @Test
+
     /**
      * Test Subtitle LowBow Cut
      */
+    @Test
     public void TestSubtitles() {
+        String principalAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall";
+        String endFile = ".srt";
+        int numOfEpisodes = 10;
+        String[] address = new String[numOfEpisodes];
+        LowBowManager<LowBowSubtitles> manager = new LowBowManager<>();
+        MyText text = new MyText();
+        for (int i = 0; i < numOfEpisodes; i++) {
+            address[i] = principalAddress + (i + 1) + endFile;
+            text.read(address[i]);
+            manager.add(new LowBowSubtitles(text.getText()));
+        }
 
+        for (LowBowSubtitles lowBowSubtitles : manager.getLowbows()) {
+            System.out.println(lowBowSubtitles);
+        }
+        manager.getSimplex().getKeySet().forEach(System.out::println);
     }
 
     @Test

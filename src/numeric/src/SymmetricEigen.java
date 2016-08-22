@@ -11,8 +11,8 @@ import java.util.List;
  * The type Symmetric eigen.
  */
 public class SymmetricEigen {
-    private static EigenAlgo eigenAlgo = new SuperEigenAlgo();
     private final Matrix symMatrix;
+    private EigenAlgo eigenAlgo = new SuperEigenAlgo();
     private Vector[] eigenVectors;
     private Double[] eigenValues;
     private boolean isUpdated = false;
@@ -158,5 +158,9 @@ public class SymmetricEigen {
             permutedEigenVectors[i] = eigenVectors[permutation[i]];
         }
         this.eigenVectors = permutedEigenVectors;
+    }
+
+    public void setEigenAlgo(EigenAlgo eigenAlgo) {
+        this.eigenAlgo = eigenAlgo;
     }
 }

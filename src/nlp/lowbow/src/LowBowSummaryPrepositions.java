@@ -190,7 +190,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		 */
 		int bestTextIndex = -1;
 		int min = Integer.MAX_VALUE;
-		for (Integer adj : gWordsIndex.getEdges(simplex.get(s))) {
+		for (Integer adj : gWordsIndex.getAdjVertex(simplex.get(s))) {
 			if (adj == null) {
 				return null;
 			}
@@ -219,7 +219,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 		String acm = "";
 		for (int i = 1; i <= numWords; i++) {
 			acm += simplex.get(i) + "|\t";
-			for (int adj : gWordsIndex.getEdges(i)) {
+			for (int adj : gWordsIndex.getAdjVertex(i)) {
 				acm += text[adj - numWords - 1] + "\t";
 			}
 			acm += "\n";

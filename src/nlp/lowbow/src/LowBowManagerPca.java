@@ -32,12 +32,4 @@ public class LowBowManagerPca extends LowBowManager<LowBowPca> {
             lowbow.buildPca(pc, myu);
         }
     }
-
-    @Override
-    protected LowBow myUnitAuxiliaryInit(LowBow temp, double samplesPerTextLength) {
-        LowBowPca ans = new LowBowPca(temp.getOriginalText(), temp.getTextSplitter(), simplex);
-        ans.setSmoothingCoeff(temp.getSmoothingCoeff());
-        ans.build(samplesPerTextLength, temp.getSigma());
-        return ans;
-    }
 }

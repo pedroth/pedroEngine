@@ -61,7 +61,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     public static void main(String[] args) {
-        new apps.src.LowBowVisualizer("", 500, 500, new LowBowManager());
+        new LowBowVisualizer("", 500, 500, new LowBowManager());
     }
 
     @Override

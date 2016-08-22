@@ -1,6 +1,8 @@
 package algebra.test;
 
+import algebra.src.Diagonal;
 import algebra.src.Matrix;
+import algebra.src.Vec3;
 import algebra.src.Vector;
 import numeric.src.QuadraticFormMinimizer;
 import numeric.src.SymmetricEigen;
@@ -77,5 +79,19 @@ public class MatrixTest {
         Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-3);
     }
 
+    @Test
+    public void DiagonalMatrixTest() {
+        Matrix diag = Matrix.diag(new Vec3(1, 2, 3));
+        Matrix b = new Matrix(3, 3);
+        b.fill(1);
+        Matrix matrix = new Matrix(new double[][]{{1, 1, 1}, {2, 2, 2}, {3, 3, 3}});
+        Matrix diff = Matrix.diff(matrix, diag.prod(b));
+        Assert.assertTrue(Matrix.squareNorm(diff) < 1E-3);
+        Diagonal diagonal = (Diagonal) diag;
+        Vec3 y = new Vec3(1, 1, 1);
+        Vector x = diagonal.solveDiagonalSystem(y);
+        Assert.assertTrue(Vector.diff(diagonal.prodVector(x), y).norm() < 1E-3);
+
+    }
 
 }

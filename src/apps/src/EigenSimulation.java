@@ -127,7 +127,7 @@ public class EigenSimulation extends MyFrame {
         symMatrix.fillRandom(-10, 10);
         symMatrix = Matrix.add(symMatrix, Matrix.transpose(symMatrix));
         Matrix diagonal = Matrix.diag(new Vec3(0, 0.5, 4));
-        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, diagonal, true);
+        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
         Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
         Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
         eigenSimulation.addSphereEigenUpdate(sphere1);
