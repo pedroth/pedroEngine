@@ -195,6 +195,10 @@ public class Vector extends Matrix {
         return ans;
     }
 
+    public Vector getSubVector(int xmin, int xmax) {
+        return new Vector(this.getSubMatrix(xmin, xmax, 1, 1));
+    }
+
     public Vector leftProd(Matrix m) {
         return Vector.matrixProd(m, this);
     }

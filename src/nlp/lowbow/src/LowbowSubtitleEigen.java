@@ -9,7 +9,6 @@ import algebra.src.Vector;
  */
 public class LowbowSubtitleEigen extends LowBowSubtitles {
     private Matrix eigenLowbow;
-    private int eigenBandwidth;
     private Matrix eigenBasis;
     private Vector eigenValues;
 
@@ -26,19 +25,33 @@ public class LowbowSubtitleEigen extends LowBowSubtitles {
     /**
      * Build void.
      *
-     * @param eigenBandwidth the eigen bandwidth is a valure between 1 and textLength
+     * @param minEigen the min eigen
+     * @param maxEigen the max eigen
      */
-    public void build(int eigenBandwidth) {
+    public void build(int minEigen, int maxEigen) {
         super.build();
-        this.eigenBandwidth = eigenBandwidth > 0 && eigenBandwidth <= textLength ? eigenBandwidth : textLength;
+        // exchange minEigen by maxEigen if the condition below is true
+        if (minEigen > maxEigen) {
+            minEigen = maxEigen + minEigen;
+            maxEigen = minEigen - maxEigen;
+            minEigen = minEigen - maxEigen;
+        }
+        // bound minEigen and maxEigen to acceptable limits
+        minEigen = Math.max(0, minEigen);
+        maxEigen = Math.min(maxEigen, textLength - 1);
+
         LineLaplacian laplacian = new LineLaplacian(this.textLength);
         Vector[] eigenVectors = laplacian.getEigenVectors();
-        Vector[] eigenBadwidth = new Vector[this.eigenBandwidth];
-        for (int i = eigenBandwidth - 1; i >= this.textLength - this.eigenBandwidth; i--) {
-            eigenBadwidth[i] = eigenVectors[i];
-        }
+        Vector eigenValues = new Vector(laplacian.getEigenValues());
         this.eigenBasis = new Matrix(eigenVectors);
-        eigenBasis.transpose();
-        this.eigenLowbow = Matrix.prod(eigenBasis, rawCurve);
+        this.eigenLowbow = Matrix.prod(Matrix.transpose(eigenBasis), rawCurve);
+        Matrix prod = eigenBasis.getSubMatrix(1, this.textLength, minEigen, maxEigen).prod(Matrix.diag(eigenValues.getSubVector(minEigen, maxEigen)).prod(eigenLowbow.getSubMatrix(minEigen, maxEigen, 1, this.numWords)));
+        prod.applyFunction(x -> Math.abs(x));
+        Vector sum = new Vector(prod.getColumns());
+        sum.fill(1);
+        sum = prod.prodVector(sum);
+        sum.applyFunction(x -> 1 / x);
+        prod = Matrix.diag(sum).prod(prod);
+        this.curve = prod.getRowsVectors();
     }
 }

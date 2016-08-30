@@ -4,8 +4,10 @@ import algebra.src.Vec2;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
+import inputOutput.MyText;
 import nlp.lowbow.src.LowBow;
 import nlp.lowbow.src.LowBowManager;
+import nlp.lowbow.src.LowbowSubtitleEigen;
 import numeric.src.Camera3D;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
@@ -61,7 +63,16 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     public static void main(String[] args) {
-        new LowBowVisualizer("", 500, 500, new LowBowManager());
+        LowBowManager lowBowManager = new LowBowManager();
+        MyText text = new MyText();
+        text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
+        LowbowSubtitleEigen lowbowSubtitleEigen = new LowbowSubtitleEigen(text.getText());
+        LowbowSubtitleEigen lowbowSubtitleEigen2 = new LowbowSubtitleEigen(text.getText());
+        lowBowManager.add(lowbowSubtitleEigen2);
+        lowBowManager.add(lowbowSubtitleEigen);
+        lowbowSubtitleEigen.build();
+        lowbowSubtitleEigen2.build(lowbowSubtitleEigen2.getTextLength() / 2, lowbowSubtitleEigen2.getTextLength());
+        new LowBowVisualizer("", 500, 500, lowBowManager);
     }
 
     @Override
@@ -190,7 +201,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
             //set camera position
             engine.setCamera(engine.getXmin() + hMouseDisp, engine.getXmax() + hMouseDisp, engine.getYmin() + kMouseDisp, engine.getYmax() + kMouseDisp);
             if (!isBuild) {
-                initialDraw(lowBowManager,twoDimEngine);
+                initialDraw(lowBowManager, twoDimEngine);
                 isBuild = true;
             }
             kMouseDisp = 0;
@@ -222,8 +233,8 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
                     baryCurve[j] = acm;
                 }
 
-                for (int j = 0; j < curve.length-1; j++) {
-                    Line2D line = new Line2D(baryCurve[j], baryCurve[j+1]);
+                for (int j = 0; j < curve.length - 1; j++) {
+                    Line2D line = new Line2D(baryCurve[j], baryCurve[j + 1]);
                     line.setColor(hsbColor);
                     engine.addtoList(line);
                 }

@@ -52,7 +52,7 @@ public class SymmetricEigen {
 
         for (int i = 1; i <= rows; i++) {
             for (int j = i + 1; j <= columns; j++) {
-                if (symMatrix.getXY(i, j) != symMatrix.getXY(j, i)) {
+                if (Math.abs(symMatrix.getXY(i, j) - symMatrix.getXY(j, i)) > 0.001) {
                     return false;
                 }
             }
