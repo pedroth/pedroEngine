@@ -80,8 +80,12 @@ public class FFMpegVideoApi {
     public static void main(String[] args) {
 
         String videoAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.mkv";
-        String outputAddress = "C:/Users/Pedroth/Desktop/cut.mp4";
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 0, 0, 0), LocalTime.of(0, 1, 1, 0), outputAddress);
+        String outputAddress = "C:/Users/Pedroth/Desktop/cut0.mp4";
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 0, 22), LocalTime.of(0, 7, 39, 477), outputAddress);
+        outputAddress = "C:/Users/Pedroth/Desktop/cut1.mp4";
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 39, 477), LocalTime.of(0, 8, 26, 358), outputAddress);
+        outputAddress = "C:/Users/Pedroth/Desktop/cut2.mp4";
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 8, 26, 358), LocalTime.of(0, 9, 23, 144), outputAddress);
         System.out.println(FFMpegVideoApi.getVideoDuration(videoAddress));
     }
 
