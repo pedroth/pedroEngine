@@ -78,7 +78,7 @@ public class ExpressionFunction extends MultiVarFunction {
 	public static void main(String[] args) {
 		String[] varTokens = {"u", "x", "y"};
 //		ExpressionFunction foo = new ExpressionFunction("sigma(0.5^i,1,99)", varTokens);
-		ExpressionFunction foo = new ExpressionFunction("sin(x+y)", varTokens);
+		ExpressionFunction foo = new ExpressionFunction("(x + y) + 1.0", varTokens);
 		String[] dummyVar = {"i"};
 		foo.addFunction("sigma", new Sigma(dummyVar, foo));
 		/**

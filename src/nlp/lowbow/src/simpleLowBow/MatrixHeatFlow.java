@@ -1,4 +1,4 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.TridiagonalMatrix;
 import algebra.src.Vector;
@@ -34,7 +34,7 @@ public class MatrixHeatFlow implements HeatMethod {
         myu.setXY(1, 1, 1.0);
         myu.setXY(l.samples, l.samples, 1.0);
 
-        for (int j = 1; j <= l.numWords; j++) {
+        for (int j = 1; j <= l.getNumWords(); j++) {
             /*
              * build zeta
              */

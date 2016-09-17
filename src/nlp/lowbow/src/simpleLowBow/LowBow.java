@@ -1,6 +1,5 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
-import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
@@ -14,26 +13,7 @@ import java.util.function.Function;
  *
  * @author pedro
  */
-public class LowBow {
-    protected final String originalText;
-    protected String[] text;
-    protected int textLength;
-    protected TextSplitter textSplitter;
-    /**
-     * vocabulary represented as a simplex
-     */
-    protected Simplex simplex;
-    /**
-     * number of distinct words
-     */
-    protected int numWords;
-    /**
-     * n by m matrix where n is the number of words and m is the number of words
-     * in the dictionary
-     * <p>
-     * is the delta in definition 2 of http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
-     */
-    protected Matrix rawCurve;
+public class LowBow extends BaseLowBow {
     protected Vector[] curve;
 
     protected int samples;
@@ -44,54 +24,26 @@ public class LowBow {
 
     protected double sigma;
     protected double samplesPerTextLength = 1.0;
-    /**
-     * parameter c described in definition 2
-     * http://www.jmlr.org/papers/volume8/lebanon07a/lebanon07a.pdf
-     */
-    protected double smoothingCoeff = 1E-2;
 
     protected boolean isBuild;
 
     public LowBow(String in, TextSplitter textSplitter) {
-        originalText = in;
-        this.simplex = new Simplex();
-        this.textSplitter = textSplitter;
+        super(in, textSplitter);
         isBuild = false;
-        this.processText(in);
         sigma = getSigmaAuto();
     }
 
     public LowBow(String in, TextSplitter textSplitter, Simplex simplex) {
-        originalText = in;
-        this.simplex = simplex;
-        this.textSplitter = textSplitter;
-        isBuild = false;
-        this.processText(in);
+        super(in, textSplitter, simplex);
         sigma = getSigmaAuto();
     }
 
     public LowBow(LowBow lowBow) {
-        this.originalText = lowBow.getOriginalText();
-        this.simplex = lowBow.getSimplex();
-        this.textSplitter = lowBow.getTextSplitter();
+        super(lowBow);
         isBuild = false;
-        this.processText(this.originalText);
-        sigma = getSigmaAuto();
+        sigma = lowBow.getSigma();
     }
 
-    private void processText(String in) {
-        text = textSplitter.split(in);
-        int acmIndex = 0;
-        for (int i = 0; i < text.length; i++) {
-            Integer aux = simplex.get(text[i]);
-            if (aux == null) {
-                acmIndex++;
-                simplex.put(text[i], acmIndex);
-            }
-        }
-        textLength = text.length;
-        numWords = simplex.size();
-    }
 
     /**
      * As described in the definition 6 of
@@ -139,20 +91,7 @@ public class LowBow {
     }
 
     public void build(double samplesPerTextLength, double sigma) {
-        rawCurve = new Matrix(textLength, numWords);
-        int n = rawCurve.getRows();
-        int m = rawCurve.getColumns();
-        smoothingCoeff = Math.max(0.0, smoothingCoeff);
-        double norm = 1 + smoothingCoeff * m;
-        for (int i = 1; i <= n; i++) {
-            if (smoothingCoeff == 0.0) {
-                rawCurve.setXY(i, simplex.get(text[i - 1]), 1.0);
-            } else {
-                for (int j = 1; j <= m; j++) {
-                    rawCurve.setXY(i, j, (simplex.get(text[i - 1]) == j) ? ((1.0 + smoothingCoeff) / norm) : (smoothingCoeff / norm));
-                }
-            }
-        }
+        super.build();
         resample(samplesPerTextLength, sigma);
         isBuild = true;
     }
@@ -210,37 +149,10 @@ public class LowBow {
         return function.apply(this);
     }
 
-    public String getOriginalText() {
-        return originalText;
-    }
-
-    public String[] getText() {
-        return text;
-    }
-
-    public Simplex getSimplex() {
-        return simplex;
-    }
 
     public void setSimplex(Simplex simplex) {
-        this.simplex = simplex;
-        this.processText(this.originalText);
+        super.setSimplex(simplex);
         isBuild = false;
-    }
-
-    /**
-     * @return lowbow representation without smoothing.
-     */
-    public Matrix rawCurve() {
-        return rawCurve;
-    }
-
-    public int getTextLength() {
-        return textLength;
-    }
-
-    public int getNumWords() {
-        return numWords;
     }
 
     public int getSamples() {
@@ -262,22 +174,6 @@ public class LowBow {
 
     public void setCurve(Vector[] curve) {
         this.curve = curve;
-    }
-
-    public double getSmoothingCoeff() {
-        return smoothingCoeff;
-    }
-
-    /**
-     * @param smoothingCoeff positive real value
-     */
-    public void setSmoothingCoeff(double smoothingCoeff) {
-
-        if (smoothingCoeff <= 0)
-            throw new RuntimeErrorException(null, "smoothing coeff must be > 0");
-
-        this.smoothingCoeff = smoothingCoeff;
-        isBuild = false;
     }
 
     public double getSigma() {

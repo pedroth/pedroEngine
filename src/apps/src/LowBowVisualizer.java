@@ -5,9 +5,9 @@ import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
 import inputOutput.MyText;
-import nlp.lowbow.src.LowBow;
-import nlp.lowbow.src.LowBowManager;
-import nlp.lowbow.src.LowbowSubtitleEigen;
+import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
+import nlp.lowbow.src.simpleLowBow.LowBow;
+import nlp.textSplitter.SubsSplitter;
 import numeric.src.Camera3D;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
@@ -31,7 +31,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
      */
     private Camera3D camera;
 
-    private LowBowManager lowBowManager;
+    private BaseLowBowManager lowBowManager;
     /**
      * mouse coordinates
      */
@@ -47,7 +47,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
      */
     private LowBowVisualizationMethod lowBowVisualizationMethod;
 
-    public LowBowVisualizer(String title, int width, int height, LowBowManager lowBowManager) {
+    public LowBowVisualizer(String title, int width, int height, BaseLowBowManager lowBowManager) {
         super(title, width, height);
         this.engine = new TwoDimEngine(width, height);
         this.engine.setBackGroundColor(Color.white);
@@ -63,15 +63,12 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     public static void main(String[] args) {
-        LowBowManager lowBowManager = new LowBowManager();
+        BaseLowBowManager lowBowManager = new BaseLowBowManager();
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-        LowbowSubtitleEigen lowbowSubtitleEigen = new LowbowSubtitleEigen(text.getText());
-        LowbowSubtitleEigen lowbowSubtitleEigen2 = new LowbowSubtitleEigen(text.getText());
-        lowBowManager.add(lowbowSubtitleEigen2);
+        LowBow lowbowSubtitleEigen = new LowBow(text.getText(), new SubsSplitter());
         lowBowManager.add(lowbowSubtitleEigen);
         lowbowSubtitleEigen.build();
-        lowbowSubtitleEigen2.build(lowbowSubtitleEigen2.getTextLength() / 2, lowbowSubtitleEigen2.getTextLength());
         new LowBowVisualizer("", 500, 500, lowBowManager);
     }
 
@@ -187,7 +184,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     private interface LowBowVisualizationMethod {
-        void draw(LowBowManager lowBowManager, TwoDimEngine twoDimEngine);
+        void draw(BaseLowBowManager lowBowManager, TwoDimEngine twoDimEngine);
     }
 
 
@@ -197,7 +194,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
         private boolean isBuild = false;
 
         @Override
-        public void draw(LowBowManager lowBowManager, TwoDimEngine twoDimEngine) {
+        public void draw(BaseLowBowManager lowBowManager, TwoDimEngine twoDimEngine) {
             //set camera position
             engine.setCamera(engine.getXmin() + hMouseDisp, engine.getXmax() + hMouseDisp, engine.getYmin() + kMouseDisp, engine.getYmax() + kMouseDisp);
             if (!isBuild) {
@@ -208,7 +205,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
             hMouseDisp = 0;
         }
 
-        private void initialDraw(LowBowManager lowBowManager, TwoDimEngine twoDimEngine) {
+        private void initialDraw(BaseLowBowManager lowBowManager, TwoDimEngine twoDimEngine) {
             //generate polygon
             double period = 2 * Math.PI;
             int numWords = lowBowManager.getSimplex().size();

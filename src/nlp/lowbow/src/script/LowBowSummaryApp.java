@@ -1,10 +1,10 @@
 package nlp.lowbow.src.script;
 
 import inputOutput.MyText;
-import nlp.lowbow.src.HeatMethod;
-import nlp.lowbow.src.LowBow;
-import nlp.lowbow.src.LowBowSummaryPrepositions;
-import nlp.lowbow.src.SparseHeatFlow;
+import nlp.lowbow.src.simpleLowBow.HeatMethod;
+import nlp.lowbow.src.simpleLowBow.LowBow;
+import nlp.lowbow.src.simpleLowBow.LowBowSummaryPrepositions;
+import nlp.lowbow.src.simpleLowBow.SparseHeatFlow;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;

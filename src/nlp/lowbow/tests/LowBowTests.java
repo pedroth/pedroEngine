@@ -3,18 +3,25 @@ package nlp.lowbow.tests;
 import algebra.src.Matrix;
 import inputOutput.CsvReader;
 import inputOutput.MyText;
-import nlp.lowbow.src.*;
+import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
+import nlp.lowbow.src.simpleLowBow.LambdaTestFlow;
+import nlp.lowbow.src.simpleLowBow.LowBow;
+import nlp.lowbow.src.simpleLowBow.MatrixHeatFlow;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.SubsSplitter;
 import nlp.utils.LowBowPrinter;
 import org.junit.Test;
 import utils.Csv2Matrix;
+import utils.FilesCrawler;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * The type Low bow tests.
+ * The type Low simpleDocModel tests.
  */
 public class LowBowTests {
     /**
@@ -58,7 +65,7 @@ public class LowBowTests {
         double mulAcc = 1;
 
         for (int i = 0; i < samples; i++) {
-            LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+            LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
             lowBowSubtitles.build();
             lowBowSubtitles.heatFlow(acc, new MatrixHeatFlow());
             String generateText = lowBowSubtitles.generateText(new SymbolAtMaxPos(i == 0 ? 0 : 2));
@@ -93,7 +100,7 @@ public class LowBowTests {
         String endFile = ".srt";
         int numOfEpisodes = 10;
         String[] address = new String[numOfEpisodes];
-        LowBowManager<LowBowSubtitles> manager = new LowBowManager<>();
+        BaseLowBowManager<LowBowSubtitles> manager = new BaseLowBowManager<>();
         MyText text = new MyText();
         for (int i = 0; i < numOfEpisodes; i++) {
             address[i] = principalAddress + (i + 1) + endFile;
@@ -111,7 +118,7 @@ public class LowBowTests {
     public void printLowBow() {
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-        LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+        LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
         lowBowSubtitles.build();
 //        lowBowSubtitles.heatFlow(250, new HeatFlow());
         text.write("C:/Users/Pedroth/Desktop/subExperiments.csv", lowBowSubtitles.toString(new LowBowPrinter()));
@@ -126,12 +133,30 @@ public class LowBowTests {
         Matrix lowBow = csvReader.map(Csv2Matrix.getInstance());
         MyText text = new MyText();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-        LowBowSubtitles lowBowSubtitles = new LowBowSubtitles(text.getText());
+        LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
         lowBowSubtitles.build();
         SymbolAtMax symbolSampler = new SymbolAtMax();
         text.write("C:/Users/Pedroth/Desktop/normalText.txt", lowBowSubtitles.generateText(symbolSampler));
         lowBowSubtitles.setCurve(Matrix.transpose(lowBow).getVectorColumns());
         text.write("C:/Users/Pedroth/Desktop/FreqText.txt", lowBowSubtitles.generateText(symbolSampler));
+    }
+
+    @Test
+    public void spectralClusteringTest() {
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        BaseLowBowManager<LowBowSubtitles> lowBowManager = new BaseLowBowManager<>();
+        MyText text = new MyText();
+        for (String subtitle : subtitles) {
+            text.read(subtitle);
+            lowBowManager.add(new LowBowSubtitles(text.getText()));
+        }
+        System.out.println(lowBowManager.getTextLengthStats());
+    }
+
+
+    @Test
+    public void inferenceCluster() {
+
     }
 
 }

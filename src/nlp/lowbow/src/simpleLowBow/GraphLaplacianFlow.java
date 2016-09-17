@@ -1,4 +1,4 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.TridiagonalMatrix;
 import algebra.src.Vector;
@@ -34,7 +34,7 @@ public class GraphLaplacianFlow implements HeatMethod {
         myu.setXY(l.samples, l.samples - 1, -lambda);
         myu.setXY(l.samples, l.samples, 1.0);
 
-        for (int j = 1; j <= l.numWords; j++) {
+        for (int j = 1; j <= l.getNumWords(); j++) {
             /*
              * build zeta
              */

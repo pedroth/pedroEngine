@@ -5,7 +5,7 @@ import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
 import apps.utils.TextFrame;
-import nlp.lowbow.src.*;
+import nlp.lowbow.src.simpleLowBow.*;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.MyTextSplitter;

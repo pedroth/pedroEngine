@@ -1,4 +1,4 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
 
 import algebra.src.LineLaplacian;
@@ -15,7 +15,7 @@ public class LaplacianEigenFlow implements HeatMethod {
         Matrix eigenBasis = new Matrix(eigenVectors);
         Vector eigenValues = new Vector(laplacian.getEigenValues());
         for (int i = 1; i <= eigenValues.getDim(); i++) {
-            eigenValues.setX(i, Math.exp(-eigenValues.getX(i) * 1000 * lambda));
+            eigenValues.setX(i, Math.exp(-eigenValues.getX(i) * lambda));
         }
         Vector[] curve = l.getCurve();
         Matrix rawCurve = new Matrix(curve);

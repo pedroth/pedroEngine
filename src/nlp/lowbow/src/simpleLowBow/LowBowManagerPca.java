@@ -1,4 +1,4 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.Vector;
 import numeric.src.Pca;

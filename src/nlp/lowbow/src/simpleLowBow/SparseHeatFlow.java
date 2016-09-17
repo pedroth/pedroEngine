@@ -1,4 +1,4 @@
-package nlp.lowbow.src;
+package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.Vector;
 
@@ -26,7 +26,7 @@ public class SparseHeatFlow implements HeatMethod {
          * initial condition u(x,0) = u_init(x)
          */
         for (int i = 0; i < l.curve.length; i++) {
-            grad[i] = new Vector(l.numWords);
+            grad[i] = new Vector(l.getNumWords());
             auxCurve[i] = l.curve[i].copy();
         }
         do {

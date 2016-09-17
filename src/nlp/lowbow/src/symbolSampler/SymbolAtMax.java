@@ -1,7 +1,7 @@
 package nlp.lowbow.src.symbolSampler;
 
 import algebra.src.Vector;
-import nlp.lowbow.src.Simplex;
+import nlp.lowbow.src.simpleLowBow.Simplex;
 
 public class SymbolAtMax implements SymbolSampler {
     /**

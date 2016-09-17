@@ -2,7 +2,7 @@ package nlp.lowbow.src.symbolSampler;
 
 import algebra.src.Vector;
 import algorithms.QuickSortWithPermutation;
-import nlp.lowbow.src.Simplex;
+import nlp.lowbow.src.simpleLowBow.Simplex;
 import numeric.src.MyMath;
 
 /**
