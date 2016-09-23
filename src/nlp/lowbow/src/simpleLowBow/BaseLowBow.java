@@ -4,6 +4,7 @@ package nlp.lowbow.src.simpleLowBow;
 import algebra.src.Matrix;
 import nlp.simpleDocModel.BaseDocumentModel;
 import nlp.textSplitter.TextSplitter;
+import nlp.utils.Simplex;
 
 public class BaseLowBow extends BaseDocumentModel {
     /**
@@ -56,5 +57,9 @@ public class BaseLowBow extends BaseDocumentModel {
                 }
             }
         }
+    }
+
+    public Matrix getRawCurve() {
+        return rawCurve;
     }
 }

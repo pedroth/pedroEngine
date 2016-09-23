@@ -217,7 +217,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
                 t += step;
             }
 
-            List<LowBow> lowBowList = lowBowManager.getLowbows();
+            List<LowBow> lowBowList = lowBowManager.getDocModels();
             for (LowBow lowBow : lowBowList) {
                 Color hsbColor = Color.getHSBColor((float) Math.random(), 1.0f, 1.0f);
                 Vector[] curve = lowBow.getCurve();

@@ -3,6 +3,7 @@ package nlp.lowbow.src.simpleLowBow;
 import algebra.src.Vector;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
+import nlp.utils.Simplex;
 import numeric.src.MyMath;
 
 import javax.management.RuntimeErrorException;
@@ -228,7 +229,7 @@ public class LowBow extends BaseLowBow {
      * get sigma acoording to the folowing rule: 1.0 / (2 * textLength)
      */
     public double getSigmaAuto() {
-        return 1.0 / (0.8 * this.getTextLength());
+        return 1.0 / (2 * this.getTextLength());
     }
 
     /**

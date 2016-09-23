@@ -6,8 +6,8 @@ import algebra.src.Vector;
 import apps.utils.MyFrame;
 import apps.utils.TextFrame;
 import nlp.lowbow.src.simpleLowBow.*;
-import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
+import nlp.lowbow.src.symbolSampler.TopKSymbol;
 import nlp.textSplitter.MyTextSplitter;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
@@ -86,10 +86,12 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
      */
     private ArrayList<String2D[]> strCurves;
     /**
-     * state that determines when to draw simplex on polygon state = 0 : pca
-     * state = 1 : drawBarycentric state = 2 : dont draw
+     * state that determines when to draw simplex on polygon
+     * state = 0 : pca
+     * state = 1 : drawBarycentric
+     * state = 2 : dont draw
      */
-    private int simplexOnPolyState;
+    private int simplexOnPolyState = 1;
     /**
      * polygon where the curve will be drawn
      */
@@ -97,7 +99,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     private HeatMethod heatMethod = new MatrixHeatFlow();
 
-    private SymbolSampler symbolSampler = new SymbolAtMaxPos(0);
+    private SymbolSampler symbolSampler = new TopKSymbol(5);
 
 
     public TextCurves(String title, int width, int height) {
@@ -196,13 +198,14 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         /**
          * Poly AbstractSimplex
          */
-        simplexOnPolyButton = new Button("Barycentric");
+        simplexOnPolyButton = new Button("PCA");
         simplexOnPolyButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (simplexOnPolyButton.getLabel().equals("PCA")) {
                     simplexOnPolyState = 0;
+                    buildPca(true);
                 } else {
                     simplexOnPolyState = 1;
                 }
@@ -314,6 +317,15 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         new TextCurves("Teste", (int) (screenSize.getWidth() * 0.60), (int) (screenSize.getHeight() * 0.75));
     }
 
+    private void buildPca(boolean isUpdate) {
+        frameState.setText("build pca");
+        lowbowM.buildPca();
+        if (isUpdate) {
+            updateCurveStats();
+        }
+        frameState.setText("");
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {
         // TODO Auto-generated method stub
@@ -413,7 +425,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
          * distance to drawing plane
          */
         double d = 1;
-        ArrayList<LowBowPca> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getDocModels();
         int n = l.size();
 
         for (int i = 0; i < n; i++) {
@@ -440,7 +452,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     private void updateCurveOnPoly() {
-        ArrayList<LowBowPca> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getDocModels();
         int n = l.size();
         int wordL = l.get(0).getNumWords();
         if ((polygon == null) || (polygon.length != wordL)) {
@@ -479,7 +491,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     private void updateStringCurve() {
-        ArrayList<LowBowPca> l = lowbowM.getLowbows();
+        ArrayList<LowBowPca> l = lowbowM.getDocModels();
         int n = l.size();
         for (int i = 0; i < n; i++) {
             String2D[] strCurve = strCurves.get(i);
@@ -506,7 +518,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
      * update pca curve statistics and update camera.
      */
     private void updateCurveStats() {
-        ArrayList<LowBowPca> lowbows = lowbowM.getLowbows();
+        ArrayList<LowBowPca> lowbows = lowbowM.getDocModels();
         LowBowPca lowbow = lowbows.get(lowbows.size() - 1);
         int n = lowbow.getPcaCurve().length;
         Vec3[] pcaCurve = lowbow.getPcaCurve();
@@ -591,7 +603,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void generateText() {
-        ArrayList<LowBowPca> lowList = lowbowM.getLowbows();
+        ArrayList<LowBowPca> lowList = lowbowM.getDocModels();
 
         if (lowList == null)
             return;
@@ -601,7 +613,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void pcaCoords() {
-        ArrayList<LowBowPca> low = lowbowM.getLowbows();
+        ArrayList<LowBowPca> low = lowbowM.getDocModels();
         LowBowPca curve = low.get(low.size() - 1);
         Vec3[] pca = curve.getPcaCurve();
         String[] text = curve.getText();
@@ -613,14 +625,14 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
     }
 
     public void heatFlow(double lambda, HeatMethod heat) {
-        ArrayList<LowBowPca> low = lowbowM.getLowbows();
+        ArrayList<LowBowPca> low = lowbowM.getDocModels();
         LowBow curve = low.get(low.size() - 1);
         frameState.setText("Computing heat flow");
         curve.heatFlow(lambda, heat);
-        frameState.setText("build pca");
-        lowbowM.buildPca();
-        updateCurveStats();
         frameState.setText("");
+        if (simplexOnPolyState == 0) {
+            buildPca(false);
+        }
         if (simplexOnPolyState == 2) {
             simplexOnPolyState = 1;
         }
@@ -676,12 +688,9 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             lowbowM.add(lowbow);
             frameState.setText("Processing");
             lowbowM.build();
-            frameState.setText("computing Pca");
-            lowbowM.buildPca();
             isReady = false;
             isProcess = true;
-            updateCurveStats();
-            ArrayList<LowBowPca> lLowBow = lowbowM.getLowbows();
+            ArrayList<LowBowPca> lLowBow = lowbowM.getDocModels();
             addCurveToEngine(lLowBow.get(lLowBow.size() - 1));
             frameState.setText("");
             frame.setVisible(true);

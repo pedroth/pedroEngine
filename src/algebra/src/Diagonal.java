@@ -102,11 +102,6 @@ public class Diagonal extends Matrix {
         return diagonal.prodVector(y);
     }
 
-
-    private boolean checkInputIndex(int x, int y) {
-        return x <= this.n && x > 0 && y <= n && y > 0;
-    }
-
     @Override
     public String toString() {
         return super.toString();

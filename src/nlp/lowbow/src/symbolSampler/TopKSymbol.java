@@ -6,25 +6,28 @@ import nlp.utils.Simplex;
 import numeric.src.MyMath;
 
 
-public class SymbolAtMaxPos implements SymbolSampler {
-    private int pos = 0;
+public class TopKSymbol implements SymbolSampler {
+    private int k;
 
-    public SymbolAtMaxPos(int pos) {
-        this.pos = pos;
+    public TopKSymbol(int k) {
+        this.k = k;
     }
 
     @Override
     public String nextSymbol(Vector simplex, Simplex symTable) {
+        StringBuilder stringBuilder = new StringBuilder();
         QuickSortWithPermutation quickSortWithPermutation = new QuickSortWithPermutation();
-        double[] array = simplex.getArray();
-        int n = array.length;
+        int n = simplex.size();
+        //safe copy
         Double[] v = new Double[n];
         for (int i = 0; i < n; i++) {
-            v[i] = array[i];
+            v[i] = simplex.getX(i + 1);
         }
         quickSortWithPermutation.sort(v);
         int[] permutation = quickSortWithPermutation.getPermutation();
-        return symTable.get(permutation[((int) MyMath.clamp(n - 1 - pos, 0, n - 1))] + 1);
+        for (int i = 0; i < k; i++) {
+            stringBuilder.append(symTable.get(permutation[((int) MyMath.clamp(n - 1 - i, 0, n - 1))] + 1)).append("\t");
+        }
+        return stringBuilder.toString();
     }
-
 }

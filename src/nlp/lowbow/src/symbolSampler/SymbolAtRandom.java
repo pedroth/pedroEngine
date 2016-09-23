@@ -2,7 +2,7 @@ package nlp.lowbow.src.symbolSampler;
 
 
 import algebra.src.Vector;
-import nlp.lowbow.src.simpleLowBow.Simplex;
+import nlp.utils.Simplex;
 import numeric.src.SimplexPointSampler;
 
 public class SymbolAtRandom implements SymbolSampler {

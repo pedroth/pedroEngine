@@ -2,7 +2,7 @@ package nlp.lowbow.src.symbolSampler;
 
 
 import algebra.src.Vector;
-import nlp.lowbow.src.simpleLowBow.Simplex;
+import nlp.utils.Simplex;
 
 public class SymbolAtAverage implements SymbolSampler {
 

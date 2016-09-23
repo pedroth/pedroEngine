@@ -1,23 +1,32 @@
 package nlp.lowbow.tests;
 
+import algebra.src.DistanceMatrix;
 import algebra.src.Matrix;
+import graph.KnnGraph;
 import inputOutput.CsvReader;
 import inputOutput.MyText;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.src.eigenLowbow.SummaryGenLowBowManager;
 import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
 import nlp.lowbow.src.simpleLowBow.LambdaTestFlow;
 import nlp.lowbow.src.simpleLowBow.LowBow;
 import nlp.lowbow.src.simpleLowBow.MatrixHeatFlow;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
+import nlp.simpleDocModel.BaseDocModelManager;
+import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.LowBowPrinter;
+import nlp.utils.NecessaryWordPredicate;
+import nlp.utils.SegmentedBow;
+import org.junit.Assert;
 import org.junit.Test;
 import utils.Csv2Matrix;
 import utils.FilesCrawler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -105,10 +114,10 @@ public class LowBowTests {
         for (int i = 0; i < numOfEpisodes; i++) {
             address[i] = principalAddress + (i + 1) + endFile;
             text.read(address[i]);
-            manager.add(new LowBowSubtitles(text.getText()));
+            manager.add(new LowBowSubtitles(text.getText(), new SubsSplitter()));
         }
 
-        for (LowBowSubtitles lowBowSubtitles : manager.getLowbows()) {
+        for (LowBowSubtitles lowBowSubtitles : manager.getDocModels()) {
             System.out.println(lowBowSubtitles);
         }
         manager.getSimplex().getKeySet().forEach(System.out::println);
@@ -142,21 +151,94 @@ public class LowBowTests {
     }
 
     @Test
-    public void spectralClusteringTest() {
+    public void HeatRepresentationTest() {
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
-        BaseLowBowManager<LowBowSubtitles> lowBowManager = new BaseLowBowManager<>();
+        Collections.sort(subtitles);
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        Collections.sort(videos);
+
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManagerRaw = new SummaryGenLowBowManager<>();
+
         MyText text = new MyText();
-        for (String subtitle : subtitles) {
-            text.read(subtitle);
-            lowBowManager.add(new LowBowSubtitles(text.getText()));
+        SubsSplitter textSplitter = new SubsSplitter();
+
+        textSplitter = new SubsSplitter(x -> true);
+        for (int i = 0; i < 1; i++) {
+            text.read(subtitles.get(i));
+            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+            lowBowManagerRaw.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
-        System.out.println(lowBowManager.getTextLengthStats());
+        lowBowManager.buildModel(1.0);
+        lowBowManagerRaw.build();
+
+        LowBowSubtitles lowBowSubtitlesHeat = lowBowManager.getDocModels().get(0);
+        LowBowSubtitles lowBowSubtitles = lowBowManagerRaw.getDocModels().get(0);
+
+        lowBowSubtitlesHeat.buildRawCurveFromHeatRepresentation();
+
+        double norm = lowBowSubtitlesHeat.getRawCurve().forbeniusDistSquare(lowBowSubtitles.getRawCurve());
+        System.out.println(norm);
+        Assert.assertTrue(norm < 5);
     }
 
+    @Test
+    public void spectralClusterTest() {
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        Collections.sort(subtitles);
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        Collections.sort(videos);
+
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+
+        MyText text = new MyText();
+        SubsSplitter textSplitter = new SubsSplitter();
+
+        //bow representation
+        for (String subtitle : subtitles) {
+            text.read(subtitle);
+            bowManager.add(new Bow(text.getText(), textSplitter));
+        }
+        bowManager.build();
+
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.05);
+        textSplitter = new SubsSplitter(predicate);
+
+        //lowbow representation
+        for (int i = 0; i < subtitles.size(); i++) {
+            text.read(subtitles.get(i));
+            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+        }
+        lowBowManager.buildModel(1.0);
+
+        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrix();
+        KnnGraph graph = new KnnGraph(distanceMatrix, 1);
+        text.write("C:/Users/Pedroth/Desktop/OverTheGardenWallGraph.txt", graph.toStringGephi());
+    }
 
     @Test
-    public void inferenceCluster() {
+    public void testSegmentation() {
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        Collections.sort(subtitles);
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        Collections.sort(videos);
 
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+
+        MyText text = new MyText();
+        SubsSplitter textSplitter = new SubsSplitter(x -> true);
+
+        //lowbow representation
+        for (int i = 0; i < subtitles.size(); i++) {
+            text.read(subtitles.get(i));
+            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+        }
+        lowBowManager.buildModel(0.1);
+        lowBowManager.buildSegmentations();
+        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        Collections.sort(segmentedBows);
+        System.out.println(segmentedBows.size());
     }
 
 }

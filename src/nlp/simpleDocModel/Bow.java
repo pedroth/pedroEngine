@@ -24,6 +24,11 @@ public class Bow extends BaseDocumentModel {
         super(originalText, textSplitter);
     }
 
+    /**
+     * Instantiates a new Bow.
+     *
+     * @param bow the bow
+     */
     public Bow(Bow bow) {
         super(bow);
         this.pmf = bow.pmf;
@@ -57,5 +62,14 @@ public class Bow extends BaseDocumentModel {
         ones.fill(1.0);
         pmf.applyFunction(x -> x + smoothingCoeff);
         pmf = Vector.scalarProd(1.0 / Vector.innerProd(pmf, ones), pmf);
+    }
+
+    /**
+     * Gets pmf, probability mass function a.k.a histogram of words.
+     *
+     * @return the pmf
+     */
+    public Vector getPmf() {
+        return pmf;
     }
 }

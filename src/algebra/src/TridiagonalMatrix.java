@@ -21,6 +21,14 @@ public class TridiagonalMatrix extends Matrix {
     private int n;
 
 
+    public TridiagonalMatrix(int rows, int columns) {
+        super(rows, columns);
+        this.n = rows;
+        this.a = new double[n];
+        this.b = new double[n - 1];
+        this.c = new double[n - 1];
+    }
+
     public TridiagonalMatrix(int n) {
         super();
         this.rows = n;
@@ -142,11 +150,6 @@ public class TridiagonalMatrix extends Matrix {
         x.setX(1, x.getX(1) / matrix.getXY(1, 1));
 
         return x;
-    }
-
-
-    private boolean checkInputIndex(int x, int y) {
-        return x <= this.n && x > 0 && y <= n && y > 0;
     }
 
     @Override

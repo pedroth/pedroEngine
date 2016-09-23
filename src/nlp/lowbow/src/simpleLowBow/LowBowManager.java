@@ -2,11 +2,14 @@ package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.Vector;
 
+import java.util.ArrayList;
+
 public class LowBowManager<L extends LowBow> extends BaseLowBowManager<L> {
     /**
      * resamples each curve with the maximum samples of the curves in the collection
      */
     public void maxSamplesInit() {
+        ArrayList<L> lowbows = getDocModels();
         int n = lowbows.size();
         double maxSamples = 0;
         for (int i = 0; i < n; i++) {
@@ -30,6 +33,7 @@ public class LowBowManager<L extends LowBow> extends BaseLowBowManager<L> {
      * @return euclidean distance between curves i and j
      */
     public double getDistance(int i, int j) {
+        ArrayList<L> lowbows = getDocModels();
         LowBow l1 = lowbows.get(i);
         LowBow l2 = lowbows.get(j);
         int l1TextLength = l1.getTextLength();

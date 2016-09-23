@@ -3,12 +3,15 @@ package nlp.lowbow.src.simpleLowBow;
 import algebra.src.Vector;
 import numeric.src.Pca;
 
+import java.util.ArrayList;
+
 public class LowBowManagerPca extends LowBowManager<LowBowPca> {
 
     /**
      * build pca of all curves
      */
     public void buildPca() {
+        ArrayList<LowBowPca> lowbows = getDocModels();
         int size = 0;
         for (LowBowPca lowbow : lowbows) {
             size += lowbow.getSamples();

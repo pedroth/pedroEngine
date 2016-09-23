@@ -41,10 +41,14 @@ public class StopWordsSplitter implements TextSplitter {
         String[] text = in.replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", " ").toLowerCase().replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", "").split("\\s+");
         ArrayList<String> ans = new ArrayList<String>();
         for (int i = 0; i < text.length; i++) {
-            if (stopWords.get(text[i]) == null) {
+            if (!isStopWord(text[i])) {
                 ans.add(text[i]);
             }
         }
         return ans.toArray(new String[0]);
+    }
+
+    public boolean isStopWord(String s) {
+        return stopWords.containsKey(s);
     }
 }

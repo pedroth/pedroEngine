@@ -1,19 +1,14 @@
 package inputOutput;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class MyText {
-	String text;
+	StringBuilder text;
 
 	public MyText() {
-		text = "";
+		text = new StringBuilder();
 	}
 
 	public MyText(String adress) {
@@ -22,7 +17,7 @@ public class MyText {
 	}
 
 	public void read(String address) {
-		text = "";
+		this.text = new StringBuilder();
 		BufferedReader in;
 		try {
 			if (isUrl(address)) {
@@ -37,7 +32,7 @@ public class MyText {
 			String line;
 
 			while ((line = in.readLine()) != null) {
-				text += line + String.format("\n");
+				text.append(line).append(String.format("\n"));
 			}
 
 		} catch (MalformedURLException e) {
@@ -48,7 +43,6 @@ public class MyText {
 	}
 
 	public void write(String adress, String text) {
-		this.text = text;
 		if (isUrl(adress))
 			return;
 
@@ -61,7 +55,7 @@ public class MyText {
 			}
 			PrintStream bw = new PrintStream(file);
 
-			bw.print(getText());
+			bw.print(text);
 
 			bw.close();
 		} catch (IOException e) {
@@ -79,6 +73,6 @@ public class MyText {
 	}
 
 	public String getText() {
-		return text;
+		return text.toString();
 	}
 }

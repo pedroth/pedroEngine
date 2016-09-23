@@ -12,7 +12,6 @@ import java.util.*;
 public class Graph {
     private Map<Integer, HashSet<Integer>> edges = new HashMap<Integer, HashSet<Integer>>(7);
     private Map<Integer, Map<String, Object>> vertexProperties = new HashMap<>(7);
-
     private int numVertex;
 
     /*

@@ -1,8 +1,8 @@
 package nlp.simpleDocModel;
 
 
-import nlp.lowbow.src.simpleLowBow.Simplex;
 import nlp.textSplitter.TextSplitter;
+import nlp.utils.Simplex;
 
 import javax.management.RuntimeErrorException;
 

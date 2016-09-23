@@ -4,6 +4,7 @@ package nlp.lowbow.src.simpleLowBow;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import nlp.textSplitter.TextSplitter;
+import nlp.utils.Simplex;
 import numeric.src.Pca;
 
 import javax.management.RuntimeErrorException;

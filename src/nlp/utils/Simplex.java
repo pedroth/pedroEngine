@@ -1,4 +1,4 @@
-package nlp.lowbow.src.simpleLowBow;
+package nlp.utils;
 
 import java.util.Map;
 import java.util.Set;

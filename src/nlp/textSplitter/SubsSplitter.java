@@ -1,10 +1,11 @@
 package nlp.textSplitter;
 
 import inputOutput.MyText;
-import utils.TimeInterval;
+import utils.Interval;
 
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class SubsSplitter implements TextSplitter {
     private static final HashSet<Character> betaSet = new HashSet<>(2);
@@ -19,11 +20,21 @@ public class SubsSplitter implements TextSplitter {
         gammaSet.add('\'');
     }
 
+    private Predicate<String> predicate;
     private List<Subtitle> subtitles = new ArrayList<>(1);
     private List<String> subtitleWords = new ArrayList<>(1);
     private List<Integer> indexWords2Subtitle = new ArrayList<>(1);
     private StringBuilder stringBuilder;
     private Queue<Character> auxStack;
+
+    public SubsSplitter(Predicate<String> predicate) {
+        this.predicate = predicate;
+    }
+
+    public SubsSplitter() {
+        super();
+        predicate = x -> true;
+    }
 
     public static void main(String[] args) {
         MyText text = new MyText();
@@ -42,15 +53,44 @@ public class SubsSplitter implements TextSplitter {
         return diff >= 0 && diff <= 'z' - 'a';
     }
 
+    private void resetData() {
+        this.subtitles = new ArrayList<>(1);
+        this.subtitleWords = new ArrayList<>(1);
+        this.indexWords2Subtitle = new ArrayList<>(1);
+        this.stringBuilder = new StringBuilder();
+        this.auxStack = new ArrayDeque<>();
+    }
+
+    public Predicate<String> getPredicate() {
+        return predicate;
+    }
+
+    public List<Subtitle> getSubtitles() {
+        return subtitles;
+    }
+
+    public List<String> getSubtitleWords() {
+        return subtitleWords;
+    }
+
+    public List<Integer> getIndexWords2Subtitle() {
+        return indexWords2Subtitle;
+    }
+
+    public Subtitle getSubtitleFromIndexWord(int index) {
+        return subtitles.get(indexWords2Subtitle.get(index));
+    }
+
     @Override
     public String[] split(String in) {
+        resetData();
         String[] lines = in.split("\\r?\\n");
         for (int i = 1; i < lines.length; i++) {
             Subtitle subtitle = new Subtitle();
             //First line doesn't matter
             //Second time has the time interval
             String[] split = lines[i].replace(",", ".").split(" --> ");
-            TimeInterval interval = new TimeInterval(LocalTime.parse(split[0]), LocalTime.parse(split[1]));
+            Interval<LocalTime> interval = new Interval(LocalTime.parse(split[0]), LocalTime.parse(split[1]));
             subtitle.setInterval(interval);
             int j = i + 1;
             StringBuilder stringBuilder = new StringBuilder();
@@ -93,10 +133,10 @@ public class SubsSplitter implements TextSplitter {
 
     private void appendStringToSubtitle(Subtitle subtitle) {
         String string = this.stringBuilder.toString();
-        if (!string.isEmpty()) {
+        if (!string.isEmpty() && predicate.test(string)) {
             subtitle.getProcessText().add(string);
-            this.stringBuilder = new StringBuilder();
         }
+        this.stringBuilder = new StringBuilder();
     }
 
     private void processLine(Subtitle subtitle, String line) {
@@ -120,7 +160,7 @@ public class SubsSplitter implements TextSplitter {
 
     public class Subtitle {
 
-        private TimeInterval interval;
+        private Interval<LocalTime> interval;
 
         private String originalText;
 
@@ -130,16 +170,16 @@ public class SubsSplitter implements TextSplitter {
             this.processText = new ArrayList<>(3);
         }
 
-        public Subtitle(TimeInterval interval, String originalText) {
+        public Subtitle(Interval<LocalTime> interval, String originalText) {
             this.interval = interval;
             this.originalText = originalText;
         }
 
-        public TimeInterval getInterval() {
+        public Interval<LocalTime> getInterval() {
             return interval;
         }
 
-        public void setInterval(TimeInterval interval) {
+        public void setInterval(Interval interval) {
             this.interval = interval;
         }
 
