@@ -7,8 +7,8 @@ import algebra.utils.AlgebraException;
  * <p>
  * a1 b1 0 ...
  * c1 a2 b2 0 ...
- * c2 a3 b3 0 ...
- * 0
+ * 0  c2 a3 b3 0 ...
+ * 0  0  c3  ...
  * .             .
  * .             .
  * .             .
@@ -22,11 +22,13 @@ public class TridiagonalMatrix extends Matrix {
 
 
     public TridiagonalMatrix(int rows, int columns) {
-        super(rows, columns);
-        this.n = rows;
+        super();
+        this.rows = rows;
+        this.columns = columns;
+        this.n = Math.min(rows, columns);
         this.a = new double[n];
-        this.b = new double[n - 1];
-        this.c = new double[n - 1];
+        this.b = new double[rows < columns ? n : n - 1];
+        this.c = new double[rows > columns ? n : n - 1];
     }
 
     public TridiagonalMatrix(int n) {

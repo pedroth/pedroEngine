@@ -233,7 +233,7 @@ public class LowBow extends BaseLowBow {
     }
 
     /**
-     * @return text based on the maximum probable word at each sample.
+     * @return text based on the symbol sampler
      */
     public String generateText(SymbolSampler symbolSampler) {
         if (!isBuild)

@@ -8,6 +8,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import utils.StopWatch;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class NumericTest {
 
     @Test
@@ -172,13 +176,13 @@ public class NumericTest {
 
     @Test
     public void superEigenTest() {
-        int n = 10;
+        int n = 3;
         Matrix laplacian = new LineLaplacian(n);
         SymmetricEigen symmetricEigen = new SymmetricEigen(laplacian);
         StopWatch stopWatch = new StopWatch();
-        symmetricEigen.computeEigen(1E-10, n, new IntrinsicEigenAlgo());
+        symmetricEigen.computeEigen(1E-10, n, new HyperEigenAlgo());
         System.out.println("\n" + stopWatch.getEleapsedTime() + "\n");
-        symmetricEigen.orderEigenValuesAndVector();
+//        symmetricEigen.orderEigenValuesAndVector();
         for (Double eigenValue : symmetricEigen.getEigenValues()) {
             System.out.println(eigenValue);
         }
@@ -186,6 +190,28 @@ public class NumericTest {
         for (Vector vector : symmetricEigen.getEigenVectors()) {
             System.out.println(vector);
         }
+    }
+
+    @Test
+    public void testKmeans() {
+        List<Vector> data = new ArrayList<>(6);
+        data.add(new Vec2(-1.1, 0.1));
+        data.add(new Vec2(-0.9, -0.1));
+        data.add(new Vec2(1.1, 0.1));
+        data.add(new Vec2(0.9, -0.1));
+        data.add(new Vec2(0.1, -0.9));
+        data.add(new Vec2(-0.1, -1.1));
+        Kmeans kmeans = new Kmeans(data);
+        kmeans.runKmeans(3);
+        Map<Integer, Integer> classification = kmeans.getClassification();
+        for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
+        Vector[] clusters = kmeans.getClusters();
+        for (Vector p : clusters) {
+            System.out.println(p);
+        }
+//        Assert.assertTrue(Vec2.diff(clusters[classification.get(2)], new Vec2(1,0)).norm() < 0.5);
     }
 
 }

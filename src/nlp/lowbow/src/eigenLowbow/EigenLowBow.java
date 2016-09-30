@@ -4,8 +4,10 @@ package nlp.lowbow.src.eigenLowbow;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.src.simpleLowBow.BaseLowBow;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
+import numeric.src.MyMath;
 
 /**
  * The type Eigen low bow.
@@ -36,7 +38,7 @@ public class EigenLowBow extends BaseLowBow {
      *
      * @param originalText the original text
      * @param textSplitter the text splitter
-     * @param simplex      the simplex
+     * @param simplex the simplex
      */
     public EigenLowBow(String originalText, TextSplitter textSplitter, Simplex simplex) {
         super(originalText, textSplitter, simplex);
@@ -52,6 +54,17 @@ public class EigenLowBow extends BaseLowBow {
         this.eigenBasis = lowBow.getEigenBasis();
         this.eigenValues = lowBow.getEigenValues();
         this.eigenCoord = lowBow.getEigenCoord();
+    }
+
+    @Override
+    public String generateText(SymbolSampler symbolSampler) {
+        Matrix low = getRawCurveFromHeatRepresentation();
+        Vector[] lowCurve = low.getRowsVectors();
+        StringBuilder acc = new StringBuilder();
+        for (int i = 0; i < lowCurve.length; i++) {
+            acc.append(symbolSampler.nextSymbol(lowCurve[i], simplex) + "\n");
+        }
+        return acc.toString();
     }
 
     /**
@@ -100,9 +113,9 @@ public class EigenLowBow extends BaseLowBow {
     /**
      * Build heat representation.
      *
-     * @param eigenBasis  the eigen basis
+     * @param eigenBasis the eigen basis
      * @param eigenValues the eigen values
-     * @param k           k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
+     * @param k k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
      */
     public void buildHeatRepresentation(Matrix eigenBasis, Vector eigenValues, int k) {
         this.numberOfLowDimCoeff = k;
@@ -115,9 +128,7 @@ public class EigenLowBow extends BaseLowBow {
      * Build raw curve from heat representation.
      */
     public void buildRawCurveFromHeatRepresentation() {
-        double heatTime = getHeatTime();
-        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
-        this.rawCurve = eigenBasis.getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+        this.rawCurve = getRawCurveFromHeatRepresentation();
     }
 
     /**
@@ -144,6 +155,13 @@ public class EigenLowBow extends BaseLowBow {
         return diag.prod(diff).squareNorm();
     }
 
+    /**
+     * Exp st.
+     *
+     * @param t the t
+     * @param k the k
+     * @return the matrix
+     */
     protected Matrix expSt(double t, int k) {
         Matrix expEigen = eigenValues.getSubMatrix(1, numberOfLowDimCoeff, 1, 1);
         expEigen.applyFunction(x -> Math.exp(-x * t));
@@ -164,5 +182,47 @@ public class EigenLowBow extends BaseLowBow {
             return 1;
         }
         return -Math.log(epsilon) / eigenValues.getX(numberOfLowDimCoeff);
+    }
+
+    /**
+     * Gets raw curve from heat representation.
+     *
+     * @param xmin the xmin
+     * @param xmax the xmax
+     * @return the raw curve from heat representation segmented from xmin to xmax
+     */
+    public Matrix getRawCurveFromHeatRepresentation(int xmin, int xmax) {
+        //switch variables if xmax < xmin
+        if (xmax < xmin) {
+            xmin = xmin + xmax;
+            xmax = xmin - xmax;
+            xmin = xmin - xmax;
+        }
+        int clamMin = (int) MyMath.clamp(xmin, 1, textLength);
+        int clamMax = (int) MyMath.clamp(xmax, 1, textLength);
+        double heatTime = getHeatTime();
+        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
+        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+    }
+
+    /**
+     * Gets raw curve from heat representation.
+     *
+     * @return the raw curve from heat representation
+     */
+    public Matrix getRawCurveFromHeatRepresentation() {
+        int clamMin = 1;
+        int clamMax = textLength;
+        double heatTime = getHeatTime();
+        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
+        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+    }
+
+    @Override
+    public Vector[] getCurve() {
+        if (rawCurve == null) {
+            return getRawCurveFromHeatRepresentation().getRowsVectors();
+        }
+        return super.getCurve();
     }
 }

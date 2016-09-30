@@ -2,11 +2,13 @@ package nlp.lowbow.src.simpleLowBow;
 
 
 import algebra.src.Matrix;
+import algebra.src.Vector;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.simpleDocModel.BaseDocumentModel;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
 
-public class BaseLowBow extends BaseDocumentModel {
+public abstract class BaseLowBow extends BaseDocumentModel {
     /**
      * n by m matrix where n is the number of words and m is the number of words
      * in the dictionary
@@ -61,5 +63,14 @@ public class BaseLowBow extends BaseDocumentModel {
 
     public Matrix getRawCurve() {
         return rawCurve;
+    }
+
+    /**
+     * @return text based on the symbol sampler
+     */
+    public abstract String generateText(SymbolSampler symbolSampler);
+
+    public Vector[] getCurve() {
+        return getRawCurve().getRowsVectors();
     }
 }

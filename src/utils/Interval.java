@@ -5,7 +5,7 @@ public class Interval<X extends Comparable<X>> {
     private boolean isEmptyInterval;
 
     public Interval(X xmin, X xmax) {
-        if (xmax.compareTo(xmin) > 0) {
+        if (xmax.compareTo(xmin) >= 0) {
             this.xmin = xmin;
             this.xmax = xmax;
             this.isEmptyInterval = false;

@@ -6,6 +6,7 @@ import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -15,7 +16,8 @@ public class NecessaryWordPredicate implements Predicate<String> {
     private Vector wordEntropy;
     private double cutOffPercentage;
     private double maxEntropy;
-    private List<String> notNecessaryWords;
+    private HashSet<String> notNecessaryWords;
+    private Vector wordProb;
 
     public NecessaryWordPredicate(BaseDocModelManager<Bow> bowManager, double cutOffPercentage) {
         this.bowManager = bowManager;
@@ -25,10 +27,10 @@ public class NecessaryWordPredicate implements Predicate<String> {
         this.notNecessaryWords = computeNotNecessaryWords();
     }
 
-    private List<String> computeNotNecessaryWords() {
-        List<String> notNecessaryWords = new ArrayList<>();
+    private HashSet<String> computeNotNecessaryWords() {
+        HashSet<String> notNecessaryWords = new HashSet<>();
         for (String s : bowManager.getSimplex().wordsIndex.keySet()) {
-            if (!test(s)) {
+            if (!isWordNecessary(s)) {
                 notNecessaryWords.add(s);
             }
         }
@@ -43,6 +45,7 @@ public class NecessaryWordPredicate implements Predicate<String> {
     private Vector computeWordEntropyPerDoc() {
         int size = bowManager.getSimplex().size();
         Vector entropy = new Vector(size);
+        wordProb = new Vector(size);
         List<Vector> aux = new ArrayList<>();
         for (Bow bow : bowManager.getDocModels()) {
             aux.add(bow.getPmf());
@@ -50,11 +53,14 @@ public class NecessaryWordPredicate implements Predicate<String> {
         Matrix pwd = normalize(new Matrix(aux));
         for (int i = 1; i <= entropy.size(); i++) {
             double acc = 0;
+            double acc2 = 0;
             for (int j = 1; j <= pwd.getColumns(); j++) {
                 double p = pwd.getXY(i, j);
                 acc += -p * Math.log(p);
+                acc2 += p;
             }
             entropy.setX(i, acc);
+            wordProb.setX(i, acc2);
         }
         return entropy;
     }
@@ -69,6 +75,10 @@ public class NecessaryWordPredicate implements Predicate<String> {
 
     @Override
     public boolean test(String s) {
+        return !notNecessaryWords.contains(s);
+    }
+
+    private boolean isWordNecessary(String s) {
         Simplex simplex = bowManager.getSimplex();
         Integer index = simplex.get(s);
         if (index != null) {
@@ -76,6 +86,34 @@ public class NecessaryWordPredicate implements Predicate<String> {
             return entropy < (1 - cutOffPercentage) * maxEntropy && entropy > maxEntropy * cutOffPercentage;
         }
         return true;
+    }
+
+    public Vector getWordEntropyForSimplex(Simplex simplex) {
+        int size = simplex.size();
+        Vector p = new Vector(size);
+        Simplex mySimplex = bowManager.getSimplex();
+        String[] keySet = simplex.getKeySet().toArray(new String[simplex.size()]);
+        for (int i = 0; i < keySet.length; i++) {
+            Integer index = mySimplex.get(keySet[i]);
+            if (index != null) {
+                p.setX(i + 1, wordEntropy.getX(index));
+            }
+        }
+        return p;
+    }
+
+    public Vector getWordProbForSimplex(Simplex simplex) {
+        int size = simplex.size();
+        Vector p = new Vector(size);
+        Simplex mySimplex = bowManager.getSimplex();
+        String[] keySet = simplex.getKeySet().toArray(new String[simplex.size()]);
+        for (int i = 0; i < keySet.length; i++) {
+            Integer index = mySimplex.get(keySet[i]);
+            if (index != null) {
+                p.setX(i + 1, wordProb.getX(index));
+            }
+        }
+        return p;
     }
 
     public double getCutOffPercentage() {
@@ -90,7 +128,11 @@ public class NecessaryWordPredicate implements Predicate<String> {
         return wordEntropy;
     }
 
-    public List<String> getNotNecessaryWords() {
+    public HashSet<String> getNotNecessaryWords() {
         return notNecessaryWords;
+    }
+
+    public void setBowManager(BaseDocModelManager<Bow> bowManager) {
+        this.bowManager = bowManager;
     }
 }

@@ -2,6 +2,8 @@ package nlp.lowbow.tests;
 
 import algebra.src.DistanceMatrix;
 import algebra.src.Matrix;
+import algebra.src.Vector;
+import graph.Graph;
 import graph.KnnGraph;
 import inputOutput.CsvReader;
 import inputOutput.MyText;
@@ -13,6 +15,8 @@ import nlp.lowbow.src.simpleLowBow.LowBow;
 import nlp.lowbow.src.simpleLowBow.MatrixHeatFlow;
 import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
+import nlp.lowbow.src.symbolSampler.SymbolSampler;
+import nlp.lowbow.src.symbolSampler.TopKSymbol;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.MyTextSplitter;
@@ -20,11 +24,13 @@ import nlp.textSplitter.SubsSplitter;
 import nlp.utils.LowBowPrinter;
 import nlp.utils.NecessaryWordPredicate;
 import nlp.utils.SegmentedBow;
+import numeric.src.Distance;
 import org.junit.Assert;
 import org.junit.Test;
 import utils.Csv2Matrix;
 import utils.FilesCrawler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -184,11 +190,13 @@ public class LowBowTests {
 
     @Test
     public void spectralClusterTest() {
+        //get all files
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
         List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
         Collections.sort(videos);
 
+        //construct managers
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
@@ -202,19 +210,108 @@ public class LowBowTests {
         }
         bowManager.build();
 
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.05);
-        textSplitter = new SubsSplitter(predicate);
+        //build predicate
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
 
         //lowbow representation
         for (int i = 0; i < subtitles.size(); i++) {
             text.read(subtitles.get(i));
+            textSplitter = new SubsSplitter(predicate);
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
-        lowBowManager.buildModel(1.0);
+        //heat model
+        lowBowManager.buildModel(0.04);
+        //build segmentation
+        lowBowManager.buildSegmentations();
+        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        Collections.sort(segmentedBows);
 
-        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrix();
-        KnnGraph graph = new KnnGraph(distanceMatrix, 1);
+        //distances
+        Distance<SegmentedBow> cosineSim = (x, y) -> {
+            Vector xbow = x.getSegmentBow();
+            Vector ybow = y.getSegmentBow();
+            return 1 - Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm());
+        };
+        Distance<SegmentedBow> euclideanDist = (x, y) -> {
+            Vector xbow = x.getSegmentBow();
+            Vector ybow = y.getSegmentBow();
+            return Vector.diff(xbow, ybow).norm();
+        };
+        Distance<SegmentedBow> simplexDist = (x, y) -> {
+            Vector xbow = x.getSegmentBow();
+            Vector ybow = y.getSegmentBow();
+            double acc = 0;
+            for (int i = 1; i <= xbow.getDim(); i++) {
+                acc += Math.sqrt(xbow.getX(i) * ybow.getX(i));
+            }
+            return Math.acos(acc);
+        };
+
+        Distance<SegmentedBow> tfIdf = (x, y) -> {
+            Vector wordEntropy = predicate.getWordProbForSimplex(lowBowManager.getSimplex());
+//            int n = wordEntropy.getDim();
+            wordEntropy = new Vector(wordEntropy.applyFunction((z) -> -Math.log(z)));
+            Vector xbow = Vector.pointMult(x.getSegmentBow(), wordEntropy);
+            Vector ybow = Vector.pointMult(y.getSegmentBow(), wordEntropy);
+            return 1 - Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm());
+        };
+
+        //build knn-graph
+        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(tfIdf);
+        KnnGraph graph = new KnnGraph(distanceMatrix, 3);
+        cutSegmentsGraph(segmentedBows, graph);
+//
+//        //clustering
+//        SpectralClustering spectralClustering = new SpectralClustering(graph);
+//        Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
+//
+        SymbolSampler symbolSampler = new TopKSymbol(20);
+        for (int i = 0; i < segmentedBows.size(); i++) {
+            LowBowSubtitles lowBowSubtitles = segmentedBows.get(i).getLowBowSubtitles();
+            String videoAddress = lowBowSubtitles.getVideoAddress();
+            videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
+            String baseAdd = "C:/Users/Pedroth/Desktop/Experiments/";
+            creatDirs(baseAdd);
+            String address = baseAdd + (i + 1) + "" + videoAddress;
+            String text1 = symbolSampler.nextSymbol(segmentedBows.get(i).getSegmentBow(), lowBowSubtitles.getSimplex());
+            text.write(address + ".txt", segmentedBows.get(i).cutSegmentSubtile());
+        }
+//
+//        //cut segments
+//        for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
+//            Integer key = entry.getKey();
+//            for (Integer index : entry.getValue()) {
+//                SegmentedBow segmentedBow = segmentedBows.get(index);
+//                LowBowSubtitles lowBowSubtitles = segmentedBow.getLowBowSubtitles();
+//                String videoAddress = lowBowSubtitles.getVideoAddress();
+//                videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
+//                String str = "C:/Users/Pedroth/Desktop/cut/" + key + "/";
+//                creatDirs(str);
+//                String address = str + videoAddress + "" + (index + 1);
+//                segmentedBow.cutSegment(address + ".mp4");
+////                text.write(address + ".txt", symbolSampler.nextSymbol(segmentedBow.getSegmentBow(), lowBowSubtitles.getSimplex()));
+//            }
+//        }
+
         text.write("C:/Users/Pedroth/Desktop/OverTheGardenWallGraph.txt", graph.toStringGephi());
+    }
+
+
+    private void cutSegmentsGraph(List<SegmentedBow> segmentedBows, Graph graph) {
+        String str = "C:/Users/Pedroth/Desktop/cutGraph/";
+        for (Integer u : graph.getVertexSet()) {
+            String address = str + u + "/";
+            creatDirs(address);
+            segmentedBows.get(u - 1).cutSegment(address + u + ".mp4");
+            for (Integer v : graph.getAdjVertex(u)) {
+                segmentedBows.get(v - 1).cutSegment(address + v + ".mp4");
+            }
+        }
+    }
+
+    private void creatDirs(String address) {
+        File dirs = new File(address);
+        dirs.mkdirs();
     }
 
     @Test
@@ -224,21 +321,35 @@ public class LowBowTests {
         List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
         Collections.sort(videos);
 
-        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
-
+        SubsSplitter textSplitter = new SubsSplitter();
         MyText text = new MyText();
-        SubsSplitter textSplitter = new SubsSplitter(x -> true);
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+
+        //bow representation
+        for (String subtitle : subtitles) {
+            text.read(subtitle);
+            bowManager.add(new Bow(text.getText(), textSplitter));
+        }
+        bowManager.build();
+
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
 
         //lowbow representation
-        for (int i = 0; i < subtitles.size(); i++) {
+        for (int i = 0; i < 1; i++) {
             text.read(subtitles.get(i));
+            textSplitter = new SubsSplitter(predicate);
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
-        lowBowManager.buildModel(0.1);
+        lowBowManager.buildModel(0.025);
+        text.write("C:/Users/Pedroth/Desktop/epi1.txt", lowBowManager.getDocModels().get(0).generateText(new TopKSymbol(10)));
         lowBowManager.buildSegmentations();
         List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
-        System.out.println(segmentedBows.size());
+        for (int i = 0; i < segmentedBows.size(); i++) {
+            String outAddress = "C:/Users/Pedroth/Desktop/" + "cut" + i + ".mp4";
+            segmentedBows.get(i).cutSegment(outAddress);
+        }
     }
 
 }

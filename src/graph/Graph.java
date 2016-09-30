@@ -1,6 +1,7 @@
 package graph;
 
 import algebra.src.Matrix;
+import javafx.util.Pair;
 
 import java.util.*;
 
@@ -10,14 +11,20 @@ import java.util.*;
  * @author pedro <p> based on https://sites.google.com/site/indy256/algo/graph 17:29 11/03/2015</p>
  */
 public class Graph {
-    private Map<Integer, HashSet<Integer>> edges = new HashMap<Integer, HashSet<Integer>>(7);
+    /**
+     * The constant EDGE_WEIGHT_KEY.
+     */
+    public static final String EDGE_WEIGHT_KEY = "weight";
+    private Map<Integer, HashSet<Integer>> edges = new HashMap<>(7);
     private Map<Integer, Map<String, Object>> vertexProperties = new HashMap<>(7);
+    private Map<Pair<Integer, Integer>, Map<String, Object>> edgeProperties = new HashMap<>(7);
     private int numVertex;
 
     /*
-     * Adjacency matrix, will be created using lazy creation
+     * Adjacency matrix and weightedGraphMatrix will be created using lazy creation
      */
     private Matrix adjacencyMatrix;
+    private Matrix weightedGraphMatrix;
 
     private boolean isGraphChanged = false;
 
@@ -92,7 +99,6 @@ public class Graph {
      */
     public void addEdge(int u, int v) {
         toggleIsGraphChanged();
-
         addVertex(u);
         addVertex(v);
         edges.get(u).add(v);
@@ -152,7 +158,8 @@ public class Graph {
         isGraphChanged = false;
 
         if (adjacencyMatrix == null || isGraphChanged) {
-            return generateAdjacencyMatrix();
+            this.adjacencyMatrix = generateAdjacencyMatrix();
+            return adjacencyMatrix;
         } else {
             return adjacencyMatrix;
         }
@@ -226,8 +233,7 @@ public class Graph {
             return null;
         }
         adjacencyMatrix = new Matrix(numVertex, numVertex);
-        Set<Integer> keys = edges.keySet();
-        Integer[] keyArray = keys.toArray(new Integer[0]);
+        Integer[] keyArray = getKeyIndex();
         for (int i = 1; i <= numVertex; i++) {
             for (int j = 1; j <= numVertex; j++) {
                 adjacencyMatrix.setXY(i, j, edges.get(keyArray[i - 1]).contains(keyArray[j - 1]) ? 1.0 : 0.0);
@@ -313,5 +319,76 @@ public class Graph {
             return null;
         }
         return (T) stringObjectMap.get(str);
+    }
+
+    /**
+     * Put edge property.
+     *
+     * @param <T>  the type parameter
+     * @param pair the pair
+     * @param str  the str
+     * @param obj  the obj
+     */
+    public <T> void putEdgeProperty(Pair<Integer, Integer> pair, String str, T obj) {
+        if (edges.get(pair.getKey()).contains(pair.getValue())) {
+            if (!edgeProperties.containsKey(pair)) {
+                edgeProperties.put(pair, new HashMap<>());
+            }
+            if (!edgeProperties.get(pair).containsKey(str)) {
+                edgeProperties.get(pair).put(str, obj);
+            }
+        }
+    }
+
+    /**
+     * Gets edge property.
+     *
+     * @param pair the pair
+     * @param str  the str
+     * @param obj  the obj
+     * @return the edge property
+     */
+    public <T> T getEdgeProperty(Pair<Integer, Integer> pair, String str, T obj) {
+        Map<String, Object> stringObjectMap = edgeProperties.get(pair);
+        if (stringObjectMap == null) {
+            return null;
+        }
+        return (T) stringObjectMap.get(str);
+    }
+
+    /**
+     * Gets weight matrix.
+     *
+     * @param defaultValue the default value for undefined weights
+     * @return the weight matrix
+     */
+    public Matrix getWeightMatrix(double defaultValue) {
+        isGraphChanged = false;
+
+        if (weightedGraphMatrix == null || isGraphChanged) {
+            this.weightedGraphMatrix = generateWeightedGraphMatrix(defaultValue);
+            return this.weightedGraphMatrix;
+        } else {
+            return weightedGraphMatrix;
+        }
+    }
+
+    private Matrix generateWeightedGraphMatrix(double defaultValue) {
+        Matrix w = new Matrix(numVertex, numVertex);
+
+        Integer[] keyArray = getKeyIndex();
+
+        for (int i = 1; i <= numVertex; i++) {
+            for (int j = 1; j <= numVertex; j++) {
+                Pair<Integer, Integer> key = new Pair<>(keyArray[i - 1], keyArray[j - 1]);
+                w.setXY(i, j, (Double) (edgeProperties.containsKey(key) ? (edgeProperties.get(key).containsKey(EDGE_WEIGHT_KEY) ? edgeProperties.get(key).get(EDGE_WEIGHT_KEY) : 0.0) : 0.0));
+            }
+        }
+        return w;
+    }
+
+    public Integer[] getKeyIndex() {
+        Set<Integer> keys = edges.keySet();
+        return keys.toArray(new Integer[keys.size()]);
     }
 }

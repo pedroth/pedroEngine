@@ -36,16 +36,20 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
     public List<SegmentedBow> getSegmentation() {
         List<SegmentedBow> segmentedBows = new ArrayList<>();
         Vector segFunc = computeSegmentation();
+//        for (int i = 1; i <= segFunc.size(); i++) {
+//            System.out.println(segFunc.getX(i));
+//        }
         Vector zerosIndicator = findZeros(segFunc);
         int minIndex = 1;
-        for (int i = 2; i <= segFunc.size(); i++) {
-            if (segFunc.getX(i) == 1.0) {
+        int size = zerosIndicator.size();
+        for (int i = 2; i <= size; i++) {
+            if (zerosIndicator.getX(i) == 1.0 && i != minIndex) {
                 segmentedBows.add(new SegmentedBow(new Interval(minIndex, i), this));
                 minIndex = i + 1;
             }
         }
         if (minIndex != textLength) {
-            segmentedBows.add(new SegmentedBow(new Interval<Integer>(minIndex, textLength), this));
+            segmentedBows.add(new SegmentedBow(new Interval(minIndex, textLength), this));
         }
         return segmentedBows;
     }

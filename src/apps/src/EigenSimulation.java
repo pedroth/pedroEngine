@@ -32,7 +32,7 @@ public class EigenSimulation extends MyFrame {
     /*
      * max ray trace vision
      */
-    private static final int MAX_SAMPLES = 100;
+    private static final int MAX_SAMPLES = 400;
     /**
      * The Max vision.
      */
@@ -174,8 +174,9 @@ public class EigenSimulation extends MyFrame {
             return Double.MAX_VALUE;
         }
 
-        double sol1 = (-b - Math.sqrt(discr)) / (2 * a);
-        double sol2 = (-b + Math.sqrt(discr)) / (2 * a);
+        double sqrt = Math.sqrt(discr);
+        double sol1 = (-b - sqrt) / (2 * a);
+        double sol2 = (-b + sqrt) / (2 * a);
         double m = sol1 * sol2;
         if (m < 0) {
             return Math.max(sol1, sol2);
@@ -184,6 +185,47 @@ public class EigenSimulation extends MyFrame {
         } else {
             return sol1 > 0 && sol2 > 0 ? Math.min(sol1, sol2) : Double.MAX_VALUE;
         }
+    }
+
+    private double getSphereIntersection2(Vector eye, Vector dir, Sphere sphere) {
+        int maxIte = 10;
+        double h = maxVision / (maxIte);
+        Vec3 pos = sphere.getPos();
+        double radius = sphere.getRadius();
+        double t;
+        for (t = 0; t < maxVision; ) {
+            Vector p = line(eye, dir, t);
+            if (Vector.diff(pos, p).norm() < radius) {
+                return t;
+            }
+            t += h;
+        }
+        if (t >= maxVision) {
+            return Double.MAX_VALUE;
+        }
+
+        double tLeft = t - h;
+        double tRight = t;
+
+        double root = 0;
+        double fRoot = 1;
+        Vector l = new Vector(3);
+        for (int i = 0; i < 10; i++) {
+            root = 0.5 * (tLeft + tRight);
+            l = line(eye, dir, root);
+            fRoot = Vector.diff(pos, l).norm() - radius;
+            if (Math.abs(fRoot) < 1E-3) {
+                break;
+            } else {
+                l = line(eye, dir, tLeft);
+                if (Math.signum(Vector.diff(pos, l).norm() - radius) == Math.signum(fRoot)) {
+                    tLeft = root;
+                } else {
+                    tRight = root;
+                }
+            }
+        }
+        return root;
     }
 
     /**

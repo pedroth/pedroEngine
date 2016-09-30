@@ -9,6 +9,7 @@ import nlp.utils.SegmentedBow;
 import numeric.src.Distance;
 import numeric.src.MyMath;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,7 +37,6 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
      * @param p the p percentage of the maxTextLength
      */
     public void buildModel(double p) {
-        super.build();
         // it can be showed that maxTextLength is always a integer, it is a double for convenience
         int maxTextLength = (int) getMaxTextLength();
         LineLaplacian L = new LineLaplacian(maxTextLength);
@@ -44,10 +44,10 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         this.eigenValuesGlobal = new Vector(L.getEigenValues());
         int k = (int) MyMath.clamp(p * maxTextLength + 1, 1, maxTextLength);
         for (L lowbow : this.getDocModels()) {
+            lowbow.build();
             lowbow.buildHeatRepresentation(eigenBasisGlobal, eigenValuesGlobal, k);
             lowbow.deleteRawCurve();
         }
-
     }
 
     /**
@@ -92,8 +92,9 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
     }
 
     public void buildSegmentations() {
+        segmentedBows = new ArrayList<>();
         for (L docModel : docModels) {
-            List segmentation = docModel.getSegmentation();
+            List<SegmentedBow> segmentation = docModel.getSegmentation();
             segmentedBows.addAll(segmentation);
         }
     }

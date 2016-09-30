@@ -77,11 +77,6 @@ public class DistanceMatrix extends Matrix {
         return accIndex[y - 1] + (x - y - 1);
     }
 
-
-    private boolean checkInputIndex(int x, int y) {
-        return x <= this.n && x > 0 && y <= n && y > 0;
-    }
-
     @Override
     public String toString() {
         return super.toString();

@@ -5,13 +5,19 @@ import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
 import inputOutput.MyText;
+import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.src.eigenLowbow.SummaryGenLowBowManager;
+import nlp.lowbow.src.simpleLowBow.BaseLowBow;
 import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
-import nlp.lowbow.src.simpleLowBow.LowBow;
+import nlp.simpleDocModel.BaseDocModelManager;
+import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
+import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Camera3D;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.shaders.ThickLineShader;
+import utils.FilesCrawler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,12 +25,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by Pedroth on 12/28/2015.
- */
-public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
+
+public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements MouseWheelListener {
     private TwoDimEngine engine;
     /**
      * Camera
@@ -47,7 +52,7 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
      */
     private LowBowVisualizationMethod lowBowVisualizationMethod;
 
-    public LowBowVisualizer(String title, int width, int height, BaseLowBowManager lowBowManager) {
+    public LowBowVisualizer(String title, int width, int height, BaseLowBowManager<L> lowBowManager) {
         super(title, width, height);
         this.engine = new TwoDimEngine(width, height);
         this.engine.setBackGroundColor(Color.white);
@@ -63,13 +68,41 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
     }
 
     public static void main(String[] args) {
-        BaseLowBowManager lowBowManager = new BaseLowBowManager();
+        //get all files
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        Collections.sort(subtitles);
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        Collections.sort(videos);
+
+        //construct managers
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+
         MyText text = new MyText();
-        text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
-        LowBow lowbowSubtitleEigen = new LowBow(text.getText(), new SubsSplitter());
-        lowBowManager.add(lowbowSubtitleEigen);
-        lowbowSubtitleEigen.build();
-        new LowBowVisualizer("", 500, 500, lowBowManager);
+        SubsSplitter textSplitter = new SubsSplitter();
+
+        //bow representation
+        for (String subtitle : subtitles) {
+            text.read(subtitle);
+            bowManager.add(new Bow(text.getText(), textSplitter));
+        }
+        bowManager.build();
+        //build predicate
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.2);
+
+        //delete
+        predicate.setBowManager(null);
+        bowManager = null;
+
+        //lowbow representation
+        for (int i = 0; i < subtitles.size(); i++) {
+            text.read(subtitles.get(i));
+            textSplitter = new SubsSplitter(predicate);
+            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+        }
+        //heat model
+        lowBowManager.buildModel(0.0);
+        new LowBowVisualizer("OverTheGardenWall", 500, 500, lowBowManager);
     }
 
     @Override
@@ -217,8 +250,8 @@ public class LowBowVisualizer extends MyFrame implements MouseWheelListener {
                 t += step;
             }
 
-            List<LowBow> lowBowList = lowBowManager.getDocModels();
-            for (LowBow lowBow : lowBowList) {
+            List<L> lowBowList = lowBowManager.getDocModels();
+            for (L lowBow : lowBowList) {
                 Color hsbColor = Color.getHSBColor((float) Math.random(), 1.0f, 1.0f);
                 Vector[] curve = lowBow.getCurve();
                 Vec2[] baryCurve = new Vec2[curve.length];

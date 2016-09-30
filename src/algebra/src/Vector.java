@@ -118,6 +118,18 @@ public class Vector extends Matrix {
         return ret;
     }
 
+
+    public static Vector pointMult(Vector u, Vector v) {
+        if (u.getDim() != v.getDim()) {
+            throw new AlgebraException("In a pointMult vectors must be of the same size");
+        }
+        Vector ret = new Vector(u);
+        for (int i = 1; i <= ret.getDim(); i++) {
+            ret.setX(i, ret.getX(i) * v.getX(i));
+        }
+        return ret;
+    }
+
     public static void main(String[] args) {
         Vector v = new Vector(100);
         v.fillRandom(-1, 1);

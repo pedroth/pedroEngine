@@ -16,7 +16,7 @@ import java.text.NumberFormat;
 import java.util.Random;
 
 public class ImplicitSurface extends MyFrame {
-    protected double maxVision = 10.0;
+    protected double maxVision = 10;
     private TwoDimEngine engine;
     private String2D fps;
     private String helpTextStr = " w : move camera foward\n" + " s : move camera backward\n" + " a : move camera to left\n" + " d : move camera to right\n" + " q : move camera down\n" + " e : move camera up\n" + "\n" + " p : hd on/off\n" + "\n" + " drag mouse to change camera\n" + "\n" + "[0-9]: change surface";
@@ -51,7 +51,7 @@ public class ImplicitSurface extends MyFrame {
 
     private int indexFunction = 0;
 
-    private int[] traceSamplesIndex = {10, 50, 100, 60, 90, 90, 60, 300, 20, 25};
+    private int[] traceSamplesIndex = {10, 50, 100, 60, 90, 90, 60, 300, 20, 20};
     private int traceSamples = traceSamplesIndex[0];
 
     private double[][] particlePos = {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
@@ -99,6 +99,7 @@ public class ImplicitSurface extends MyFrame {
         return 1 - aux * aux;
     }
 
+
     /**
      * f : R^3->R, is the function which the level set will be drawn. The level
      * set is f = 0.
@@ -135,7 +136,11 @@ public class ImplicitSurface extends MyFrame {
                 }
                 return acm + 0.9;
             case 9:
-                return x * x - y * z;//x + y + z;
+                c = 3;
+                double nx = x % c - 0.5 * c;
+                double ny = y % c - 0.5 * c;
+                double nz = z % c - 0.5 * c;
+                return (nx * nx + ny * ny + nz * nz - 1);//x * x - y * z;//x + y + z;
             default:
                 return z;
         }
@@ -296,6 +301,47 @@ public class ImplicitSurface extends MyFrame {
         return (myNorm(gradF(line(init, dir, epsilon))) - myNorm(gradF(init))) / epsilon;
     }
 
+    double[] trace2(double[] init, double[] dir) {
+        double[] ans = {0, 0, 0};
+        double h = maxVision / traceSamples;
+        double epsilon = 1E-3;
+        double t = 0;
+        for (t = 0; t < maxVision; ) {
+            double[] p = line(init, dir, t);
+            double f = f(p[0], p[1], p[2]);
+            if (f < 0) {
+                break;
+            }
+            t += h;
+        }
+        if (t > maxVision) {
+            return ans;
+        }
+        double tLeft = t - h;
+        double tRight = t;
+
+        double root = 0;
+        double fRoot = 1;
+        double[] l = new double[3];
+        for (int i = 0; i < 10; i++) {
+            root = 0.5 * (tLeft + tRight);
+            l = line(init, dir, root);
+            fRoot = f(l[0], l[1], l[2]);
+            if (Math.abs(fRoot) < 1E-3) {
+                break;
+            } else {
+                l = line(init, dir, tLeft);
+                if (Math.signum(f(l[0], l[1], l[2])) == Math.signum(fRoot)) {
+                    tLeft = root;
+                } else {
+                    tRight = root;
+                }
+            }
+        }
+        double lambda = 0.1;
+        return scalarMult(1 - fRoot / lambda, shading(l));
+    }
+
     double[] trace(double[] init, double[] dir) {
 
         int maxIte = 10;
@@ -359,7 +405,7 @@ public class ImplicitSurface extends MyFrame {
                 dir[2] = 1;
                 dir = normalize(dir);
                 dir = matrixProd(xCam, yCam, zCam, dir);
-                double[] color = trace(eye, dir);
+                double[] color = trace2(eye, dir);
                 int index = 3 * j + 3 * n * i;
                 colorBuffer[index] = (int) color[0];
                 colorBuffer[index + 1] = (int) color[1];
