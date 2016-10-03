@@ -5,6 +5,8 @@ import algebra.src.Matrix;
 import algebra.src.Vector;
 import graph.Graph;
 import graph.KnnGraph;
+import graph.RandomWalkGraph;
+import graph.SpectralClustering;
 import inputOutput.CsvReader;
 import inputOutput.MyText;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Low simpleDocModel tests.
@@ -211,7 +214,7 @@ public class LowBowTests {
         bowManager.build();
 
         //build predicate
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.25);
 
         //lowbow representation
         for (int i = 0; i < subtitles.size(); i++) {
@@ -227,45 +230,39 @@ public class LowBowTests {
         Collections.sort(segmentedBows);
 
         //distances
-        Distance<SegmentedBow> cosineSim = (x, y) -> {
-            Vector xbow = x.getSegmentBow();
-            Vector ybow = y.getSegmentBow();
-            return 1 - Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm());
+        Distance<Vector> cosineSim = (x, y) -> {
+            return 1 - Vector.innerProd(x, y) / (x.norm() * y.norm());
         };
-        Distance<SegmentedBow> euclideanDist = (x, y) -> {
-            Vector xbow = x.getSegmentBow();
-            Vector ybow = y.getSegmentBow();
-            return Vector.diff(xbow, ybow).norm();
+        Distance<Vector> euclideanDist = (x, y) -> {
+            return Vector.diff(x, y).norm();
         };
-        Distance<SegmentedBow> simplexDist = (x, y) -> {
-            Vector xbow = x.getSegmentBow();
-            Vector ybow = y.getSegmentBow();
+        Distance<Vector> simplexDist = (x, y) -> {
             double acc = 0;
-            for (int i = 1; i <= xbow.getDim(); i++) {
-                acc += Math.sqrt(xbow.getX(i) * ybow.getX(i));
+            for (int i = 1; i <= x.getDim(); i++) {
+                acc += Math.sqrt(x.getX(i) * y.getX(i));
             }
             return Math.acos(acc);
         };
 
-        Distance<SegmentedBow> tfIdf = (x, y) -> {
+        Distance<Vector> tfIdf = (x, y) -> {
             Vector wordEntropy = predicate.getWordProbForSimplex(lowBowManager.getSimplex());
 //            int n = wordEntropy.getDim();
             wordEntropy = new Vector(wordEntropy.applyFunction((z) -> -Math.log(z)));
-            Vector xbow = Vector.pointMult(x.getSegmentBow(), wordEntropy);
-            Vector ybow = Vector.pointMult(y.getSegmentBow(), wordEntropy);
+            Vector xbow = Vector.pointMult(x, wordEntropy);
+            Vector ybow = Vector.pointMult(y, wordEntropy);
             return 1 - Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm());
         };
 
         //build knn-graph
-        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(tfIdf);
-        KnnGraph graph = new KnnGraph(distanceMatrix, 3);
-        cutSegmentsGraph(segmentedBows, graph);
-//
-//        //clustering
-//        SpectralClustering spectralClustering = new SpectralClustering(graph);
-//        Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
-//
-        SymbolSampler symbolSampler = new TopKSymbol(20);
+        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(simplexDist);
+        KnnGraph graph = new KnnGraph(distanceMatrix, 4);
+
+        //clustering
+        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
+
+        //segments top k symbols
+        SymbolSampler symbolSampler = new TopKSymbol(50);
         for (int i = 0; i < segmentedBows.size(); i++) {
             LowBowSubtitles lowBowSubtitles = segmentedBows.get(i).getLowBowSubtitles();
             String videoAddress = lowBowSubtitles.getVideoAddress();
@@ -274,24 +271,23 @@ public class LowBowTests {
             creatDirs(baseAdd);
             String address = baseAdd + (i + 1) + "" + videoAddress;
             String text1 = symbolSampler.nextSymbol(segmentedBows.get(i).getSegmentBow(), lowBowSubtitles.getSimplex());
-            text.write(address + ".txt", segmentedBows.get(i).cutSegmentSubtile());
+            text.write(address + ".txt", text1);
         }
-//
-//        //cut segments
-//        for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
-//            Integer key = entry.getKey();
-//            for (Integer index : entry.getValue()) {
-//                SegmentedBow segmentedBow = segmentedBows.get(index);
-//                LowBowSubtitles lowBowSubtitles = segmentedBow.getLowBowSubtitles();
-//                String videoAddress = lowBowSubtitles.getVideoAddress();
-//                videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
-//                String str = "C:/Users/Pedroth/Desktop/cut/" + key + "/";
-//                creatDirs(str);
-//                String address = str + videoAddress + "" + (index + 1);
-//                segmentedBow.cutSegment(address + ".mp4");
-////                text.write(address + ".txt", symbolSampler.nextSymbol(segmentedBow.getSegmentBow(), lowBowSubtitles.getSimplex()));
-//            }
-//        }
+
+        //cut segments
+        for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
+            Integer key = entry.getKey();
+            for (Integer index : entry.getValue()) {
+                SegmentedBow segmentedBow = segmentedBows.get(index - 1);
+                LowBowSubtitles lowBowSubtitles = segmentedBow.getLowBowSubtitles();
+                String videoAddress = lowBowSubtitles.getVideoAddress();
+                videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
+                String str = "C:/Users/Pedroth/Desktop/cut/" + key + "/";
+                creatDirs(str);
+                String address = str + videoAddress + "" + (index);
+                segmentedBow.cutSegment(address + ".mp4");
+            }
+        }
 
         text.write("C:/Users/Pedroth/Desktop/OverTheGardenWallGraph.txt", graph.toStringGephi());
     }
@@ -350,6 +346,74 @@ public class LowBowTests {
             String outAddress = "C:/Users/Pedroth/Desktop/" + "cut" + i + ".mp4";
             segmentedBows.get(i).cutSegment(outAddress);
         }
+    }
+
+
+    @Test
+    public void testSummarization() {
+        //get all files
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        Collections.sort(subtitles);
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        Collections.sort(videos);
+
+        //construct managers
+        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+
+        MyText text = new MyText();
+        SubsSplitter textSplitter = new SubsSplitter();
+
+        //bow representation
+        for (String subtitle : subtitles) {
+            text.read(subtitle);
+            bowManager.add(new Bow(text.getText(), textSplitter));
+        }
+        bowManager.build();
+
+        //build predicate
+        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.25);
+
+        //lowbow representation
+        for (int i = 0; i < subtitles.size(); i++) {
+            text.read(subtitles.get(i));
+            textSplitter = new SubsSplitter(predicate);
+            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+        }
+        //heat model
+        lowBowManager.buildModel(0.04);
+
+        //build segmentation
+        lowBowManager.buildSegmentations();
+        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        Collections.sort(segmentedBows);
+
+        Distance<Vector> simplexDist = (x, y) -> {
+            double acc = 0;
+            for (int i = 1; i <= x.getDim(); i++) {
+                acc += Math.sqrt(x.getX(i) * y.getX(i));
+            }
+            return Math.acos(acc);
+        };
+
+        //build knn-graph
+        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(simplexDist);
+        KnnGraph graph = new KnnGraph(distanceMatrix, 4);
+
+        //clustering
+        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
+        Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
+        for (Integer key : map.keySet()) {
+            Graph graphClass = map.get(key);
+            RandomWalkGraph randomWalkGraph = new RandomWalkGraph(graphClass);
+            int numVertex = graphClass.getNumVertex();
+            Vector v = new Vector(numVertex);
+            v.fill(1.0 / numVertex);
+            System.out.println(randomWalkGraph.getStationaryDistribution(v, 1E-3));
+        }
+
+        text.write("C:/Users/Pedroth/Desktop/OverTheGardenWallGraph.txt", graph.toStringGephi());
     }
 
 }

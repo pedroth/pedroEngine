@@ -202,7 +202,7 @@ public class NumericTest {
         data.add(new Vec2(0.1, -0.9));
         data.add(new Vec2(-0.1, -1.1));
         Kmeans kmeans = new Kmeans(data);
-        kmeans.runKmeans(3);
+        kmeans.runKmeans(3, 1E-3);
         Map<Integer, Integer> classification = kmeans.getClassification();
         for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());

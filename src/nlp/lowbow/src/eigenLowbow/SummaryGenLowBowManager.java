@@ -78,14 +78,14 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         return getDistanceMatrix(distance);
     }
 
-    public DistanceMatrix getDistanceMatrixOfSegmentations(Distance<SegmentedBow> distance) {
+    public DistanceMatrix getDistanceMatrixOfSegmentations(Distance<Vector> distance) {
         int size = segmentedBows.size();
         DistanceMatrix distanceMatrix = new DistanceMatrix(size);
         for (int i = 2; i <= size; i++) {
             for (int j = 1; j < i; j++) {
                 SegmentedBow lowbowJ = segmentedBows.get(j - 1);
                 SegmentedBow lowbowI = segmentedBows.get(i - 1);
-                distanceMatrix.setXY(i, j, distance.dist(lowbowI, lowbowJ));
+                distanceMatrix.setXY(i, j, distance.dist(lowbowI.getSegmentBow(), lowbowJ.getSegmentBow()));
             }
         }
         return distanceMatrix;

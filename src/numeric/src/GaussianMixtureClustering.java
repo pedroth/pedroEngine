@@ -9,23 +9,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The type Kmeans.
- */
-public class Kmeans {
+public class GaussianMixtureClustering {
     private Vector[] data;
     // data index to classification map
     private Map<Integer, Integer> classification;
     // classification to list of index map
     private Map<Integer, List<Integer>> inverseClassification;
     private Vector[] clusters;
+    private Matrix[] covariances;
+    // probability data be on cluster i;
+    private Vector phi;
 
     /**
      * Instantiates a new Kmeans.
      *
      * @param data is a n by m matrix where each column represents a data point
      */
-    public Kmeans(Matrix data) {
+    public GaussianMixtureClustering(Matrix data) {
         this.data = data.getVectorColumns();
     }
 
@@ -34,7 +34,7 @@ public class Kmeans {
      *
      * @param data the data
      */
-    public Kmeans(List<Vector> data) {
+    public GaussianMixtureClustering(List<Vector> data) {
         this.data = new Matrix(data).getVectorColumns();
     }
 
@@ -42,9 +42,9 @@ public class Kmeans {
      * Run kmeans.
      *
      * @param k the k
-     * @param epsilon the epsilon
      */
-    public void runKmeans(int k, double epsilon) {
+    public void runClustering(int k) {
+        double epsilon = 1E-3;
         double convError;
         initClusters(k);
         do {

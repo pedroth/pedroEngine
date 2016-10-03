@@ -30,6 +30,10 @@ public class KnnGraph<L> extends Graph {
         buildKnn();
     }
 
+    public KnnGraph(KnnGraph graph) {
+        this(new DistanceMatrix(graph.getDistanceMatrix()), graph.getK());
+    }
+
     /**
      * Instantiates a new Knn graph.
      *
@@ -75,6 +79,14 @@ public class KnnGraph<L> extends Graph {
                 putEdgeProperty(new Pair<>(i, j), EDGE_WEIGHT_KEY, distanceMatrix.getXY(i, j));
             }
         }
+    }
+
+    public int getK() {
+        return k;
+    }
+
+    public DistanceMatrix getDistanceMatrix() {
+        return distanceMatrix;
     }
 
     private class IndexPair implements Comparable<IndexPair> {

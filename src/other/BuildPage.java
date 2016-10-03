@@ -11,7 +11,7 @@ public class BuildPage {
     public static void buildJavaPage(String name, String path) {
         String[] special = {"<!--Special-->"};
 
-        String text = "\n\n<h1>" + name + "</h1>\n" + "<object type=\"application/x-java-applet\" height=\"100\" width=\"250\">\n" + "<param name=\"code\" value=\"apps.FrameApplet.class\" />\n" + "<param name=\"archive\" value=\"" + name + "Applet.jar\" />\nApplet failed to run.  No Java plug-in was found.\n" + " </object>\n" + " <p>input : </p><p>&lt; h &gt; : help button.</p>\n<p><a href='" + name + ".zip'> download applet and play it faster</a>\n";
+        String text = "\n\n<h1>" + name + "</h1>\n" + "<object type=\"application/x-java-applet\" height=\"100\" width=\"250\">\n" + "<param name=\"code\" value=\"apps.FrameApplet.class\" />\n" + "<param name=\"archive\" value=\"" + name + "Applet.jar\" />\nApplet failed to run.  No Java plug-in was found.\n" + " </object>\n" + " <p>input : </p><p>&lt; h &gt; : help button.</p>\n<p><a href='" + name + ".zip'> download application and play it faster</a>\n";
 
 //		if (name.equals("CellularAutomaton")) {
 //			text = "<h1>CellularAutomaton</h1>\n" + "<object type=\"application/x-java-applet\" height=\"500\" width=\"500\">\n" + "<param name=\"code\" value=\"apps.ParallelCellularAutomaton.class\" />\n" + "<param name=\"archive\" value=\"CellularAutomatonApplet.jar\" />n" + "Applet failed to run.  No Java plug-in was found." + "</object>\n" + "<p>input : </p><p>&lt; h &gt; : help button.</p>\n";
@@ -112,8 +112,8 @@ public class BuildPage {
     public static void BuildWeb() {
         String pathJava = "C:/pedro/visualExperiments/JavaExperiments";
         String pathJs = "C:/pedro/visualExperiments/JsExperiments";
-        buildPages(pathJava, (name, address) -> buildJavaPage(name, address));
-        buildPages(pathJs, (name, address) -> buildJsPage(name, address));
+        buildPages(pathJava, BuildPage::buildJavaPage);
+        buildPages(pathJs, BuildPage::buildJsPage);
     }
 
     public static void main(String[] args) {

@@ -49,7 +49,7 @@ public class String2D extends Element2D {
 
 	@Override
 	public BoundingBox getBoundingBox() {
-		return new BoundingBox();
+		return new BoundingBox(vertices[0].getX() - Double.MIN_VALUE, vertices[0].getY() - Double.MIN_VALUE, vertices[0].getX() + Double.MIN_VALUE, vertices[0].getY() + Double.MIN_VALUE);
 	}
 
 }

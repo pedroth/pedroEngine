@@ -36,6 +36,21 @@ public class Graph {
     }
 
     /**
+     * Copy constructor, does not copy properties map, just edge information.
+     *
+     * @param graph the graph
+     */
+    public Graph(Graph graph) {
+        numVertex = 0;
+        for (Map.Entry<Integer, HashSet<Integer>> entry : graph.edges.entrySet()) {
+            Integer u = entry.getKey();
+            for (Integer v : entry.getValue()) {
+                this.addEdge(u, v);
+            }
+        }
+    }
+
+    /**
      * Instantiates a new Graph.
      *
      * @param adjacencyMatrix the adjacency matrix
@@ -301,9 +316,7 @@ public class Graph {
         if (!vertexProperties.containsKey(i)) {
             vertexProperties.put(i, new HashMap<>());
         }
-        if (!vertexProperties.get(i).containsKey(str)) {
-            vertexProperties.get(i).put(str, obj);
-        }
+        vertexProperties.get(i).put(str, obj);
     }
 
     /**
@@ -334,9 +347,7 @@ public class Graph {
             if (!edgeProperties.containsKey(pair)) {
                 edgeProperties.put(pair, new HashMap<>());
             }
-            if (!edgeProperties.get(pair).containsKey(str)) {
-                edgeProperties.get(pair).put(str, obj);
-            }
+            edgeProperties.get(pair).put(str, obj);
         }
     }
 
@@ -345,10 +356,9 @@ public class Graph {
      *
      * @param pair the pair
      * @param str  the str
-     * @param obj  the obj
      * @return the edge property
      */
-    public <T> T getEdgeProperty(Pair<Integer, Integer> pair, String str, T obj) {
+    public <T> T getEdgeProperty(Pair<Integer, Integer> pair, String str) {
         Map<String, Object> stringObjectMap = edgeProperties.get(pair);
         if (stringObjectMap == null) {
             return null;
@@ -381,14 +391,20 @@ public class Graph {
         for (int i = 1; i <= numVertex; i++) {
             for (int j = 1; j <= numVertex; j++) {
                 Pair<Integer, Integer> key = new Pair<>(keyArray[i - 1], keyArray[j - 1]);
-                w.setXY(i, j, (Double) (edgeProperties.containsKey(key) ? (edgeProperties.get(key).containsKey(EDGE_WEIGHT_KEY) ? edgeProperties.get(key).get(EDGE_WEIGHT_KEY) : 0.0) : 0.0));
+                w.setXY(i, j, (Double) (edgeProperties.containsKey(key) ? (edgeProperties.get(key).containsKey(EDGE_WEIGHT_KEY) ? edgeProperties.get(key).get(EDGE_WEIGHT_KEY) : defaultValue) : defaultValue));
             }
         }
         return w;
     }
 
+    /**
+     * Get key index.
+     *
+     * @return the integer [ ]
+     */
     public Integer[] getKeyIndex() {
         Set<Integer> keys = edges.keySet();
         return keys.toArray(new Integer[keys.size()]);
     }
+
 }

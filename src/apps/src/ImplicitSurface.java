@@ -16,7 +16,7 @@ import java.text.NumberFormat;
 import java.util.Random;
 
 public class ImplicitSurface extends MyFrame {
-    protected double maxVision = 10;
+    protected double maxVision = 20;
     private TwoDimEngine engine;
     private String2D fps;
     private String helpTextStr = " w : move camera foward\n" + " s : move camera backward\n" + " a : move camera to left\n" + " d : move camera to right\n" + " q : move camera down\n" + " e : move camera up\n" + "\n" + " p : hd on/off\n" + "\n" + " drag mouse to change camera\n" + "\n" + "[0-9]: change surface";

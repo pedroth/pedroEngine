@@ -8,6 +8,7 @@ import graph.SpectralClustering;
 import twoDimEngine.BoxEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.elements.Point2D;
+import twoDimEngine.elements.String2D;
 import twoDimEngine.shaders.FillShader;
 import twoDimEngine.shaders.PaintMethod2D;
 
@@ -20,8 +21,10 @@ import java.util.Map;
 import java.util.Random;
 
 public class Test extends MyFrame {
-    private static final int numPoints = 50;
-    private static final int knn = 3;
+    private static final int numPoints = 100;
+    private static final int knn = 5;
+    private static final int kcluster = 2;
+    private static final double length = 5;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -32,11 +35,12 @@ public class Test extends MyFrame {
         engine = new BoxEngine(width, height);
         shader = new FillShader(engine);
         engine.setBackGroundColor(Color.white);
-        engine.setCamera(-2, 2, -2, 2);
+        double alpha = 1.5;
+        engine.setCamera(-alpha * length, alpha * length, -alpha * length, alpha * length);
         points = new ArrayList<>();
         Random r = new Random();
         for (int i = 0; i < numPoints; i++) {
-            points.add(new Vec2(2 * r.nextDouble() - 1, 2 * r.nextDouble() - 1));
+            points.add(new Vec2(2 * length * r.nextDouble() - length, 2 * length * r.nextDouble() - length));
             Point2D e = new Point2D(points.get(i));
             e.setColor(Color.black);
             e.setRadius(0.01);
@@ -44,12 +48,12 @@ public class Test extends MyFrame {
         }
 //        addData();
         engine.buildBoundigBoxTree();
-        this.knnGraph = new KnnGraph<>(points, 5, (x, y) -> Vec2.diff(x, y).squareNorm());
+        this.knnGraph = new KnnGraph<>(points, knn, (x, y) -> Vec2.diff(x, y).squareNorm());
         for (int i = 0; i < points.size(); i++) {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(knn, (x) -> Math.exp(-x));
+        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x));
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();
@@ -70,10 +74,16 @@ public class Test extends MyFrame {
         int i = 0;
         for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
             for (Integer index : entry.getValue()) {
-                Point2D e = new Point2D(points.get(index));
+                Point2D e = new Point2D(points.get(index - 1));
                 e.setRadius(0.1);
                 e.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));
                 engine.addtoList(e, shader);
+                double var = 0.5;
+                Vec2 rand = new Vec2(var * Math.random(), var * Math.random());
+                String2D kclass = new String2D(Vec2.add(points.get(index - 1), rand), "" + i);
+                kclass.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));
+                kclass.setFontSize(10);
+                engine.addtoList(kclass);
             }
             i++;
         }

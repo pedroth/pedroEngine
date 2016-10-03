@@ -37,4 +37,14 @@ public class Interval<X extends Comparable<X>> {
     public void setEmptyInterval(boolean emptyInterval) {
         isEmptyInterval = emptyInterval;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (isEmptyInterval) {
+            return "Empty interval";
+        }
+        stringBuilder.append("[ ").append(xmin.toString()).append(" , ").append(xmax.toString()).append(" ]");
+        return stringBuilder.toString();
+    }
 }
