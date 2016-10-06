@@ -132,6 +132,14 @@ public class NecessaryWordPredicate implements Predicate<String> {
         return notNecessaryWords;
     }
 
+    public String getNotNecessaryWordString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String notNecessaryWord : notNecessaryWords) {
+            stringBuilder.append(notNecessaryWord + "\n");
+        }
+        return stringBuilder.toString();
+    }
+
     public void setBowManager(BaseDocModelManager<Bow> bowManager) {
         this.bowManager = bowManager;
     }

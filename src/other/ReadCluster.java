@@ -1,7 +1,7 @@
 package other;
 
 
-import inputOutput.MyText;
+import inputOutput.TextIO;
 
 public class ReadCluster {
     public static void main(String[] args) {
@@ -13,7 +13,7 @@ public class ReadCluster {
             System.out.println("second argument must be a number between 1 and n");
         }
 
-        MyText text = new MyText(args[0]);
+        TextIO text = new TextIO(args[0]);
         String[] split = text.getText().split("\n");
 
         //special vars

@@ -10,7 +10,7 @@ import java.util.function.Function;
  * The type Csv reader.
  */
 public class CsvReader extends HyperTable<Integer, String> {
-    private MyText textReader;
+    private TextIO textIO;
     private int[] size = new int[]{0, 0};
     private HashMap<String, Boolean> delimiters = new HashMap<>(3);
 
@@ -22,7 +22,7 @@ public class CsvReader extends HyperTable<Integer, String> {
         this.delimiters.put("\\t", true);
         this.delimiters.put(",", true);
         this.delimiters.put(";", true);
-        this.textReader = new MyText();
+        this.textIO = new TextIO();
     }
 
     /**
@@ -31,8 +31,8 @@ public class CsvReader extends HyperTable<Integer, String> {
      * @param address the address
      */
     public void read(String address) {
-        textReader.read(address);
-        String text = textReader.getText();
+        textIO.read(address);
+        String text = textIO.getText();
         String[] split = text.split("\n");
         String regex = buildRegex();
         for (int i = 0; i < split.length; i++) {

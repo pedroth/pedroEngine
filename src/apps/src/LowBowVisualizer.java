@@ -4,7 +4,7 @@ import algebra.src.Vec2;
 import algebra.src.Vec3;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.src.eigenLowbow.SummaryGenLowBowManager;
 import nlp.lowbow.src.simpleLowBow.BaseLowBow;
@@ -78,7 +78,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         SubsSplitter textSplitter = new SubsSplitter();
 
         //bow representation

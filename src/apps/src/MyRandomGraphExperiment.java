@@ -4,7 +4,7 @@ import algebra.src.Matrix;
 import algebra.src.Vector;
 import algebra.utils.MatlabMatrixPrinter;
 import graph.Graph;
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import numeric.src.MyMath;
 import realFunction.src.ExpressionFunction;
 import realFunction.src.MultiVarFunction;
@@ -331,7 +331,7 @@ public class MyRandomGraphExperiment {
         }
         File desktop = new File(System.getProperty("user.home"), "Desktop");
         String desktopAddress = desktop.getAbsolutePath();
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         degrees.append(String.format("%n"));
         degrees.append(clusterCoeffs);
         degrees.append(String.format("%n"));

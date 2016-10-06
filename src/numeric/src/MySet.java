@@ -1,6 +1,6 @@
 package numeric.src;
 
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.textSplitter.TextSplitter;
 
 import java.util.HashMap;
@@ -42,9 +42,9 @@ public class MySet {
 	}
 	
 	public static void main(String[] args) {
-		MyText t1 = new MyText();
+		TextIO t1 = new TextIO();
 		t1.read("C:/Users/pedro/Desktop/research/resources/stopWords.txt");
-		MyText t2 = new MyText();
+		TextIO t2 = new TextIO();
 		t2.read("C:/Users/pedro/Desktop/research/resources/prepositions.txt");
 		String s1 = t1.getText();
 		String s2 = t2.getText();

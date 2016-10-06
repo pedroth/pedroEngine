@@ -23,7 +23,7 @@ import java.util.Random;
 public class Test extends MyFrame {
     private static final int numPoints = 100;
     private static final int knn = 5;
-    private static final int kcluster = 2;
+    private static final int kcluster = 6;
     private static final double length = 5;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
@@ -35,8 +35,6 @@ public class Test extends MyFrame {
         engine = new BoxEngine(width, height);
         shader = new FillShader(engine);
         engine.setBackGroundColor(Color.white);
-        double alpha = 1.5;
-        engine.setCamera(-alpha * length, alpha * length, -alpha * length, alpha * length);
         points = new ArrayList<>();
         Random r = new Random();
         for (int i = 0; i < numPoints; i++) {
@@ -48,12 +46,13 @@ public class Test extends MyFrame {
         }
 //        addData();
         engine.buildBoundigBoxTree();
+        engine.setCameraAuto(1.25);
         this.knnGraph = new KnnGraph<>(points, knn, (x, y) -> Vec2.diff(x, y).squareNorm());
         for (int i = 0; i < points.size(); i++) {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x));
+        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-5);
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();
@@ -78,7 +77,7 @@ public class Test extends MyFrame {
                 e.setRadius(0.1);
                 e.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));
                 engine.addtoList(e, shader);
-                double var = 0.5;
+                double var = 0.25;
                 Vec2 rand = new Vec2(var * Math.random(), var * Math.random());
                 String2D kclass = new String2D(Vec2.add(points.get(index - 1), rand), "" + i);
                 kclass.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));

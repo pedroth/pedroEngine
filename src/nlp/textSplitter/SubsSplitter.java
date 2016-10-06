@@ -1,6 +1,6 @@
 package nlp.textSplitter;
 
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import utils.Interval;
 
 import java.time.LocalTime;
@@ -37,7 +37,7 @@ public class SubsSplitter implements TextSplitter {
     }
 
     public static void main(String[] args) {
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         SubsSplitter subsSplitter = new SubsSplitter();
         String[] split = subsSplitter.split(text.getText());

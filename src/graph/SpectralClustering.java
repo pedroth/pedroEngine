@@ -20,6 +20,7 @@ public class SpectralClustering {
     private final static String CLASS_VERTEX_PROPERTY = "class";
     private final KnnGraph graph;
     private Map<Integer, List<Integer>> inverseClassification;
+    private Matrix eigenCoeff;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -38,7 +39,7 @@ public class SpectralClustering {
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(int k) {
-        return clustering(k, (x) -> Math.exp(-x * x));
+        return clustering(k, (x) -> Math.exp(-x * x), 1E-7);
     }
 
 
@@ -49,15 +50,16 @@ public class SpectralClustering {
      * @param similarityMeasure the similarity measure
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
-    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure) {
+    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon) {
         Matrix W = getWeightMatrix(similarityMeasure);
         Matrix D = getDegreeMatrix(W);
         Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
         SymmetricEigen symmetricEigen = new SymmetricEigen(laplacianMatrix);
-        symmetricEigen.computeEigen(1E-5, Integer.min(k + 1, laplacianMatrix.getRows()), new HyperEigenAlgo());
+        symmetricEigen.computeEigen(epsilon, Integer.min(k + 1, laplacianMatrix.getRows()), new HyperEigenAlgo());
         Matrix U = new Matrix(symmetricEigen.getEigenVectors());
+        this.eigenCoeff = U;
         Kmeans kmeans = new Kmeans(U.getSubMatrix(1, U.getRows(), 2, U.getColumns()).transpose());
-        kmeans.runKmeans(k, 1E-9);
+        kmeans.runKmeans(k, epsilon, 25);
         Map<Integer, List<Integer>> inverseClassification = kmeans.getInverseClassification();
         Integer[] keyIndex = this.graph.getKeyIndex();
         for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
@@ -169,5 +171,9 @@ public class SpectralClustering {
      */
     public KnnGraph getGraph() {
         return graph;
+    }
+
+    public Matrix getEigenCoeff() {
+        return eigenCoeff;
     }
 }

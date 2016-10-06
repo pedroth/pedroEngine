@@ -8,7 +8,7 @@ import graph.KnnGraph;
 import graph.RandomWalkGraph;
 import graph.SpectralClustering;
 import inputOutput.CsvReader;
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.src.eigenLowbow.SummaryGenLowBowManager;
 import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
@@ -50,7 +50,7 @@ public class LowBowTests {
         int samples = 100;
         double step = 1.0 / (samples - 1);
         double lambda = 0;
-        MyText t = new MyText();
+        TextIO t = new TextIO();
         t.read("src/nlp/resources/texts/TextExample.txt");
         String text = "Hello , please input some text here. For example a c c c b b a c c";
         LowBow lowOrig = new LowBow(t.getText(), new MyTextSplitter());
@@ -75,7 +75,7 @@ public class LowBowTests {
      */
     @Test
     public void lowbowSmoothingGeneratiodnTest() {
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         int samples = 10;
         ArrayList[] subSamples = new ArrayList[samples];
@@ -119,7 +119,7 @@ public class LowBowTests {
         int numOfEpisodes = 10;
         String[] address = new String[numOfEpisodes];
         BaseLowBowManager<LowBowSubtitles> manager = new BaseLowBowManager<>();
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         for (int i = 0; i < numOfEpisodes; i++) {
             address[i] = principalAddress + (i + 1) + endFile;
             text.read(address[i]);
@@ -134,7 +134,7 @@ public class LowBowTests {
 
     @Test
     public void printLowBow() {
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
         lowBowSubtitles.build();
@@ -149,7 +149,7 @@ public class LowBowTests {
         CsvReader csvReader = new CsvReader();
         csvReader.read("C:/Users/Pedroth/Desktop/lowbow.csv");
         Matrix lowBow = csvReader.map(Csv2Matrix.getInstance());
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
         lowBowSubtitles.build();
@@ -169,7 +169,7 @@ public class LowBowTests {
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManagerRaw = new SummaryGenLowBowManager<>();
 
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         SubsSplitter textSplitter = new SubsSplitter();
 
         textSplitter = new SubsSplitter(x -> true);
@@ -203,7 +203,7 @@ public class LowBowTests {
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         SubsSplitter textSplitter = new SubsSplitter();
 
         //bow representation
@@ -318,7 +318,7 @@ public class LowBowTests {
         Collections.sort(videos);
 
         SubsSplitter textSplitter = new SubsSplitter();
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
@@ -361,7 +361,7 @@ public class LowBowTests {
         SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
-        MyText text = new MyText();
+        TextIO text = new TextIO();
         SubsSplitter textSplitter = new SubsSplitter();
 
         //bow representation

@@ -80,6 +80,9 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
         Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
         diag = Matrix.diag(getEigenValues().getSubVector(1, numberOfLowDimCoeff)).prod(diag);
+        if (textLength > 50) {
+            return getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prodParallel(diag.prod(getEigenCoord()));
+        }
         return getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
     }
 
@@ -89,6 +92,9 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
         Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
         Matrix yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
+        if (textLength > 50) {
+            return opD.prodParallel(yt);
+        }
         return opD.prod(yt);
     }
 

@@ -2,7 +2,7 @@ package nlp.lowbow.src.simpleLowBow;
 
 import algebra.src.Vec2;
 import graph.Graph;
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
@@ -71,7 +71,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 			}
 		}
 
-		MyText t1 = new MyText();
+		TextIO t1 = new TextIO();
 
 		String acm = "";
 		/**
@@ -151,7 +151,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 	}
 
 	public static void main(String[] args) {
-		MyText text = new MyText();
+		TextIO text = new TextIO();
 		text.read("C:/Users/pedro/Desktop/research/Text.txt");
 		LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(text.getText());
 		low.setSamplesPerTextLength(1);
@@ -215,7 +215,7 @@ public class LowBowSummaryPrepositions extends LowBow {
 	}
 
 	private void printWordsToTextGraph() {
-		MyText t1 = new MyText();
+		TextIO t1 = new TextIO();
 		String acm = "";
 		for (int i = 1; i <= numWords; i++) {
 			acm += simplex.get(i) + "|\t";

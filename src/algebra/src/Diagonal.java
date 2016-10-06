@@ -106,4 +106,19 @@ public class Diagonal extends Matrix {
     public String toString() {
         return super.toString();
     }
+
+    public double det() {
+        double multidentity = 1;
+        for (int i = 1; i <= n; i++) {
+            multidentity *= this.getXY(i, i);
+        }
+        return multidentity;
+    }
+
+    public Diagonal inverse() {
+        // deep copy
+        Diagonal inverse = new Diagonal(this);
+        inverse.applyFunction((x) -> 1 / x);
+        return inverse;
+    }
 }

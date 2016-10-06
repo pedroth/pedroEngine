@@ -1,5 +1,6 @@
 package numeric.src;
 
+import algebra.src.Diagonal;
 import algebra.src.Vector;
 import realFunction.src.ExpressionFunction;
 
@@ -83,6 +84,13 @@ public class MyMath {
         return (1 / (Math.sqrt(2 * Math.PI) * sigma)) * Math.exp(-0.5 * ((x - myu) / sigma) * ((x - myu) / sigma));
     }
 
+    public static double gaussian(Vector x, Vector myu, Diagonal sigma) {
+        int dim = x.getDim();
+        Vector diff = Vector.diff(x, myu);
+        Diagonal inverse = sigma.inverse();
+        return (1 / (Math.sqrt(powInt(2 * Math.PI, dim) * sigma.det()))) * Math.exp(-0.5 * Vector.innerProd(diff, inverse.prodVector(diff)));
+    }
+
     /**
      * warning does not accept variables
      *
@@ -101,6 +109,22 @@ public class MyMath {
             return y + (x % y);
         } else {
             return x % y;
+        }
+    }
+
+    public static double powInt(double x, int k) {
+        if (k == 0) {
+            return 1;
+        } else if (k == 1) {
+            return x;
+        } else {
+            int q = (int) Math.floor(k / 2);
+            int r = k % 2;
+            if (r == 0) {
+                return powInt(x * x, q);
+            } else {
+                return x * powInt(x * x, q);
+            }
         }
     }
 }

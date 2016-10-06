@@ -1,6 +1,6 @@
 package nlp.lowbow.src.script;
 
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.lowbow.src.simpleLowBow.HeatMethod;
 import nlp.lowbow.src.simpleLowBow.LowBow;
 import nlp.lowbow.src.simpleLowBow.LowBowSummaryPrepositions;
@@ -92,7 +92,7 @@ public class LowBowSummaryApp {
 		 */
 		try {
 			LowBow l;
-			MyText text = new MyText();
+			TextIO text = new TextIO();
 			text.read(addressIn);
 			type.toLowerCase();
 			if(type.equals("normal")) {

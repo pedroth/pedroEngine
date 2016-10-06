@@ -202,7 +202,10 @@ public class EigenLowBow extends BaseLowBow {
         int clamMax = (int) MyMath.clamp(xmax, 1, textLength);
         double heatTime = getHeatTime();
         Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
-        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+        if (clamMax - clamMin < 50) {
+            return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+        }
+        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prodParallel(diag.prod(eigenCoord));
     }
 
     /**
@@ -215,7 +218,10 @@ public class EigenLowBow extends BaseLowBow {
         int clamMax = textLength;
         double heatTime = getHeatTime();
         Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
-        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+        if (textLength < 50) {
+            return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
+        }
+        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prodParallel(diag.prod(eigenCoord));
     }
 
     @Override

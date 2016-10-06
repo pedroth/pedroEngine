@@ -55,6 +55,37 @@ public class Kmeans {
         } while (convError > epsilon);
     }
 
+    public void runKmeans(int k, double epsilon, int replicates) {
+        Map<Integer, Integer> minClassification = null;
+        Map<Integer, List<Integer>> minInverseClassification = null;
+        Vector[] minClusters = new Vector[0];
+        double minCost = Double.MAX_VALUE;
+        for (int i = 0; i < replicates; i++) {
+            runKmeans(k, epsilon);
+            double cost = computeCostFunction();
+            if (minCost > cost) {
+                minClassification = getClassification();
+                minInverseClassification = getInverseClassification();
+                minClusters = getClusters();
+                minCost = cost;
+            }
+        }
+        this.inverseClassification = minInverseClassification;
+        this.classification = minClassification;
+        this.clusters = minClusters;
+    }
+
+    private double computeCostFunction() {
+        double acc = 0;
+        for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
+            int key = entry.getKey();
+            for (Integer index : entry.getValue()) {
+                acc += Vector.diff(clusters[key], data[index]).squareNorm();
+            }
+        }
+        return acc;
+    }
+
     private double getConvergenceError(Vector[] newClusters) {
         double convergenceError = 0;
         for (int i = 0; i < newClusters.length; i++) {

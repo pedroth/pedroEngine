@@ -304,6 +304,13 @@ public class Matrix {
         return u;
     }
 
+
+    public static Matrix getIdentity(int n) {
+        Vector v = new Vector(n);
+        v.fill(1.0);
+        return Matrix.diag(v);
+    }
+
     /**
      * Square norm.
      *

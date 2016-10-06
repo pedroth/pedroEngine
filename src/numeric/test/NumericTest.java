@@ -202,7 +202,7 @@ public class NumericTest {
         data.add(new Vec2(0.1, -0.9));
         data.add(new Vec2(-0.1, -1.1));
         Kmeans kmeans = new Kmeans(data);
-        kmeans.runKmeans(3, 1E-3);
+        kmeans.runKmeans(3, 1E-3, 10);
         Map<Integer, Integer> classification = kmeans.getClassification();
         for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {
             System.out.println(entry.getKey() + " : " + entry.getValue());
@@ -211,7 +211,28 @@ public class NumericTest {
         for (Vector p : clusters) {
             System.out.println(p);
         }
-//        Assert.assertTrue(Vec2.diff(clusters[classification.get(2)], new Vec2(1,0)).norm() < 0.5);
+        Assert.assertTrue(Vec2.diff(clusters[classification.get(2)], new Vec2(1, 0)).norm() < 0.5);
+    }
+
+    @Test
+    public void testGaussianMixtureModel() {
+        List<Vector> data = new ArrayList<>(6);
+        data.add(new Vec2(-1.1, 0.1));
+        data.add(new Vec2(-0.9, -0.1));
+        data.add(new Vec2(1.1, 0.1));
+        data.add(new Vec2(0.9, -0.1));
+        data.add(new Vec2(0.1, -0.9));
+        data.add(new Vec2(-0.1, -1.1));
+        GaussianMixtureClustering kmeans = new GaussianMixtureClustering(data);
+        kmeans.runClustering(3, 1E-3);
+        Map<Integer, Integer> classification = kmeans.getClassification();
+        for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
+        Vector[] clusters = kmeans.getClusters();
+        for (Vector p : clusters) {
+            System.out.println(p);
+        }
     }
 
 }

@@ -1,6 +1,6 @@
 package other;
 
-import inputOutput.MyText;
+import inputOutput.TextIO;
 import nlp.textSplitter.CharacterSplitter;
 import nlp.utils.TextAlignment;
 
@@ -32,7 +32,7 @@ public class Portfolio {
 		/*
 		 *  Reading
 		 */
-		MyText t1 = new MyText();
+		TextIO t1 = new TextIO();
 		t1.read("C:/Users/Pedroth/Desktop/Tags.txt");
 		String s = t1.getText();
 		String[] vec = s.toLowerCase().split("\n");
