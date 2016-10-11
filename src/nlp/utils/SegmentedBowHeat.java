@@ -11,13 +11,13 @@ import utils.Interval;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
-public class SegmentedBow implements Comparable<SegmentedBow> {
+public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
     private Interval<Integer> interval;
     private LowBowSubtitles lowBowSubtitles;
     private Vector segmentBow;
     private double timeIntervalMinutes;
 
-    public SegmentedBow(Interval<Integer> interval, LowBowSubtitles lowBowSubtitles) {
+    public SegmentedBowHeat(Interval<Integer> interval, LowBowSubtitles lowBowSubtitles) {
         this.interval = interval;
         this.lowBowSubtitles = lowBowSubtitles;
         computeTimeInterval();
@@ -66,7 +66,7 @@ public class SegmentedBow implements Comparable<SegmentedBow> {
     }
 
     @Override
-    public int compareTo(SegmentedBow o) {
+    public int compareTo(SegmentedBowHeat o) {
         int compareStr = lowBowSubtitles.getVideoAddress().compareTo(o.getLowBowSubtitles().getVideoAddress());
         if (compareStr == 0) {
             return interval.getXmin().compareTo(o.getInterval().getXmin());

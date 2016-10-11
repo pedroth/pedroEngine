@@ -25,7 +25,7 @@ import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.LowBowPrinter;
 import nlp.utils.NecessaryWordPredicate;
-import nlp.utils.SegmentedBow;
+import nlp.utils.SegmentedBowHeat;
 import numeric.src.Distance;
 import org.junit.Assert;
 import org.junit.Test;
@@ -226,7 +226,7 @@ public class LowBowTests {
         lowBowManager.buildModel(0.04);
         //build segmentation
         lowBowManager.buildSegmentations();
-        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
 
         //distances
@@ -278,7 +278,7 @@ public class LowBowTests {
         for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
             Integer key = entry.getKey();
             for (Integer index : entry.getValue()) {
-                SegmentedBow segmentedBow = segmentedBows.get(index - 1);
+                SegmentedBowHeat segmentedBow = segmentedBows.get(index - 1);
                 LowBowSubtitles lowBowSubtitles = segmentedBow.getLowBowSubtitles();
                 String videoAddress = lowBowSubtitles.getVideoAddress();
                 videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
@@ -293,7 +293,7 @@ public class LowBowTests {
     }
 
 
-    private void cutSegmentsGraph(List<SegmentedBow> segmentedBows, Graph graph) {
+    private void cutSegmentsGraph(List<SegmentedBowHeat> segmentedBows, Graph graph) {
         String str = "C:/Users/Pedroth/Desktop/cutGraph/";
         for (Integer u : graph.getVertexSet()) {
             String address = str + u + "/";
@@ -312,9 +312,9 @@ public class LowBowTests {
 
     @Test
     public void testSegmentation() {
-        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "srt");
         Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "mkv");
         Collections.sort(videos);
 
         SubsSplitter textSplitter = new SubsSplitter();
@@ -337,10 +337,10 @@ public class LowBowTests {
             textSplitter = new SubsSplitter(predicate);
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
-        lowBowManager.buildModel(0.025);
+        lowBowManager.buildModel(0.04);
         text.write("C:/Users/Pedroth/Desktop/epi1.txt", lowBowManager.getDocModels().get(0).generateText(new TopKSymbol(10)));
         lowBowManager.buildSegmentations();
-        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
         for (int i = 0; i < segmentedBows.size(); i++) {
             String outAddress = "C:/Users/Pedroth/Desktop/" + "cut" + i + ".mp4";
@@ -385,7 +385,7 @@ public class LowBowTests {
 
         //build segmentation
         lowBowManager.buildSegmentations();
-        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
 
         Distance<Vector> simplexDist = (x, y) -> {

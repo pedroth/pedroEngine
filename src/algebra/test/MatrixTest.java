@@ -1,9 +1,6 @@
 package algebra.test;
 
-import algebra.src.Diagonal;
-import algebra.src.Matrix;
-import algebra.src.Vec3;
-import algebra.src.Vector;
+import algebra.src.*;
 import numeric.src.QuadraticFormMinimizer;
 import numeric.src.SymmetricEigen;
 import org.junit.Assert;
@@ -92,6 +89,15 @@ public class MatrixTest {
         Vector x = diagonal.solveDiagonalSystem(y);
         Assert.assertTrue(Vector.diff(diagonal.prodVector(x), y).norm() < 1E-3);
 
+    }
+
+    @Test
+    public void TridiagonalTest() {
+        TridiagonalMatrix matrix = new TridiagonalMatrix(new double[]{1, 2, 2, 2}, new double[]{2, 3, 3}, new double[]{1, 1, 1});
+        Matrix test = new Matrix(new double[][]{{1, 1}, {1, 1}, {1, 1}, {1, 1}});
+        Assert.assertTrue(Matrix.diff(matrix.prod(test), new Matrix(new double[][]{{3, 3}, {6, 6}, {6, 6}, {3, 3}})).squareNorm() < 1E-3);
+        LineGradient lineGradient = new LineGradient(4);
+        System.out.println(lineGradient.prod(test));
     }
 
 }

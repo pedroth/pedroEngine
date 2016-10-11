@@ -5,7 +5,7 @@ import algebra.src.LineGradient;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.textSplitter.SubsSplitter;
-import nlp.utils.SegmentedBow;
+import nlp.utils.SegmentedBowHeat;
 import utils.Interval;
 
 import java.util.ArrayList;
@@ -33,23 +33,20 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         return (T) super.getTextSplitter();
     }
 
-    public List<SegmentedBow> getSegmentation() {
-        List<SegmentedBow> segmentedBows = new ArrayList<>();
+    public List<SegmentedBowHeat> getSegmentation() {
+        List<SegmentedBowHeat> segmentedBows = new ArrayList<>();
         Vector segFunc = computeSegmentation();
-//        for (int i = 1; i <= segFunc.size(); i++) {
-//            System.out.println(segFunc.getX(i));
-//        }
         Vector zerosIndicator = findZeros(segFunc);
         int minIndex = 1;
         int size = zerosIndicator.size();
         for (int i = 2; i <= size; i++) {
             if (zerosIndicator.getX(i) == 1.0 && i != minIndex) {
-                segmentedBows.add(new SegmentedBow(new Interval(minIndex, i), this));
+                segmentedBows.add(new SegmentedBowHeat(new Interval(minIndex, i), this));
                 minIndex = i + 1;
             }
         }
         if (minIndex != textLength) {
-            segmentedBows.add(new SegmentedBow(new Interval(minIndex, textLength), this));
+            segmentedBows.add(new SegmentedBowHeat(new Interval(minIndex, textLength), this));
         }
         return segmentedBows;
     }
@@ -91,9 +88,11 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         LineGradient opD = new LineGradient(textLength);
         int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
         Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
-        Matrix yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
+        Matrix yt;
         if (textLength > 50) {
-            return opD.prodParallel(yt);
+            yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prodParallel(diag.prod(getEigenCoord()));
+        } else {
+            yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
         }
         return opD.prod(yt);
     }

@@ -39,7 +39,7 @@ public class SpectralClustering {
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(int k) {
-        return clustering(k, (x) -> Math.exp(-x * x), 1E-7);
+        return clustering(k, (x) -> Math.exp(-x * x), 1E-7, 1000);
     }
 
 
@@ -48,9 +48,11 @@ public class SpectralClustering {
      *
      * @param k                 the k number of clusters
      * @param similarityMeasure the similarity measure
+     * @param epsilon           the epsilon
+     * @param repetitions       the repetitions
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
-    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon) {
+    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
         Matrix W = getWeightMatrix(similarityMeasure);
         Matrix D = getDegreeMatrix(W);
         Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
@@ -59,7 +61,7 @@ public class SpectralClustering {
         Matrix U = new Matrix(symmetricEigen.getEigenVectors());
         this.eigenCoeff = U;
         Kmeans kmeans = new Kmeans(U.getSubMatrix(1, U.getRows(), 2, U.getColumns()).transpose());
-        kmeans.runKmeans(k, epsilon, 25);
+        kmeans.runKmeans(k, epsilon, repetitions);
         Map<Integer, List<Integer>> inverseClassification = kmeans.getInverseClassification();
         Integer[] keyIndex = this.graph.getKeyIndex();
         for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
@@ -173,6 +175,11 @@ public class SpectralClustering {
         return graph;
     }
 
+    /**
+     * Gets eigen coeff.
+     *
+     * @return the eigen coeff
+     */
     public Matrix getEigenCoeff() {
         return eigenCoeff;
     }

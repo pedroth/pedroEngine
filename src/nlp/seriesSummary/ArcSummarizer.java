@@ -15,7 +15,7 @@ import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
-import nlp.utils.SegmentedBow;
+import nlp.utils.SegmentedBowHeat;
 import nlp.utils.Simplex;
 import numeric.src.Distance;
 import utils.FilesCrawler;
@@ -109,89 +109,101 @@ public class ArcSummarizer extends SeriesSummarization {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv", 0.06, 0.09, 7, 5, ArcSummarizer.simplexDist);
-        arcSummarizer.buildSummary("C:/Users/Pedroth/Desktop/OverTheGardenWallSummary/", 10);
+        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.025, 0.1, 5, 20, ArcSummarizer.simplexDist);
+        arcSummarizer.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 10);
     }
 
     @Override
     public void buildSummary(String outputAddress, double timeLengthMinutes) {
-        TextIO textIO = new TextIO();
-        outputAddress += ('/' == outputAddress.charAt(outputAddress.length() - 1) ? "" : "/");
-        creatDirs(outputAddress);
+        try {
+            TextIO textIO = new TextIO();
+            outputAddress += ('/' == outputAddress.charAt(outputAddress.length() - 1) ? "" : "/");
+            creatDirs(outputAddress);
 
-        StopWatch stopWatch = new StopWatch();
-        String seriesAddress = this.getSeriesAddress();
-        List<String> subtitles = FilesCrawler.listFilesWithExtension(seriesAddress, SUBTITLE_EXTENSION);
-        Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension(seriesAddress, this.getVideoExtension());
-        Collections.sort(videos);
-        log.add("Read files: " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
+            StopWatch stopWatch = new StopWatch();
+            String seriesAddress = this.getSeriesAddress();
+            List<String> subtitles = FilesCrawler.listFilesWithExtension(seriesAddress, SUBTITLE_EXTENSION);
+            Collections.sort(subtitles);
+            List<String> videos = FilesCrawler.listFilesWithExtension(seriesAddress, this.getVideoExtension());
+            Collections.sort(videos);
+            log.add("Read files : " + stopWatch.getEleapsedTime());
+            System.out.println("Read files : " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
 
-        //construct managers
-        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
-        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+            //construct managers
+            SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+            BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
-        TextIO text = new TextIO();
-        SubsSplitter textSplitter = new SubsSplitter();
+            TextIO text = new TextIO();
+            SubsSplitter textSplitter = new SubsSplitter();
 
-        //bow representation
-        for (String subtitle : subtitles) {
-            text.read(subtitle);
-            bowManager.add(new Bow(text.getText(), textSplitter));
+            //bow representation
+            for (String subtitle : subtitles) {
+                text.read(subtitle);
+                bowManager.add(new Bow(text.getText(), textSplitter));
+            }
+            bowManager.build();
+
+            //build predicate
+            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+            log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
+            System.out.println("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            textIO.write(outputAddress + "removedWords.txt", predicate.getNotNecessaryWordString());
+
+            //lowbow representation
+            for (int i = 0; i < subtitles.size(); i++) {
+                text.read(subtitles.get(i));
+                textSplitter = new SubsSplitter(predicate);
+                lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+            }
+            log.add("Lowbow for each episode: " + stopWatch.getEleapsedTime());
+            System.out.println("Lowbow for each episode: " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            //heat model
+            lowBowManager.buildModel(heat);
+            log.add("Lowbow heat flow done!! : " + stopWatch.getEleapsedTime());
+            System.out.println("Lowbow heat flow done!! : " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            //build segmentation
+            lowBowManager.buildSegmentations();
+            List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
+            Collections.sort(segmentedBows);
+            log.add("Segmentation done!! : " + stopWatch.getEleapsedTime());
+            System.out.println("Segmentation done!! : " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            //build knn-graph
+            DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
+            KnnGraph graph = new KnnGraph(distanceMatrix, knn);
+            log.add("knn graph done!! : " + stopWatch.getEleapsedTime());
+            System.out.println("knn graph done!! : " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            textIO.write(outputAddress + "segmentGraph.txt", graph.toStringGephi());
+
+            //clustering
+            SpectralClustering spectralClustering = new SpectralClustering(graph);
+            Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(kcluster);
+            Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
+            log.add("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
+            System.out.println("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
+            stopWatch.resetTime();
+
+            //summarize
+            randomWalkSummary(segmentedBows, map, timeLengthMinutes, outputAddress);
+            log.add("Summary done!! : " + stopWatch.getEleapsedTime());
+            System.out.println("Summary done!! : " + stopWatch.getEleapsedTime());
+            log.add("<FINISH>");
+        } catch (Exception e) {
+            log.add(e.getMessage());
         }
-        bowManager.build();
-
-        //build predicate
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
-        log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        textIO.write(outputAddress + "removedWords.txt", predicate.getNotNecessaryWordString());
-
-        //lowbow representation
-        for (int i = 0; i < subtitles.size(); i++) {
-            text.read(subtitles.get(i));
-            textSplitter = new SubsSplitter(predicate);
-            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
-        }
-        log.add("Lowbow for each episode: " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        //heat model
-        lowBowManager.buildModel(heat);
-        log.add("Lowbow heat flow done!! : " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        //build segmentation
-        lowBowManager.buildSegmentations();
-        List<SegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
-        Collections.sort(segmentedBows);
-        log.add("Segmentation done!! : " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        //build knn-graph
-        DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
-        KnnGraph graph = new KnnGraph(distanceMatrix, knn);
-        log.add("knn graph done!! : " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        textIO.write(outputAddress + "segmentGraph.txt", graph.toStringGephi());
-
-        //clustering
-        SpectralClustering spectralClustering = new SpectralClustering(graph);
-        Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(kcluster);
-        Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
-        log.add("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
-        stopWatch.resetTime();
-
-        //summarize
-        randomWalkSummary(segmentedBows, map, timeLengthMinutes, outputAddress);
-        log.add("Summary done!! : " + stopWatch.getEleapsedTime());
-        log.add("<FINISH>");
     }
 
-    private void randomWalkSummary(List<SegmentedBow> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
+    private void randomWalkSummary(List<SegmentedBowHeat> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
         Simplex simplex = segmentedBows.get(0).getLowBowSubtitles().getSimplex();
         for (Integer key : map.keySet()) {
             Graph graphClass = map.get(key);
@@ -227,7 +239,7 @@ public class ArcSummarizer extends SeriesSummarization {
             TopKSymbol topKSymbol = new TopKSymbol(30);
             while (acc < timeLengthMinutes && k > 0) {
                 // keyIndex values are index values in {1, ..., n}
-                SegmentedBow segmentedBow = segmentedBows.get(keyIndex[permutation[k--]] - 1);
+                SegmentedBowHeat segmentedBow = segmentedBows.get(keyIndex[permutation[k--]] - 1);
                 double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
                 if (acc + timeIntervalMinutes < timeLengthMinutes) {
                     segmentedBow.cutSegment(auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval() + ".mp4");

@@ -5,9 +5,10 @@ import algebra.src.LineLaplacian;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
-import nlp.utils.SegmentedBow;
+import nlp.utils.SegmentedBowHeat;
 import numeric.src.Distance;
 import numeric.src.MyMath;
+import utils.StopWatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
     private Matrix eigenBasisGlobal;
     // Eigen values of the LineLaplacian matrix
     private Vector eigenValuesGlobal;
-    private List<SegmentedBow> segmentedBows;
+    private List<SegmentedBowHeat> segmentedBows;
 
     /**
      * Instantiates a new Summary gen low bow manager.
@@ -44,6 +45,7 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         this.eigenValuesGlobal = new Vector(L.getEigenValues());
         int k = (int) MyMath.clamp(p * maxTextLength + 1, 1, maxTextLength);
         for (L lowbow : this.getDocModels()) {
+            lowbow.setSimplex(simplex);
             lowbow.build();
             lowbow.buildHeatRepresentation(eigenBasisGlobal, eigenValuesGlobal, k);
             lowbow.deleteRawCurve();
@@ -83,8 +85,8 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         DistanceMatrix distanceMatrix = new DistanceMatrix(size);
         for (int i = 2; i <= size; i++) {
             for (int j = 1; j < i; j++) {
-                SegmentedBow lowbowJ = segmentedBows.get(j - 1);
-                SegmentedBow lowbowI = segmentedBows.get(i - 1);
+                SegmentedBowHeat lowbowJ = segmentedBows.get(j - 1);
+                SegmentedBowHeat lowbowI = segmentedBows.get(i - 1);
                 distanceMatrix.setXY(i, j, distance.dist(lowbowI.getSegmentBow(), lowbowJ.getSegmentBow()));
             }
         }
@@ -94,12 +96,14 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
     public void buildSegmentations() {
         segmentedBows = new ArrayList<>();
         for (L docModel : docModels) {
-            List<SegmentedBow> segmentation = docModel.getSegmentation();
+            StopWatch stopWatch = new StopWatch();
+            List<SegmentedBowHeat> segmentation = docModel.getSegmentation();
+            System.out.println("segmentation computation time : " + stopWatch.getEleapsedTime());
             segmentedBows.addAll(segmentation);
         }
     }
 
-    public List<SegmentedBow> getSegmentedBows() {
+    public List<SegmentedBowHeat> getSegmentedBows() {
         return segmentedBows;
     }
 }

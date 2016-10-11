@@ -4,13 +4,13 @@ var uID = Math.random();
 
 function readLog() {
     $.ajax({
+        method:"POST",
         url:"/log",
         data: {
            id : uID
         },
         success: function(result) {
             if(result.endsWith("<FINISH><br>")) {
-              $("#panel").html("Finish");
               isLoading = false;
             }else {
               $("#panel").html(result);
@@ -48,4 +48,4 @@ function sendRequest() {
 }
 
 $("#submit").click(sendRequest);
-$("#previousSettings").click(function() {$("#log").slideToggle(); $("#container").slideToggle();});
+$("#cancel").click(function() {$("#log").slideToggle(); $("#container").slideToggle();});

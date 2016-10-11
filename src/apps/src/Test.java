@@ -52,7 +52,7 @@ public class Test extends MyFrame {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-5);
+        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-5, 200);
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();

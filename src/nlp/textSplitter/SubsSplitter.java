@@ -90,8 +90,15 @@ public class SubsSplitter implements TextSplitter {
             //First line doesn't matter
             //Second time has the time interval
             String[] split = lines[i].replace(",", ".").split(" --> ");
-            Interval<LocalTime> interval = new Interval(LocalTime.parse(split[0]), LocalTime.parse(split[1]));
-            subtitle.setInterval(interval);
+            if (split.length != 2 || split[0].isEmpty() || split[1].isEmpty()) {
+                continue;
+            }
+            try {
+                Interval<LocalTime> interval = new Interval(LocalTime.parse(split[0]), LocalTime.parse(split[1]));
+                subtitle.setInterval(interval);
+            } catch (Exception e) {
+                continue;
+            }
             int j = i + 1;
             StringBuilder stringBuilder = new StringBuilder();
             //Rest of the subtitle in certain interval

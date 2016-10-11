@@ -47,9 +47,6 @@ public class BaseDocModelManager<L extends BaseDocumentModel> {
                 simplex.put(s, accIndex);
             }
         }
-        for (L docModel : docModels) {
-            docModel.setSimplex(simplex);
-        }
     }
 
 
@@ -96,9 +93,9 @@ public class BaseDocModelManager<L extends BaseDocumentModel> {
      * Initializes all curves with the same vocabulary
      */
     public void build() {
-        int n = docModels.size();
-        for (int i = 0; i < n; i++) {
-            docModels.get(i).build();
+        for (L docModel : docModels) {
+            docModel.setSimplex(simplex);
+            docModel.build();
         }
     }
 

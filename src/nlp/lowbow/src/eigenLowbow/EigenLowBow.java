@@ -121,7 +121,11 @@ public class EigenLowBow extends BaseLowBow {
         this.numberOfLowDimCoeff = k;
         this.eigenBasis = eigenBasis;
         this.eigenValues = eigenValues;
-        this.eigenCoord = eigenBasis.getSubMatrix(1, textLength, 1, k).transpose().prod(rawCurve);
+        if (textLength > 50) {
+            this.eigenCoord = eigenBasis.getSubMatrix(1, textLength, 1, k).transpose().prodParallel(rawCurve);
+        } else {
+            this.eigenCoord = eigenBasis.getSubMatrix(1, textLength, 1, k).transpose().prod(rawCurve);
+        }
     }
 
     /**
@@ -214,14 +218,7 @@ public class EigenLowBow extends BaseLowBow {
      * @return the raw curve from heat representation
      */
     public Matrix getRawCurveFromHeatRepresentation() {
-        int clamMin = 1;
-        int clamMax = textLength;
-        double heatTime = getHeatTime();
-        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
-        if (textLength < 50) {
-            return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prod(diag.prod(eigenCoord));
-        }
-        return eigenBasis.getSubMatrix(clamMin, clamMax, 1, numberOfLowDimCoeff).prodParallel(diag.prod(eigenCoord));
+        return getRawCurveFromHeatRepresentation(1, textLength);
     }
 
     @Override

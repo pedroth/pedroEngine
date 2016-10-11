@@ -14,7 +14,7 @@ import algebra.utils.AlgebraException;
  * .             .
  * 0
  * an-1 bn-1
- * ...  0 cn-1 an
+ * ...         0 cn-1 an
  */
 public class TridiagonalMatrix extends Matrix {
     private double[] a, b, c;
@@ -157,5 +157,23 @@ public class TridiagonalMatrix extends Matrix {
     @Override
     public String toString() {
         return super.toString();
+    }
+
+    @Override
+    public Matrix prod(Matrix b) {
+        Matrix c;
+        int rows = this.getRows();
+        int columns = this.getColumns();
+        if (columns == b.getRows()) {
+            c = new Matrix(rows, b.getColumns());
+            for (int j = 1; j <= rows; j++) {
+                for (int k = 1; k <= b.getColumns(); k++) {
+                    c.setXY(j, k, this.getXY(j, j) * b.getXY(j, k) + (j == columns ? 0 : this.getXY(j, j + 1) * b.getXY(j + 1, k)) + (j == 1 ? 0 : this.getXY(j, j - 1) * b.getXY(j - 1, k)));
+                }
+            }
+        } else {
+            throw new AlgebraException("the number of columns of the first matrix must be equal to the number of lines of the second one");
+        }
+        return c;
     }
 }
