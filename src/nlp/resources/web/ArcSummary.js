@@ -12,9 +12,8 @@ function readLog() {
         success: function(result) {
             if(result.endsWith("<FINISH><br>")) {
               isLoading = false;
-            }else {
-              $("#panel").html(result);
             }
+            $("#panel").html(result);
         }
     });
     if(isLoading) {
@@ -23,6 +22,9 @@ function readLog() {
 }
 
 function sendRequest() {
+    if(!isLoading) {
+        isLoading = true;
+    }
     $.ajax({
       method:"POST",
       url: "/input",

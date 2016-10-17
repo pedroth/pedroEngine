@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * You need to have fmpeg installed
@@ -26,11 +27,16 @@ public class FFMpegVideoApi {
     public static void cutVideo(String videoAddress, LocalTime ti, LocalTime tf, String outputAddress) {
         String command = addQuotingToString(ffmpegAddress + "/ffmpeg");
         command += " -ss " + ti + " -i " + addQuotingToString(videoAddress) + " -to " + tf + " -c copy -copyts " + addQuotingToString(outputAddress);
-        System.out.println(command);
         try {
-            Runtime.getRuntime().exec(command);
+            Runtime runtime = Runtime.getRuntime();
+            StopWatch stopWatch = new StopWatch();
+            Process proc = runtime.exec(command);
+            boolean state = proc.waitFor(5, TimeUnit.MINUTES);
+            System.out.println(state + ", time : " + stopWatch.getEleapsedTime());
         } catch (IOException e) {
             System.err.println("Error calling ffmpeg -ss -i -c copy -copyts");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

@@ -19,13 +19,14 @@ import nlp.lowbow.src.symbolSampler.SymbolAtMax;
 import nlp.lowbow.src.symbolSampler.SymbolAtMaxPos;
 import nlp.lowbow.src.symbolSampler.SymbolSampler;
 import nlp.lowbow.src.symbolSampler.TopKSymbol;
+import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.SegmentedBowHeat;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.LowBowPrinter;
 import nlp.utils.NecessaryWordPredicate;
-import nlp.utils.SegmentedBowHeat;
 import numeric.src.Distance;
 import org.junit.Assert;
 import org.junit.Test;
@@ -225,8 +226,8 @@ public class LowBowTests {
         //heat model
         lowBowManager.buildModel(0.04);
         //build segmentation
-        lowBowManager.buildSegmentations();
-        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
+        lowBowManager.buildSegmentations(SegmentedBowHeat::new);
+        List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
 
         //distances
@@ -278,7 +279,7 @@ public class LowBowTests {
         for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
             Integer key = entry.getKey();
             for (Integer index : entry.getValue()) {
-                SegmentedBowHeat segmentedBow = segmentedBows.get(index - 1);
+                BaseSegmentedBow segmentedBow = segmentedBows.get(index - 1);
                 LowBowSubtitles lowBowSubtitles = segmentedBow.getLowBowSubtitles();
                 String videoAddress = lowBowSubtitles.getVideoAddress();
                 videoAddress = videoAddress.substring(videoAddress.length() - 10, videoAddress.length() - 3);
@@ -339,8 +340,8 @@ public class LowBowTests {
         }
         lowBowManager.buildModel(0.04);
         text.write("C:/Users/Pedroth/Desktop/epi1.txt", lowBowManager.getDocModels().get(0).generateText(new TopKSymbol(10)));
-        lowBowManager.buildSegmentations();
-        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
+        lowBowManager.buildSegmentations(SegmentedBowHeat::new);
+        List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
         for (int i = 0; i < segmentedBows.size(); i++) {
             String outAddress = "C:/Users/Pedroth/Desktop/" + "cut" + i + ".mp4";
@@ -384,8 +385,8 @@ public class LowBowTests {
         lowBowManager.buildModel(0.04);
 
         //build segmentation
-        lowBowManager.buildSegmentations();
-        List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
+        lowBowManager.buildSegmentations(SegmentedBowHeat::new);
+        List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
         Collections.sort(segmentedBows);
 
         Distance<Vector> simplexDist = (x, y) -> {
@@ -410,7 +411,7 @@ public class LowBowTests {
             int numVertex = graphClass.getNumVertex();
             Vector v = new Vector(numVertex);
             v.fill(1.0 / numVertex);
-            System.out.println(randomWalkGraph.getStationaryDistribution(v, 1E-3));
+            System.out.println(randomWalkGraph.getStationaryDistribution(v, 0.8, 1E-3));
         }
 
         text.write("C:/Users/Pedroth/Desktop/OverTheGardenWallGraph.txt", graph.toStringGephi());

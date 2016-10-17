@@ -2,6 +2,8 @@ package numeric.test;
 
 
 import algebra.src.*;
+import graph.KnnGraph;
+import graph.SpectralClustering;
 import inputOutput.CsvReader;
 import numeric.src.*;
 import org.junit.Assert;
@@ -176,20 +178,18 @@ public class NumericTest {
 
     @Test
     public void superEigenTest() {
-        int n = 3;
+        int n = 100;
         Matrix laplacian = new LineLaplacian(n);
         SymmetricEigen symmetricEigen = new SymmetricEigen(laplacian);
         StopWatch stopWatch = new StopWatch();
-        symmetricEigen.computeEigen(1E-10, n, new HyperEigenAlgo());
+        symmetricEigen.computeEigen(1E-5, n, new IntrinsicEigenAlgo());
         System.out.println("\n" + stopWatch.getEleapsedTime() + "\n");
-//        symmetricEigen.orderEigenValuesAndVector();
+        symmetricEigen.orderEigenValuesAndVector();
         for (Double eigenValue : symmetricEigen.getEigenValues()) {
             System.out.println(eigenValue);
         }
-        System.out.println("\n");
-        for (Vector vector : symmetricEigen.getEigenVectors()) {
-            System.out.println(vector);
-        }
+        Matrix v = new Matrix(symmetricEigen.getEigenVectors());
+        System.out.println(v);
     }
 
     @Test
@@ -212,6 +212,24 @@ public class NumericTest {
             System.out.println(p);
         }
         Assert.assertTrue(Vec2.diff(clusters[classification.get(2)], new Vec2(1, 0)).norm() < 0.5);
+    }
+
+    @Test
+    public void testSpectralClustering() {
+        List<Vector> data = new ArrayList<>(6);
+        data.add(new Vec2(-1.1, 0.1));
+        data.add(new Vec2(-0.9, -0.1));
+        data.add(new Vec2(1.1, 0.1));
+        data.add(new Vec2(0.9, -0.1));
+        data.add(new Vec2(0.1, -0.9));
+        data.add(new Vec2(-0.1, -1.1));
+        KnnGraph<Vector> graph = new KnnGraph<>(data, 3, (x, y) -> Vector.diff(x, y).squareNorm());
+        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        spectralClustering.clustering(3);
+        Map<Integer, Integer> classification = spectralClustering.getClassification();
+        for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {
+            System.out.println(entry.getKey() + " : " + entry.getValue());
+        }
     }
 
     @Test

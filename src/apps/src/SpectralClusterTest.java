@@ -20,17 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class Test extends MyFrame {
+public class SpectralClusterTest extends MyFrame {
     private static final int numPoints = 100;
-    private static final int knn = 5;
-    private static final int kcluster = 6;
     private static final double length = 5;
+    private int knn = 5;
+    private int kcluster = 6;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
     private ArrayList<Vec2> points;
 
-    public Test(String title, int width, int height) {
+    public SpectralClusterTest(String title, int width, int height) {
         super(title, width, height);
         engine = new BoxEngine(width, height);
         shader = new FillShader(engine);
@@ -39,12 +39,28 @@ public class Test extends MyFrame {
         Random r = new Random();
         for (int i = 0; i < numPoints; i++) {
             points.add(new Vec2(2 * length * r.nextDouble() - length, 2 * length * r.nextDouble() - length));
+        }
+//        addData();
+        drawData();
+        init();
+    }
+
+    public static void main(String[] args) {
+        new SpectralClusterTest("Teste", 800, 500);
+    }
+
+    private void addData2Engine() {
+        for (int i = 0; i < points.size(); i++) {
             Point2D e = new Point2D(points.get(i));
             e.setColor(Color.black);
             e.setRadius(0.01);
             engine.addtoList(e, shader);
         }
-//        addData();
+    }
+
+    private void drawData() {
+        engine.removeAllElements();
+        addData2Engine();
         engine.buildBoundigBoxTree();
         engine.setCameraAuto(1.25);
         this.knnGraph = new KnnGraph<>(points, knn, (x, y) -> Vec2.diff(x, y).squareNorm());
@@ -52,15 +68,10 @@ public class Test extends MyFrame {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-5, 200);
+        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 200);
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();
-        init();
-    }
-
-    public static void main(String[] args) {
-        new Test("Teste", 800, 500);
     }
 
     private void drawClassification(Map<Integer, List<Integer>> inverseClassification) {
@@ -113,7 +124,31 @@ public class Test extends MyFrame {
 
     @Override
     public void keyPressed(KeyEvent arg0) {
-        // TODO Auto-generated method stub
+        switch (arg0.getKeyCode()) {
+            case KeyEvent.VK_MINUS:
+                kcluster--;
+                System.out.println(kcluster);
+                break;
+            case KeyEvent.VK_PLUS:
+                kcluster++;
+                System.out.println(kcluster);
+                break;
+            case KeyEvent.VK_1:
+                knn = 1;
+                break;
+            case KeyEvent.VK_2:
+                knn = 2;
+                break;
+            case KeyEvent.VK_3:
+                knn = 3;
+                break;
+            case KeyEvent.VK_4:
+                knn = 4;
+                break;
+            default:
+                knn = 5;
+        }
+        drawData();
 
     }
 

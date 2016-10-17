@@ -5,7 +5,9 @@ import algebra.src.LineLaplacian;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.src.simpleLowBow.BaseLowBowManager;
-import nlp.utils.SegmentedBowHeat;
+import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.SegmentedBowFactory;
+import nlp.segmentedBow.SegmentedBowHeat;
 import numeric.src.Distance;
 import numeric.src.MyMath;
 import utils.StopWatch;
@@ -23,7 +25,7 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
     private Matrix eigenBasisGlobal;
     // Eigen values of the LineLaplacian matrix
     private Vector eigenValuesGlobal;
-    private List<SegmentedBowHeat> segmentedBows;
+    private List<BaseSegmentedBow> segmentedBows;
 
     /**
      * Instantiates a new Summary gen low bow manager.
@@ -85,25 +87,25 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         DistanceMatrix distanceMatrix = new DistanceMatrix(size);
         for (int i = 2; i <= size; i++) {
             for (int j = 1; j < i; j++) {
-                SegmentedBowHeat lowbowJ = segmentedBows.get(j - 1);
-                SegmentedBowHeat lowbowI = segmentedBows.get(i - 1);
+                BaseSegmentedBow lowbowJ = segmentedBows.get(j - 1);
+                BaseSegmentedBow lowbowI = segmentedBows.get(i - 1);
                 distanceMatrix.setXY(i, j, distance.dist(lowbowI.getSegmentBow(), lowbowJ.getSegmentBow()));
             }
         }
         return distanceMatrix;
     }
 
-    public void buildSegmentations() {
+    public void buildSegmentations(SegmentedBowFactory<BaseSegmentedBow> factory) {
         segmentedBows = new ArrayList<>();
         for (L docModel : docModels) {
             StopWatch stopWatch = new StopWatch();
-            List<SegmentedBowHeat> segmentation = docModel.getSegmentation();
+            List<SegmentedBowHeat> segmentation = docModel.getSegmentation(factory);
             System.out.println("segmentation computation time : " + stopWatch.getEleapsedTime());
             segmentedBows.addAll(segmentation);
         }
     }
 
-    public List<SegmentedBowHeat> getSegmentedBows() {
+    public List<BaseSegmentedBow> getSegmentedBows() {
         return segmentedBows;
     }
 }

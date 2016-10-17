@@ -11,17 +11,20 @@ import inputOutput.TextIO;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.src.eigenLowbow.SummaryGenLowBowManager;
 import nlp.lowbow.src.symbolSampler.TopKSymbol;
+import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.SegmentedBowCool;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
-import nlp.utils.SegmentedBowHeat;
 import nlp.utils.Simplex;
 import numeric.src.Distance;
 import utils.FilesCrawler;
 import utils.StopWatch;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -109,8 +112,8 @@ public class ArcSummarizer extends SeriesSummarization {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.025, 0.1, 5, 20, ArcSummarizer.simplexDist);
-        arcSummarizer.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 10);
+        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.045, 0.1, 5, 10, ArcSummarizer.simplexDist);
+        arcSummarizer.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 5);
     }
 
     @Override
@@ -152,6 +155,8 @@ public class ArcSummarizer extends SeriesSummarization {
 
             textIO.write(outputAddress + "removedWords.txt", predicate.getNotNecessaryWordString());
 
+            if (videos.size() == 0 || subtitles.size() == 0) throw new RuntimeException("no video or subtitle files");
+
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {
                 text.read(subtitles.get(i));
@@ -169,10 +174,10 @@ public class ArcSummarizer extends SeriesSummarization {
             stopWatch.resetTime();
 
             //build segmentation
-            lowBowManager.buildSegmentations();
-            List<SegmentedBowHeat> segmentedBows = lowBowManager.getSegmentedBows();
+            lowBowManager.buildSegmentations(SegmentedBowCool::new);
+            List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
             Collections.sort(segmentedBows);
-            log.add("Segmentation done!! : " + stopWatch.getEleapsedTime());
+            log.add("Segmentation done!! : " + stopWatch.getEleapsedTime() + ",  number of segments : " + segmentedBows.size());
             System.out.println("Segmentation done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
@@ -187,7 +192,12 @@ public class ArcSummarizer extends SeriesSummarization {
 
             //clustering
             SpectralClustering spectralClustering = new SpectralClustering(graph);
-            Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(kcluster);
+            Map<Integer, List<Integer>> dataToClass = spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x * x), 1E-10, 500);
+            for (Map.Entry<Integer, List<Integer>> entry : dataToClass.entrySet()) {
+                String clusterSizeString = "cluster " + entry.getKey() + " size:  " + entry.getValue().size();
+                log.add(clusterSizeString);
+                System.out.println(clusterSizeString);
+            }
             Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
             log.add("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
@@ -199,11 +209,15 @@ public class ArcSummarizer extends SeriesSummarization {
             System.out.println("Summary done!! : " + stopWatch.getEleapsedTime());
             log.add("<FINISH>");
         } catch (Exception e) {
-            log.add(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            e.printStackTrace();
+            log.add(sw.toString());
         }
     }
 
-    private void randomWalkSummary(List<SegmentedBowHeat> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
+    private void randomWalkSummary(List<BaseSegmentedBow> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
         Simplex simplex = segmentedBows.get(0).getLowBowSubtitles().getSimplex();
         for (Integer key : map.keySet()) {
             Graph graphClass = map.get(key);
@@ -211,9 +225,12 @@ public class ArcSummarizer extends SeriesSummarization {
             //random walk
             RandomWalkGraph randomWalkGraph = new RandomWalkGraph(graphClass);
             int numVertex = graphClass.getNumVertex();
+            if (numVertex == 0) {
+                continue;
+            }
             Vector v = new Vector(numVertex);
             v.fill(1.0 / numVertex);
-            Vector stationaryDistribution = randomWalkGraph.getStationaryDistribution(v, 1E-3);
+            Vector stationaryDistribution = randomWalkGraph.getStationaryDistribution(v, 0.8, 1E-5);
 
             // copy vector to Double[]
             int dim = stationaryDistribution.getDim();
@@ -239,7 +256,7 @@ public class ArcSummarizer extends SeriesSummarization {
             TopKSymbol topKSymbol = new TopKSymbol(30);
             while (acc < timeLengthMinutes && k > 0) {
                 // keyIndex values are index values in {1, ..., n}
-                SegmentedBowHeat segmentedBow = segmentedBows.get(keyIndex[permutation[k--]] - 1);
+                BaseSegmentedBow segmentedBow = segmentedBows.get(keyIndex[permutation[k--]] - 1);
                 double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
                 if (acc + timeIntervalMinutes < timeLengthMinutes) {
                     segmentedBow.cutSegment(auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval() + ".mp4");

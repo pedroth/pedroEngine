@@ -1,7 +1,6 @@
-package nlp.utils;
+package nlp.segmentedBow;
 
 
-import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
 import nlp.textSplitter.SubsSplitter;
@@ -11,13 +10,13 @@ import utils.Interval;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
-public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
-    private Interval<Integer> interval;
-    private LowBowSubtitles lowBowSubtitles;
-    private Vector segmentBow;
-    private double timeIntervalMinutes;
+public abstract class BaseSegmentedBow implements Comparable<BaseSegmentedBow> {
+    protected Interval<Integer> interval;
+    protected LowBowSubtitles lowBowSubtitles;
+    protected Vector segmentBow;
+    protected double timeIntervalMinutes;
 
-    public SegmentedBowHeat(Interval<Integer> interval, LowBowSubtitles lowBowSubtitles) {
+    public BaseSegmentedBow(Interval<Integer> interval, LowBowSubtitles lowBowSubtitles) {
         this.interval = interval;
         this.lowBowSubtitles = lowBowSubtitles;
         computeTimeInterval();
@@ -31,15 +30,7 @@ public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
         this.timeIntervalMinutes = tmin.until(tmax, ChronoUnit.NANOS) / (60 * 1E9);
     }
 
-    private void buildSegmentBow() {
-        Matrix rawCurveSeg = lowBowSubtitles.getRawCurveFromHeatRepresentation(interval.getXmin(), interval.getXmax());
-        Vector[] lowCurve = rawCurveSeg.getRowsVectors();
-        segmentBow = new Vector(lowCurve[0].getDim());
-        for (int i = 0; i < lowCurve.length; i++) {
-            segmentBow = Vector.add(segmentBow, lowCurve[i]);
-        }
-        segmentBow = Vector.scalarProd(1.0 / lowCurve.length, segmentBow);
-    }
+    protected abstract void buildSegmentBow();
 
     public Interval<Integer> getInterval() {
         return interval;
@@ -56,7 +47,7 @@ public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
         FFMpegVideoApi.cutVideo(lowBowSubtitles.getVideoAddress(), xmin.getInterval().getXmin(), xmax.getInterval().getXmax(), outputAddress);
     }
 
-    public String cutSegmentSubtile() {
+    public String cutSegmentSubtitle() {
         SubsSplitter textSplitter = lowBowSubtitles.getTextSplitter();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = interval.getXmin() - 1; i < interval.getXmax(); i++) {
@@ -66,7 +57,7 @@ public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
     }
 
     @Override
-    public int compareTo(SegmentedBowHeat o) {
+    public int compareTo(BaseSegmentedBow o) {
         int compareStr = lowBowSubtitles.getVideoAddress().compareTo(o.getLowBowSubtitles().getVideoAddress());
         if (compareStr == 0) {
             return interval.getXmin().compareTo(o.getInterval().getXmin());
@@ -85,4 +76,5 @@ public class SegmentedBowHeat implements Comparable<SegmentedBowHeat> {
     public String getVideoAddress() {
         return this.lowBowSubtitles.getVideoAddress();
     }
+
 }

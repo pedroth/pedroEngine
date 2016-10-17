@@ -1,5 +1,6 @@
 package graph;
 
+import Jama.EigenvalueDecomposition;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import javafx.util.Pair;
@@ -20,6 +21,7 @@ public class SpectralClustering {
     private final static String CLASS_VERTEX_PROPERTY = "class";
     private final KnnGraph graph;
     private Map<Integer, List<Integer>> inverseClassification;
+    private Map<Integer, Integer> classification;
     private Matrix eigenCoeff;
 
     /**
@@ -39,7 +41,7 @@ public class SpectralClustering {
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(int k) {
-        return clustering(k, (x) -> Math.exp(-x * x), 1E-7, 1000);
+        return clustering(k, (x) -> Math.exp(-x * x), 1E-10, 500);
     }
 
 
@@ -53,30 +55,56 @@ public class SpectralClustering {
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        k = Integer.max(k, 1);
+        //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
         Matrix D = getDegreeMatrix(W);
         Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
+
+        //compute eigenVectors
+        int maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
+
         SymmetricEigen symmetricEigen = new SymmetricEigen(laplacianMatrix);
-        symmetricEigen.computeEigen(epsilon, Integer.min(k + 1, laplacianMatrix.getRows()), new HyperEigenAlgo());
+        symmetricEigen.computeEigen(epsilon, maxEigenValue, new HyperEigenAlgo());
+        symmetricEigen.orderEigenValuesAndVector();
+
         Matrix U = new Matrix(symmetricEigen.getEigenVectors());
         this.eigenCoeff = U;
-        Kmeans kmeans = new Kmeans(U.getSubMatrix(1, U.getRows(), 2, U.getColumns()).transpose());
+        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+
+        //kmeans
+        Kmeans kmeans = new Kmeans(subMatrix.transpose());
         kmeans.runKmeans(k, epsilon, repetitions);
-        Map<Integer, List<Integer>> inverseClassification = kmeans.getInverseClassification();
-        Integer[] keyIndex = this.graph.getKeyIndex();
-        for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
-            Integer kclass = entry.getKey();
-            for (Integer index : entry.getValue()) {
-                graph.putVertexProperty(keyIndex[index], CLASS_VERTEX_PROPERTY, kclass);
-            }
-        }
-        for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
-            List<Integer> value = entry.getValue();
-            for (int i = 0; i < value.size(); i++) {
-                value.set(i, value.get(i) + 1);
-            }
-        }
-        this.inverseClassification = inverseClassification;
+
+        //fix index to graph index
+        this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
+        this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
+        return inverseClassification;
+    }
+
+    public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        k = Integer.max(k, 1);
+        //compute laplacian matrix
+        Matrix W = getWeightMatrix(similarityMeasure);
+        Matrix D = getDegreeMatrix(W);
+        Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
+
+        //compute eigenVectors
+        int rows = laplacianMatrix.getRows();
+        int maxEigenValue = Integer.min(k + 1, rows);
+        EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacianMatrix.getMatrix()));
+
+        Matrix U = new Matrix(eigenvalueDecomposition.getV().getArray());
+        this.eigenCoeff = U;
+        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+
+        //kmeans
+        Kmeans kmeans = new Kmeans(subMatrix.transpose());
+        kmeans.runKmeans(k, epsilon, repetitions);
+
+        //fix index to graph index
+        this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
+        this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
         return inverseClassification;
     }
 
@@ -182,5 +210,37 @@ public class SpectralClustering {
      */
     public Matrix getEigenCoeff() {
         return eigenCoeff;
+    }
+
+    public Map<Integer, Integer> getClassification() {
+        return classification;
+    }
+
+
+    private Map<Integer, List<Integer>> fixIndexOfInverseClassificationMap(Map<Integer, List<Integer>> map) {
+        Integer[] keyIndex = this.graph.getKeyIndex();
+        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
+            Integer kclass = entry.getKey();
+            for (Integer index : entry.getValue()) {
+                graph.putVertexProperty(keyIndex[index], CLASS_VERTEX_PROPERTY, kclass);
+            }
+        }
+        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
+            List<Integer> value = entry.getValue();
+            for (int i = 0; i < value.size(); i++) {
+                value.set(i, keyIndex[value.get(i)]);
+            }
+        }
+        return map;
+    }
+
+    private Map<Integer, Integer> fixIndexOfClassificationMap(Map<Integer, Integer> map) {
+        Integer[] keyIndex = this.graph.getKeyIndex();
+        Map<Integer, Integer> ansMap = new HashMap<>(map.size());
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            Integer key = entry.getKey();
+            ansMap.put(keyIndex[key], entry.getValue());
+        }
+        return ansMap;
     }
 }

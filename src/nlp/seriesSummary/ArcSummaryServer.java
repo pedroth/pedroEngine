@@ -22,7 +22,7 @@ import static junit.framework.Assert.fail;
  */
 public class ArcSummaryServer {
     private final int serverPort;
-    private Map<String, ArcSummarizer> arcSummarizerMap = new HashMap<>(3);
+    private Map<String, ArcSummaryThreadPair> arcSummarizerMap = new HashMap<>(3);
 
     public ArcSummaryServer(int serverPort) {
         this.serverPort = serverPort;
@@ -97,8 +97,8 @@ public class ArcSummaryServer {
                     text.read(httpExchange.getRequestBody());
                     String[] input = parseInput(text.getText());
                     ArcSummarizer arcSummarizer = new ArcSummarizer(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizer.getDistanceByName(input[6]));
-                    arcSummarizerMap.put(input[9], arcSummarizer);
                     Thread thread = new Thread(() -> arcSummarizer.buildSummary(input[7], Double.valueOf(input[8])));
+                    arcSummarizerMap.put(input[9], new ArcSummaryThreadPair(thread, arcSummarizer));
                     thread.start();
                     respondWithText(httpExchange, "loading . . . ");
                 } catch (Exception e) {
@@ -113,14 +113,18 @@ public class ArcSummaryServer {
             public void handle(HttpExchange httpExchange) throws IOException {
                 try {
                     System.out.println(httpExchange.getRequestURI());
+
                     TextIO text = new TextIO();
                     text.read(httpExchange.getRequestBody());
                     String[] in = parseInput(text.getText());
+
+                    ArcSummaryThreadPair arcSummaryThreadPair = arcSummarizerMap.get(in[0]);
+
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (String log : arcSummarizerMap.get(in[0]).getLog()) {
+                    for (String log : arcSummaryThreadPair.getArcSummarySummarizer().getLog()) {
                         stringBuilder.append(log + "<br>");
                     }
-                    System.out.println(stringBuilder);
+//                    System.out.println(stringBuilder);
                     respondWithText(httpExchange, "loading . . .  " + stringBuilder);
                 } catch (Exception e) {
                     respondWithText(httpExchange, e.getMessage());
@@ -131,5 +135,23 @@ public class ArcSummaryServer {
 
         summaryServer.setExecutor(Executors.newCachedThreadPool());
         summaryServer.start();
+    }
+
+    private class ArcSummaryThreadPair {
+        private final ArcSummarizer arcSummarySummarizer;
+        private final Thread thread;
+
+        public ArcSummaryThreadPair(Thread thread, ArcSummarizer arcSummarySummarizer) {
+            this.thread = thread;
+            this.arcSummarySummarizer = arcSummarySummarizer;
+        }
+
+        public ArcSummarizer getArcSummarySummarizer() {
+            return arcSummarySummarizer;
+        }
+
+        public Thread getThread() {
+            return thread;
+        }
     }
 }

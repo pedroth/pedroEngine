@@ -10,13 +10,17 @@ public class RandomWalkGraph {
         this.graph = graph;
     }
 
-    public Vector getRandomWalkDistribution(Vector initialDistribution, int k) {
+    public Vector getRandomWalkDistribution(Vector initialDistribution, double p, int k) {
         //deep copy
         Vector v = new Vector(initialDistribution);
         Matrix weightMatrix = graph.getWeightMatrix(0);
         Matrix degreeMatrix = getDegreeMatrix(weightMatrix);
         degreeMatrix.applyFunction(x -> 1 / x);
-        weightMatrix = Matrix.transpose(degreeMatrix.prod(weightMatrix));
+        Matrix ones = new Matrix(weightMatrix.getRows(), weightMatrix.getColumns());
+        ones.fill(1.0);
+        Matrix b = Matrix.diag(Vector.scalarProd(1 - p, v)).prod(ones);
+        // kernel matrix p * D^-1 * W + (1 - p) * diag(initialDistribution) * ones
+        weightMatrix = Matrix.transpose(Matrix.add(Matrix.scalarProd(p, degreeMatrix.prod(weightMatrix)), b));
         for (int i = 0; i < k; i++) {
             v = weightMatrix.prodVector(v);
         }
@@ -38,13 +42,17 @@ public class RandomWalkGraph {
         return Matrix.diag(degrees);
     }
 
-    public Vector getStationaryDistribution(Vector initialDistribution, double convError) {
+    public Vector getStationaryDistribution(Vector initialDistribution, double p, double convError) {
         //deep copy
         Vector v = new Vector(initialDistribution);
         Matrix weightMatrix = graph.getWeightMatrix(0);
         Matrix degreeMatrix = getDegreeMatrix(weightMatrix);
         degreeMatrix.applyFunction(x -> 1 / x);
-        weightMatrix = Matrix.transpose(degreeMatrix.prod(weightMatrix));
+        Matrix ones = new Matrix(weightMatrix.getRows(), weightMatrix.getColumns());
+        ones.fill(1.0);
+        Matrix b = Matrix.diag(Vector.scalarProd(1 - p, v)).prod(ones);
+        // kernel matrix p * D^-1 * W + (1 - p) * diag(initialDistribution) * ones
+        weightMatrix = Matrix.transpose(Matrix.add(Matrix.scalarProd(p, degreeMatrix.prod(weightMatrix)), b));
         Vector u;
         int i = 0;
         do {

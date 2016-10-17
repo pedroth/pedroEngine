@@ -4,8 +4,9 @@ package nlp.lowbow.src.eigenLowbow;
 import algebra.src.LineGradient;
 import algebra.src.Matrix;
 import algebra.src.Vector;
+import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.SegmentedBowFactory;
 import nlp.textSplitter.SubsSplitter;
-import nlp.utils.SegmentedBowHeat;
 import utils.Interval;
 
 import java.util.ArrayList;
@@ -33,20 +34,24 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         return (T) super.getTextSplitter();
     }
 
-    public List<SegmentedBowHeat> getSegmentation() {
-        List<SegmentedBowHeat> segmentedBows = new ArrayList<>();
+    public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory) {
+        List<BaseSegmentedBow> segmentedBows = new ArrayList<>();
         Vector segFunc = computeSegmentation();
         Vector zerosIndicator = findZeros(segFunc);
         int minIndex = 1;
         int size = zerosIndicator.size();
         for (int i = 2; i <= size; i++) {
             if (zerosIndicator.getX(i) == 1.0 && i != minIndex) {
-                segmentedBows.add(new SegmentedBowHeat(new Interval(minIndex, i), this));
+                segmentedBows.add(factory.getInstance(new Interval(minIndex, i), this));
                 minIndex = i + 1;
             }
         }
         if (minIndex != textLength) {
-            segmentedBows.add(new SegmentedBowHeat(new Interval(minIndex, textLength), this));
+            segmentedBows.add(factory.getInstance(new Interval(minIndex, textLength), this));
+        }
+
+        if (this.getRawCurve() != null) {
+            this.deleteRawCurve();
         }
         return segmentedBows;
     }
