@@ -2,7 +2,7 @@ package nlp.segmentedBow;
 
 
 import algebra.src.Vector;
-import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import nlp.textSplitter.SubsSplitter;
 import utils.FFMpegVideoApi;
 import utils.Interval;

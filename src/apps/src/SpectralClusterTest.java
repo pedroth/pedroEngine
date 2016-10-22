@@ -25,6 +25,7 @@ public class SpectralClusterTest extends MyFrame {
     private static final double length = 5;
     private int knn = 5;
     private int kcluster = 6;
+    private boolean mySpectral = false;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -68,7 +69,7 @@ public class SpectralClusterTest extends MyFrame {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        Map<Integer, java.util.List<Integer>> integerListMap = spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 200);
+        Map<Integer, java.util.List<Integer>> integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 500) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 500);
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();
@@ -125,6 +126,10 @@ public class SpectralClusterTest extends MyFrame {
     @Override
     public void keyPressed(KeyEvent arg0) {
         switch (arg0.getKeyCode()) {
+            case KeyEvent.VK_M:
+                mySpectral = !mySpectral;
+                System.out.println("mySpectral: " + mySpectral);
+                break;
             case KeyEvent.VK_MINUS:
                 kcluster--;
                 System.out.println(kcluster);

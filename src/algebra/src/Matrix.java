@@ -2,11 +2,11 @@ package algebra.src;
 
 import algebra.utils.AlgebraException;
 import numeric.src.SVD;
-import realFunction.src.LinearFunction;
 import realFunction.src.UniVarFunction;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 /**
@@ -126,18 +126,7 @@ public class Matrix {
      * @return the sum of matrix a and b if input correct null otherwise
      */
     public static Matrix add(Matrix a, Matrix b) {
-        Matrix c = null;
-        double r;
-        if (a.getRows() == b.getRows() && a.getColumns() == b.getColumns()) {
-            c = new Matrix(a.getRows(), a.getColumns());
-            for (int j = 1; j <= a.getColumns(); j++) {
-                for (int i = 1; i <= a.getRows(); i++) {
-                    r = a.getXY(i, j) + b.getXY(i, j);
-                    c.setXY(i, j, r);
-                }
-            }
-        }
-        return c;
+        return a.add(b);
     }
 
     /**
@@ -148,10 +137,7 @@ public class Matrix {
      * @return the subtraction of matrix a and b if input correct null otherwise
      */
     public static Matrix diff(Matrix a, Matrix b) {
-        Matrix r;
-        r = Matrix.scalarProd(-1, b);
-        r = Matrix.add(a, r);
-        return r;
+        return a.diff(b);
     }
 
     /**
@@ -162,10 +148,7 @@ public class Matrix {
      * @return matrix multiplied by r
      */
     public static Matrix scalarProd(double r, Matrix m) {
-        Matrix temp = m.copy();
-        LinearFunction f = new LinearFunction(r);
-        temp.applyFunction(f);
-        return temp;
+        return m.scalarProd(r);
     }
 
     /**
@@ -525,6 +508,34 @@ public class Matrix {
             }
         }
         return c;
+    }
+
+    public Matrix binaryOperation(Matrix b, BinaryOperator<Double> operator) {
+        Matrix c = null;
+        double r;
+        if (this.getRows() == b.getRows() && this.getColumns() == b.getColumns()) {
+            c = new Matrix(this.getRows(), this.getColumns());
+            for (int j = 1; j <= this.getColumns(); j++) {
+                for (int i = 1; i <= this.getRows(); i++) {
+                    r = operator.apply(this.getXY(i, j), b.getXY(i, j));
+                    c.setXY(i, j, r);
+                }
+            }
+        }
+        return c;
+    }
+
+    public Matrix add(Matrix b) {
+        return binaryOperation(b, (x, y) -> x + y);
+    }
+
+    public Matrix diff(Matrix b) {
+        return binaryOperation(b, (x, y) -> x - y);
+    }
+
+    public Matrix scalarProd(double r) {
+        Matrix ans = new Matrix(this);
+        return ans.applyFunction((x) -> r * x);
     }
 
     /**

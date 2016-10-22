@@ -3,7 +3,7 @@ package nlp.segmentedBow;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import nlp.lowbow.src.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import utils.Interval;
 
 public class SegmentedBowHeat extends BaseSegmentedBow {

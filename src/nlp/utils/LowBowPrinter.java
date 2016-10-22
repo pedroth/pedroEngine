@@ -1,7 +1,7 @@
 package nlp.utils;
 
 import algebra.src.Vector;
-import nlp.lowbow.src.simpleLowBow.LowBow;
+import nlp.lowbow.simpleLowBow.LowBow;
 
 import java.util.function.Function;
 
