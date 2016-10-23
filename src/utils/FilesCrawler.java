@@ -48,4 +48,9 @@ public class FilesCrawler {
         String[] s = fileName.split("\\.");
         return extension.equals(s[s.length - 1]);
     }
+
+    public static String getExtension(String fileName) {
+        String[] split = fileName.split("\\.");
+        return split[split.length - 1];
+    }
 }

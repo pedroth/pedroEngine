@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalTime;
-import java.util.concurrent.TimeUnit;
 
 /**
  * You need to have fmpeg installed
@@ -31,7 +30,14 @@ public class FFMpegVideoApi {
             Runtime runtime = Runtime.getRuntime();
             StopWatch stopWatch = new StopWatch();
             Process proc = runtime.exec(command);
-            boolean state = proc.waitFor(5, TimeUnit.MINUTES);
+            // any error message?
+            StreamGobbler errorGobbler = new StreamGobbler(proc.getErrorStream(), "ERROR");
+            errorGobbler.start();
+            // any output?
+            StreamGobbler outputGobbler = new StreamGobbler(proc.getInputStream(), "OUTPUT");
+            outputGobbler.start();
+
+            int state = proc.waitFor();
             System.out.println(state + ", time : " + stopWatch.getEleapsedTime());
         } catch (IOException e) {
             System.err.println("Error calling ffmpeg -ss -i -c copy -copyts");

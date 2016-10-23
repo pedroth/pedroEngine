@@ -17,7 +17,6 @@ import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
-import nlp.utils.Simplex;
 import numeric.src.Distance;
 import utils.FilesCrawler;
 import utils.StopWatch;
@@ -75,6 +74,9 @@ public class ArcSummarizer extends SeriesSummarization {
     private int kcluster;
     // distance of histograms
     private Distance<Vector> histogramDistance;
+    private List<BaseSegmentedBow> segmentedBows;
+    private Map<Integer, Graph> graphByClusterIdMap;
+    private SummaryGenLowBowManager<LowBowSubtitles> lowBowManager;
 
     /**
      * Instantiates a new Arc summarizer.
@@ -134,7 +136,7 @@ public class ArcSummarizer extends SeriesSummarization {
             stopWatch.resetTime();
 
             //construct managers
-            SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+            this.lowBowManager = new SummaryGenLowBowManager<>();
             BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
             TextIO text = new TextIO();
@@ -161,28 +163,28 @@ public class ArcSummarizer extends SeriesSummarization {
             for (int i = 0; i < subtitles.size(); i++) {
                 text.read(subtitles.get(i));
                 textSplitter = new SubsSplitter(predicate);
-                lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+                this.lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
             }
             log.add("Lowbow for each episode: " + stopWatch.getEleapsedTime());
             System.out.println("Lowbow for each episode: " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
             //heat model
-            lowBowManager.buildModel(heat);
+            this.lowBowManager.buildModel(heat);
             log.add("Lowbow heat flow done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Lowbow heat flow done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
             //build segmentation
-            lowBowManager.buildSegmentations(SegmentedBowCool::new);
-            List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+            this.lowBowManager.buildSegmentations(SegmentedBowCool::new);
+            this.segmentedBows = this.lowBowManager.getSegmentedBows();
             Collections.sort(segmentedBows);
             log.add("Segmentation done!! : " + stopWatch.getEleapsedTime() + ",  number of segments : " + segmentedBows.size());
             System.out.println("Segmentation done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
             //build knn-graph
-            DistanceMatrix distanceMatrix = lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
+            DistanceMatrix distanceMatrix = this.lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
             KnnGraph graph = new KnnGraph(distanceMatrix, knn);
             log.add("knn graph done!! : " + stopWatch.getEleapsedTime());
             System.out.println("knn graph done!! : " + stopWatch.getEleapsedTime());
@@ -198,16 +200,16 @@ public class ArcSummarizer extends SeriesSummarization {
                 log.add(clusterSizeString);
                 System.out.println(clusterSizeString);
             }
-            Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
+            graphByClusterIdMap = spectralClustering.getclusteredGraph();
             log.add("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Spectral clustering done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
             //summarize
-            randomWalkSummary(segmentedBows, map, timeLengthMinutes, outputAddress);
+            randomWalkSummary(segmentedBows, graphByClusterIdMap, timeLengthMinutes, outputAddress);
             log.add("Summary done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Summary done!! : " + stopWatch.getEleapsedTime());
-            log.add("<FINISH>");
+            log.add("FINISH");
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -218,55 +220,73 @@ public class ArcSummarizer extends SeriesSummarization {
     }
 
     private void randomWalkSummary(List<BaseSegmentedBow> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
-        Simplex simplex = segmentedBows.get(0).getLowBowSubtitles().getSimplex();
         for (Integer key : map.keySet()) {
             Graph graphClass = map.get(key);
 
             //random walk
-            RandomWalkGraph randomWalkGraph = new RandomWalkGraph(graphClass);
-            int numVertex = graphClass.getNumVertex();
-            if (numVertex == 0) {
+            int[] permutation = getRandomWalkRankPermutation(graphClass);
+            if (permutation == null) {
                 continue;
             }
-            Vector v = new Vector(numVertex);
-            v.fill(1.0 / numVertex);
-            Vector stationaryDistribution = randomWalkGraph.getStationaryDistribution(v, 0.8, 1E-5);
-
-            // copy vector to Double[]
-            int dim = stationaryDistribution.getDim();
-            Double[] stationaryDistArray = new Double[dim];
-            for (int i = 0; i < dim; i++) {
-                stationaryDistArray[i] = stationaryDistribution.getX(i + 1);
-            }
-            //sort array
-            QuickSortWithPermutation sort = new QuickSortWithPermutation();
-            sort.sort(stationaryDistArray);
-            int[] permutation = sort.getPermutation();
-
-            //segments key
-            Integer[] keyIndex = graphClass.getKeyIndex();
-
             // select most important segments under time constraint
-            double acc = 0;
-            int k = permutation.length - 1;
-            String auxAddress = outputAddress;
-            auxAddress += key + "/";
-            creatDirs(auxAddress);
-            StringBuilder stringBuilder = new StringBuilder();
-            TopKSymbol topKSymbol = new TopKSymbol(30);
-            while (acc < timeLengthMinutes && k > 0) {
-                // keyIndex values are index values in {1, ..., n}
-                BaseSegmentedBow segmentedBow = segmentedBows.get(keyIndex[permutation[k--]] - 1);
-                double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
-                if (acc + timeIntervalMinutes < timeLengthMinutes) {
-                    segmentedBow.cutSegment(auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval() + ".mp4");
-                    stringBuilder.append(topKSymbol.nextSymbol(segmentedBow.getSegmentBow(), simplex)).append("\n");
-                    acc += timeIntervalMinutes;
-                }
-            }
-            TextIO text = new TextIO();
-            text.write(auxAddress + key + ".txt", stringBuilder.toString());
+            cutVideoUnderConstraint(permutation, outputAddress, key, timeLengthMinutes, graphClass);
         }
+    }
+
+    private void cutVideoUnderConstraint(int[] permutation, String outputAddress, int clusterId, double timeLengthMinutes, Graph graphClass) {
+        // vertexIdByIndex values are index values in {1, ..., n}
+        Integer[] vertexIdByIndex = graphClass.getKeyIndex();
+
+        double acc = 0;
+        int k = permutation.length - 1;
+
+        String auxAddress = outputAddress;
+        auxAddress += clusterId + "/";
+        creatDirs(auxAddress);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        TopKSymbol topKSymbol = new TopKSymbol(30);
+        while (acc < timeLengthMinutes && k > 0) {
+            BaseSegmentedBow segmentedBow = segmentedBows.get(vertexIdByIndex[permutation[k--]] - 1);
+            double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
+            if (acc + timeIntervalMinutes < timeLengthMinutes) {
+                segmentedBow.cutSegment(auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval().toString().replace(" ", "") + ".mp4");
+                stringBuilder.append(topKSymbol.nextSymbol(segmentedBow.getSegmentBow(), this.lowBowManager.getSimplex())).append("\n");
+                acc += timeIntervalMinutes;
+            }
+        }
+        //Write top k symbols from the selected segments
+        TextIO text = new TextIO();
+        text.write(auxAddress + clusterId + ".txt", stringBuilder.toString());
+
+        //Write words from each segment in the cluster
+        stringBuilder = new StringBuilder();
+        for (Integer index : vertexIdByIndex) {
+            stringBuilder.append(segmentedBows.get(index - 1).cutSegmentSubtitleWords()).append("\n");
+        }
+        text.write(auxAddress + "segmentsCorpus.txt", stringBuilder.toString());
+    }
+
+    private int[] getRandomWalkRankPermutation(Graph graphClass) {
+        RandomWalkGraph randomWalkGraph = new RandomWalkGraph(graphClass);
+        int numVertex = graphClass.getNumVertex();
+        if (numVertex == 0) {
+            return null;
+        }
+        Vector v = new Vector(numVertex);
+        v.fill(1.0 / numVertex);
+        Vector stationaryDistribution = randomWalkGraph.getStationaryDistribution(v, 0.8, 1E-5);
+
+        // copy vector to Double[]
+        int dim = stationaryDistribution.getDim();
+        Double[] stationaryDistArray = new Double[dim];
+        for (int i = 0; i < dim; i++) {
+            stationaryDistArray[i] = stationaryDistribution.getX(i + 1);
+        }
+        //sort array
+        QuickSortWithPermutation sort = new QuickSortWithPermutation();
+        sort.sort(stationaryDistArray);
+        return sort.getPermutation();
     }
 
     /**
@@ -276,6 +296,24 @@ public class ArcSummarizer extends SeriesSummarization {
      */
     public List<String> getLog() {
         return log;
+    }
+
+    /**
+     * Gets graph by cluster id map.
+     *
+     * @return the graph by cluster id map
+     */
+    public Map<Integer, Graph> getGraphByClusterIdMap() {
+        return graphByClusterIdMap;
+    }
+
+    /**
+     * Gets segmented bows.
+     *
+     * @return the segmented bows
+     */
+    public List<BaseSegmentedBow> getSegmentedBows() {
+        return segmentedBows;
     }
 
     private void creatDirs(String address) {

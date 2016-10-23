@@ -1,4 +1,4 @@
-package apps.src;
+package nlp.lowbow.script;
 
 import algebra.src.Vec2;
 import algebra.src.Vec3;
@@ -101,7 +101,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
         //heat model
-        lowBowManager.buildModel(0.0);
+        lowBowManager.buildModel(0.08);
         new LowBowVisualizer("OverTheGardenWall", 500, 500, lowBowManager);
     }
 

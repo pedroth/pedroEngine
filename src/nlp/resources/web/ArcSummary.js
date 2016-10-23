@@ -1,6 +1,8 @@
+var numberOfClusters;
 var isLoading = true;
 var timeOutTime = 100;
 var uID = Math.random();
+
 
 function readLog() {
     $.ajax({
@@ -10,7 +12,7 @@ function readLog() {
            id : uID
         },
         success: function(result) {
-            if(result.endsWith("<FINISH><br>")) {
+            if(result.endsWith("FINISH<br>")) {
               isLoading = false;
             }
             $("#panel").html(result);
@@ -22,9 +24,8 @@ function readLog() {
 }
 
 function sendRequest() {
-    if(!isLoading) {
-        isLoading = true;
-    }
+    numberOfClusters = $("#kcluster").val();
+
     $.ajax({
       method:"POST",
       url: "/input",
@@ -50,4 +51,4 @@ function sendRequest() {
 }
 
 $("#submit").click(sendRequest);
-$("#cancel").click(function() {$("#log").slideToggle(); $("#container").slideToggle();});
+$("#cancel").click(function() {$("#log").slideToggle(); $("#container").slideToggle();  isLoading = !isLoading ? true : false;});

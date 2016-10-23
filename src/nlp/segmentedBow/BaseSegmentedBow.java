@@ -9,6 +9,7 @@ import utils.Interval;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Function;
 
 public abstract class BaseSegmentedBow implements Comparable<BaseSegmentedBow> {
     protected Interval<Integer> interval;
@@ -54,6 +55,19 @@ public abstract class BaseSegmentedBow implements Comparable<BaseSegmentedBow> {
             stringBuilder.append(textSplitter.getSubtitleFromIndexWord(i).getOriginalText());
         }
         return stringBuilder.toString();
+    }
+
+    public String cutSegmentSubtitleWords() {
+        String[] text = lowBowSubtitles.getText();
+        StringBuilder stringBuilder = new StringBuilder(interval.getXmax() - (interval.getXmin() - 1));
+        for (int i = interval.getXmin() - 1; i < interval.getXmax(); i++) {
+            stringBuilder.append(text[i]).append((i == interval.getXmax() - 1) ? "" : " ");
+        }
+        return stringBuilder.toString();
+    }
+
+    public String toString(Function<BaseSegmentedBow, String> function) {
+        return function.apply(this);
     }
 
     @Override
