@@ -6,9 +6,7 @@ import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
 import utils.FilesCrawler;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -17,7 +15,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 import static junit.framework.Assert.fail;
 
@@ -57,10 +54,19 @@ public class ArcSummaryServer {
         httpExchange.getResponseBody().close();
     }
 
+    private void respondWithBytes2(HttpExchange httpExchange, String file) throws IOException {
+        File myfile = new File(file);
+        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, file.length());
+        OutputStream outputStream = httpExchange.getResponseBody();
+        Files.copy(myfile.toPath(), outputStream);
+        outputStream.flush();
+        outputStream.close();
+    }
+
     private void respondWithBytes(HttpExchange httpExchange, String file) throws IOException {
         byte[] response = Files.readAllBytes(Paths.get(file));
         httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, response.length);
-        httpExchange.getResponseBody().write(response);
+        httpExchange.getResponseBody().write(response, 0, response.length);
         httpExchange.getResponseBody().flush();
         httpExchange.getResponseBody().close();
     }
@@ -181,7 +187,7 @@ public class ArcSummaryServer {
         });
 
 
-        summaryServer.setExecutor(Executors.newCachedThreadPool());
+        summaryServer.setExecutor(null);
         summaryServer.start();
     }
 
