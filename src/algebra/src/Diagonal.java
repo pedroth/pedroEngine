@@ -121,4 +121,11 @@ public class Diagonal extends Matrix {
         inverse.applyFunction((x) -> 1 / x);
         return inverse;
     }
+
+    public Diagonal sqrt() {
+        // deep copy
+        Diagonal sqrt = new Diagonal(this);
+        sqrt.applyFunction(Math::sqrt);
+        return sqrt;
+    }
 }

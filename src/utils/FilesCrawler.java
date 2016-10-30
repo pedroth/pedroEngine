@@ -53,4 +53,9 @@ public class FilesCrawler {
         String[] split = fileName.split("\\.");
         return split[split.length - 1];
     }
+
+    public static void creatDirs(String address) {
+        File dirs = new File(address);
+        dirs.mkdirs();
+    }
 }

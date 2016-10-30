@@ -46,7 +46,7 @@ public class Matrix {
      *                }
      */
     public Matrix(int rows, int columns) {
-        if (rows < 1 && columns < 1) {
+        if (rows < 1 || columns < 1) {
             throw new AlgebraException("number of rows and columns must be positive integers");
         } else {
             constructMatrix(rows, columns);

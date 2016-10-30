@@ -49,11 +49,12 @@ public class KnnGraph<L> extends Graph {
 
     private DistanceMatrix getDistanceMatrixFromData(List<L> data, Distance<L> distance) {
         DistanceMatrix ans = new DistanceMatrix(data.size());
-        for (int i = 2; i <= data.size(); i++) {
-            for (int j = 1; j < i; j++) {
-                L xJ = data.get(j - 1);
-                L yI = data.get(i - 1);
-                ans.setXY(i, j, distance.dist(yI, xJ));
+        int size = data.size();
+        for (int i = 0; i < size; i++) {
+            for (int j = i + 1; j < size; j++) {
+                L xJ = data.get(j);
+                L yI = data.get(i);
+                ans.setXY(i + 1, j + 1, distance.dist(yI, xJ));
             }
         }
         return ans;
@@ -62,8 +63,8 @@ public class KnnGraph<L> extends Graph {
     private void buildKnn() {
         PriorityQueue<IndexPair> heap;
         int n = distanceMatrix.getRows();
-        for (int j = 1; j < n; j++) {
-            heap = new PriorityQueue<IndexPair>();
+        for (int j = 1; j <= n; j++) {
+            heap = new PriorityQueue<>();
             for (int i = 1; i <= n; i++) {
                 if (i == j) {
                     continue;

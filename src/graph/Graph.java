@@ -407,4 +407,15 @@ public class Graph {
         return keys.toArray(new Integer[keys.size()]);
     }
 
+
+    public Map<Integer, Integer> getInverseKeyIndex() {
+        Map<Integer, Integer> map = new HashMap<>();
+        Integer[] keyIndex = getKeyIndex();
+        for (int i = 0; i < keyIndex.length; i++) {
+            map.put(keyIndex[i], i);
+        }
+        return map;
+    }
+
+
 }

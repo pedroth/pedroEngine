@@ -47,7 +47,7 @@ public class RandomWalkGraph {
         Vector v = new Vector(initialDistribution);
         Matrix weightMatrix = graph.getWeightMatrix(0);
         Matrix degreeMatrix = getDegreeMatrix(weightMatrix);
-        degreeMatrix.applyFunction(x -> 1 / x);
+        degreeMatrix.applyFunction(x -> x == 0.0 ? 1.0 : 1 / x);
         Matrix ones = new Matrix(weightMatrix.getRows(), weightMatrix.getColumns());
         ones.fill(1.0);
         Matrix b = Matrix.diag(Vector.scalarProd(1 - p, v)).prod(ones);

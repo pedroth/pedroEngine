@@ -26,6 +26,7 @@ public class SpectralClusterTest extends MyFrame {
     private int knn = 5;
     private int kcluster = 6;
     private boolean mySpectral = false;
+    private boolean isNormalized = false;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -69,6 +70,7 @@ public class SpectralClusterTest extends MyFrame {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
+        spectralClustering.setNormalized(isNormalized);
         Map<Integer, java.util.List<Integer>> integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 500) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 500);
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
@@ -130,6 +132,10 @@ public class SpectralClusterTest extends MyFrame {
                 mySpectral = !mySpectral;
                 System.out.println("mySpectral: " + mySpectral);
                 break;
+            case KeyEvent.VK_N:
+                isNormalized = !isNormalized;
+                System.out.println("isNormalized: " + isNormalized);
+                break;
             case KeyEvent.VK_MINUS:
                 kcluster--;
                 System.out.println(kcluster);
@@ -150,8 +156,23 @@ public class SpectralClusterTest extends MyFrame {
             case KeyEvent.VK_4:
                 knn = 4;
                 break;
-            default:
+            case KeyEvent.VK_5:
                 knn = 5;
+                break;
+            case KeyEvent.VK_6:
+                knn = 6;
+                break;
+            case KeyEvent.VK_7:
+                knn = 7;
+                break;
+            case KeyEvent.VK_8:
+                knn = 8;
+                break;
+            case KeyEvent.VK_9:
+                knn = 9;
+                break;
+            default:
+                knn = 10;
         }
         drawData();
 

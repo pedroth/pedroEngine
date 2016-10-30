@@ -101,7 +101,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
         //heat model
-        lowBowManager.buildModel(0.08);
+        lowBowManager.buildModel(0.04);
         new LowBowVisualizer("OverTheGardenWall", 500, 500, lowBowManager);
     }
 

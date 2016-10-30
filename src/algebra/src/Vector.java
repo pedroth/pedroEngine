@@ -214,4 +214,18 @@ public class Vector extends Matrix {
     public Vector leftProd(Matrix m) {
         return Vector.matrixProd(m, this);
     }
+
+    public Vec2 getMax() {
+        int dim = this.getDim();
+        double max = Double.MIN_VALUE;
+        int maxIndex = 0;
+        for (int i = 1; i <= dim; i++) {
+            double x = this.getX(i);
+            if (x > max) {
+                max = x;
+                maxIndex = i;
+            }
+        }
+        return new Vec2(max, maxIndex);
+    }
 }

@@ -251,7 +251,7 @@ public class LowBowTests {
             wordEntropy = new Vector(wordEntropy.applyFunction((z) -> -Math.log(z)));
             Vector xbow = Vector.pointMult(x, wordEntropy);
             Vector ybow = Vector.pointMult(y, wordEntropy);
-            return 1 - Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm());
+            return 1 - (Vector.innerProd(xbow, ybow) / (xbow.norm() * ybow.norm()));
         };
 
         //build knn-graph
@@ -404,7 +404,7 @@ public class LowBowTests {
         //clustering
         SpectralClustering spectralClustering = new SpectralClustering(graph);
         Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
-        Map<Integer, Graph> map = spectralClustering.getclusteredGraph();
+        Map<Integer, Graph> map = spectralClustering.getClusteredGraph();
         for (Integer key : map.keySet()) {
             Graph graphClass = map.get(key);
             RandomWalkGraph randomWalkGraph = new RandomWalkGraph(graphClass);

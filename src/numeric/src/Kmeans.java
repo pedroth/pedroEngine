@@ -58,7 +58,7 @@ public class Kmeans {
     public void runKmeans(int k, double epsilon, int replicates) {
         Map<Integer, Integer> minClassification = null;
         Map<Integer, List<Integer>> minInverseClassification = null;
-        Vector[] minClusters = new Vector[0];
+        Vector[] minClusters = new Vector[k];
         double minCost = Double.MAX_VALUE;
         for (int i = 0; i < replicates; i++) {
             runKmeans(k, epsilon);

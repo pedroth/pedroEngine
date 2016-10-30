@@ -1,6 +1,7 @@
 package graph;
 
 import Jama.EigenvalueDecomposition;
+import algebra.src.Diagonal;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import javafx.util.Pair;
@@ -23,6 +24,7 @@ public class SpectralClustering {
     private Map<Integer, List<Integer>> inverseClassification;
     private Map<Integer, Integer> classification;
     private Matrix eigenCoeff;
+    private boolean isNormalized = false;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -58,8 +60,9 @@ public class SpectralClustering {
         k = Integer.max(k, 1);
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
-        Matrix D = getDegreeMatrix(W);
-        Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Diagonal D = getDegreeMatrix(W);
+        Diagonal sqrt = D.inverse().sqrt();
+        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
         int maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
@@ -70,7 +73,7 @@ public class SpectralClustering {
 
         Matrix U = new Matrix(symmetricEigen.getEigenVectors());
         this.eigenCoeff = U;
-        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
@@ -86,8 +89,9 @@ public class SpectralClustering {
         k = Integer.max(k, 1);
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
-        Matrix D = getDegreeMatrix(W);
-        Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Diagonal D = getDegreeMatrix(W);
+        Diagonal sqrt = D.inverse().sqrt();
+        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
         int rows = laplacianMatrix.getRows();
@@ -96,7 +100,7 @@ public class SpectralClustering {
 
         Matrix U = new Matrix(eigenvalueDecomposition.getV().getArray());
         this.eigenCoeff = U;
-        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
@@ -113,7 +117,7 @@ public class SpectralClustering {
      *
      * @return the graph
      */
-    public Map<Integer, Graph> getclusteredGraph() {
+    public Map<Integer, Graph> getClusteredGraph() {
         if (inverseClassification == null) {
             return null;
         }
@@ -127,27 +131,20 @@ public class SpectralClustering {
     }
 
     private Graph segmentGraph(Integer kclass) {
-        String visitedPropertyName = "visited";
         Graph kgraph = new Graph();
         Stack<Integer> stack = new Stack<>();
 
-        Integer initial = inverseClassification.get(kclass).get(0);
-        stack.push(initial);
-        graph.putVertexProperty(initial, visitedPropertyName, true);
-
-        for (Integer u : graph.getVertexSet()) {
-            graph.putVertexProperty(u, visitedPropertyName, false);
+        for (Integer index : inverseClassification.get(kclass)) {
+            stack.push(index);
         }
-        //breath-first visit algorithm
+
         while (!stack.empty()) {
             Integer u = stack.pop();
+            kgraph.addVertex(u);
+            kgraph.putVertexProperty(u, CLASS_VERTEX_PROPERTY, kclass);
             for (Integer v : graph.getAdjVertex(u)) {
                 if (graph.getVertexProperty(v, CLASS_VERTEX_PROPERTY) != kclass) {
                     continue;
-                }
-                if (!((boolean) graph.getVertexProperty(v, visitedPropertyName))) {
-                    stack.push(v);
-                    graph.putVertexProperty(u, visitedPropertyName, true);
                 }
                 kgraph.addEdge(u, v);
                 Pair<Integer, Integer> pair = new Pair<>(u, v);
@@ -170,7 +167,7 @@ public class SpectralClustering {
         return weightMatrix;
     }
 
-    private Matrix getDegreeMatrix(Matrix w) {
+    private Diagonal getDegreeMatrix(Matrix w) {
         double acc;
         int columns = w.getColumns();
         int rows = w.getRows();
@@ -182,7 +179,7 @@ public class SpectralClustering {
             }
             degrees.setX(i, acc);
         }
-        return Matrix.diag(degrees);
+        return (Diagonal) Matrix.diag(degrees);
     }
 
     /**
@@ -220,15 +217,15 @@ public class SpectralClustering {
     private Map<Integer, List<Integer>> fixIndexOfInverseClassificationMap(Map<Integer, List<Integer>> map) {
         Integer[] keyIndex = this.graph.getKeyIndex();
         for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
-            Integer kclass = entry.getKey();
-            for (Integer index : entry.getValue()) {
-                graph.putVertexProperty(keyIndex[index], CLASS_VERTEX_PROPERTY, kclass);
-            }
-        }
-        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
             List<Integer> value = entry.getValue();
             for (int i = 0; i < value.size(); i++) {
                 value.set(i, keyIndex[value.get(i)]);
+            }
+        }
+        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
+            Integer kclass = entry.getKey();
+            for (Integer index : entry.getValue()) {
+                graph.putVertexProperty(index, CLASS_VERTEX_PROPERTY, kclass);
             }
         }
         return map;
@@ -242,5 +239,13 @@ public class SpectralClustering {
             ansMap.put(keyIndex[key], entry.getValue());
         }
         return ansMap;
+    }
+
+    public boolean isNormalized() {
+        return isNormalized;
+    }
+
+    public void setNormalized(boolean normalized) {
+        isNormalized = normalized;
     }
 }
