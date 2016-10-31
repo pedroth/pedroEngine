@@ -82,6 +82,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     protected String outputAddress;
     protected NecessaryWordPredicate necessaryWordPredicate;
     protected boolean cutVideo = true;
+    protected Map<Integer, Vector> graphCentroidByClusterId;
 
     /**
      * Instantiates a new Arc summarizer.
@@ -249,6 +250,13 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
             acc = Vector.scalarProd(1.0 / segmentIndex.size(), acc);
 
+
+            if (graphCentroidByClusterId == null) {
+                graphCentroidByClusterId = new HashMap<>();
+            }
+
+            graphCentroidByClusterId.put(clusterId, acc);
+
             Matrix row = new Matrix(acc).transpose();
             stringBuilder2.append(row).append("\n");
             TopKSymbolWithProb topKSymbolWithProb = new TopKSymbolWithProb(k);
@@ -409,5 +417,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     public void setCutVideo(boolean cutVideo) {
         this.cutVideo = cutVideo;
+    }
+
+    public Map<Integer, Vector> getGraphCentroidByClusterId() {
+        return graphCentroidByClusterId;
     }
 }

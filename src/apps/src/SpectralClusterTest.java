@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class SpectralClusterTest extends MyFrame {
-    private static final int numPoints = 100;
+    private static final int numPoints = 500;
     private static final double length = 5;
     private int knn = 5;
     private int kcluster = 6;

@@ -1,5 +1,6 @@
 package nlp.tests;
 
+import algebra.src.Vec2;
 import algebra.src.Vector;
 import inputOutput.TextIO;
 import nlp.segmentedBow.BaseSegmentedBow;
@@ -9,38 +10,36 @@ import nlp.seriesSummary.BaseArcSummarizer;
 import numeric.src.Distance;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class ArcSummaryTest {
 
     @Test
     public void lowbowLdaStatistics() {
-        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/";
-        String fileExtension = "mkv";
+        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/BattleStarGalactica/";
+        String fileExtension = "avi";
         String output = seriesAddress + "summary";
-        int numberOfCluster = 6;
+        int numberOfCluster = 8;
         double heat = 0.04;
         double entropy = 0.105;
         int knn = 10;
         double timeArc = 10;
+        boolean cutVideo = true;
 
         List<BaseArcSummarizer> baseArcSummarizerList = new ArrayList<>();
 
         BaseArcSummarizer baseArcSummarizer = new ArcSummarizer(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.simplexDist);
-        baseArcSummarizer.setCutVideo(false);
+        baseArcSummarizer.setCutVideo(cutVideo);
         ((ArcSummarizer) baseArcSummarizer).setNormalized(true);
         baseArcSummarizerList.add(baseArcSummarizer);
 
         baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.simplexDist);
-        baseArcSummarizer.setCutVideo(false);
+        baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizerList.add(baseArcSummarizer);
 
         baseArcSummarizer = new ArcSummarizer(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.simplexDist);
         ((ArcSummarizer) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setCutVideo(false);
+        baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizerList.add(baseArcSummarizer);
 
         // summary
@@ -55,7 +54,58 @@ public class ArcSummaryTest {
             textIO.write(outputAddress + "/InterClusterDistance.txt", interClusterDistanceHist);
         }
 
+        TextIO textIO = new TextIO();
+        textIO.read(output + 1 + "/ldaModel.phi");
+        String[] phisSplit = textIO.getText().split("\n");
+        Vector[] phis = new Vector[phisSplit.length];
+        for (int i = 0; i < phisSplit.length; i++) {
+            String[] split = phisSplit[i].split(" ");
+            phis[i] = new Vector(split.length);
+            for (int j = 0; j < split.length; j++) {
+                phis[i].setX(j + 1, Double.valueOf(split[j]));
+            }
+        }
 
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < phis.length; i++) {
+            int size = baseArcSummarizerList.size();
+            int[] indexCorr = new int[size];
+            double[] distanceCorr = new double[size];
+            for (int j = 0; j < size; j++) {
+                Vec2 ans = findMinDistance2Phi(phis[i], baseArcSummarizerList.get(j).getGraphCentroidByClusterId(), (x, y) -> {
+                    double acc = 0;
+                    for (int k = 0; k < x.size(); k++) {
+                        acc += x.getX(k + 1) * Math.log(x.getX(k + 1) / y.getX(k + 1));
+                    }
+                    return acc;
+                });
+                indexCorr[j] = (int) ans.getX();
+                distanceCorr[j] = ans.getY();
+            }
+            for (int j = 0; j < size; j++) {
+                stringBuilder.append("Topic " + i + ": " + indexCorr[j] + ", " + distanceCorr[j] + " ");
+            }
+            stringBuilder.append("\n");
+        }
+
+        textIO.write(seriesAddress + "ldaTopicAssignment", stringBuilder.toString());
+
+
+    }
+
+    private Vec2 findMinDistance2Phi(Vector phi, Map<Integer, Vector> graphCentroidByClusterId, Distance<Vector> distance) {
+        Set<Integer> keySet = graphCentroidByClusterId.keySet();
+        Integer[] clusterIds = keySet.toArray(new Integer[keySet.size()]);
+        int minIndex = -1;
+        double minDist = Double.MAX_VALUE;
+        for (int i = 0; i < clusterIds.length; i++) {
+            double norm = distance.dist(phi, graphCentroidByClusterId.get(clusterIds[i]));
+            if (norm < minDist) {
+                minDist = norm;
+                minIndex = i;
+            }
+        }
+        return new Vec2(minIndex, minDist);
     }
 
     private String computeIntraDistanceHist(List<BaseSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, Distance<Vector> distance) {
