@@ -3,7 +3,7 @@ package nlp.lowbow.simpleLowBow;
 import algebra.src.Vec2;
 import graph.Graph;
 import inputOutput.TextIO;
-import nlp.lowbow.symbolSampler.SymbolSampler;
+import nlp.symbolSampler.SymbolSampler;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.TextSplitter;

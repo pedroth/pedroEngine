@@ -1,4 +1,4 @@
-package nlp.lowbow.symbolSampler;
+package nlp.symbolSampler;
 
 import algebra.src.Vector;
 import algorithms.QuickSortWithPermutation;
@@ -26,7 +26,7 @@ public class TopKSymbol implements SymbolSampler {
         quickSortWithPermutation.sort(v);
         int[] permutation = quickSortWithPermutation.getPermutation();
         for (int i = 0; i < k; i++) {
-            stringBuilder.append(symTable.get(permutation[((int) MyMath.clamp(n - 1 - i, 0, n - 1))] + 1)).append("\t");
+            stringBuilder.append(symTable.get(permutation[((int) MyMath.clamp(n - 1 - i, 0, n - 1))] + 1)).append(" ");
         }
         return stringBuilder.toString();
     }

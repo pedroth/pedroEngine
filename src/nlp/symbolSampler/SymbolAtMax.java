@@ -1,4 +1,4 @@
-package nlp.lowbow.symbolSampler;
+package nlp.symbolSampler;
 
 import algebra.src.Vector;
 import nlp.utils.Simplex;

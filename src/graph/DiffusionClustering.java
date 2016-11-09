@@ -1,5 +1,6 @@
 package graph;
 
+
 import Jama.EigenvalueDecomposition;
 import algebra.src.Diagonal;
 import algebra.src.Matrix;
@@ -16,66 +17,93 @@ import java.util.Stack;
 import java.util.function.Function;
 
 /**
- * The type Spectral clustering.
+ * The type Diffusion clustering.
  */
-public class SpectralClustering {
+public class DiffusionClustering {
+
     private final static String CLASS_VERTEX_PROPERTY = "class";
     private final KnnGraph graph;
+    /**
+     * The Heat time.
+     */
+    double heatTime;
     private Map<Integer, List<Integer>> inverseClassification;
     private Map<Integer, Integer> classification;
     private Matrix eigenCoeff;
-    private boolean isNormalized = false;
+    private double reduceDimensionThreshold = 0.1;
 
     /**
      * Instantiates a new Spectral clustering.
      *
      * @param graph the graph
      */
-    public SpectralClustering(KnnGraph graph) {
+    public DiffusionClustering(KnnGraph graph) {
         this.graph = new KnnGraph(graph);
     }
-
-
-    /**
-     * Clustering map.
-     *
-     * @param k the k number of clusters
-     * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
-     */
-    public Map<Integer, List<Integer>> clustering(int k) {
-        return clustering(k, (x) -> Math.exp(-x * x), 1E-10, 500);
-    }
-
 
     /**
      * Spectral clustering.
      *
+     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
      * @param k                 the k number of clusters
      * @param similarityMeasure the similarity measure
      * @param epsilon           the epsilon
      * @param repetitions       the repetitions
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
-    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+    public Map<Integer, List<Integer>> clustering(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        return clustering(heatTime, k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
+            private SymmetricEigen symmetricEigen;
+
+            @Override
+            public Matrix getV(Matrix laplacian) {
+                symmetricEigen = new SymmetricEigen(laplacian);
+                symmetricEigen.computeEigen(epsilon, laplacian.getRows(), new HyperEigenAlgo());
+                return new Matrix(symmetricEigen.getEigenVectors());
+            }
+
+            @Override
+            public double[] getEigenValues() {
+                Double[] eigenValues = symmetricEigen.getEigenValues();
+                double[] ans = new double[eigenValues.length];
+                for (int i = 0; i < ans.length; i++) {
+                    ans[i] = eigenValues[i];
+                }
+                return ans;
+            }
+        });
+    }
+
+
+    private Map<Integer, List<Integer>> clustering(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions, SpectralMethod spectralMethod) {
         k = Integer.max(k, 1);
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
         Diagonal D = getDegreeMatrix(W);
-        Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
-        int maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
-
-        SymmetricEigen symmetricEigen = new SymmetricEigen(laplacianMatrix);
-        symmetricEigen.computeEigen(epsilon, maxEigenValue, new HyperEigenAlgo());
-
-        Matrix U = new Matrix(symmetricEigen.getEigenVectors());
+        Matrix U = spectralMethod.getV(laplacianMatrix);
         this.eigenCoeff = U;
-        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+
+        Vector eigenValues = new Vector(spectralMethod.getEigenValues());
+        eigenValues.applyFunction((x) -> Math.exp(-x * heatTime));
+
+        double t = Math.max(0, heatTime);
+        int compressDim = eigenValues.size();
+
+        for (int i = 1; i <= eigenValues.size(); i++) {
+            if (eigenValues.getX(i) < reduceDimensionThreshold) {
+                compressDim = i;
+                break;
+            }
+        }
+        // exp matrix
+        Matrix expT = Matrix.diag(eigenValues).getSubMatrix(1, compressDim, 1, compressDim);
+        Matrix prod = expT.prod(Matrix.transpose(U).getSubMatrix(1, compressDim, 1, U.getRows()));
 
         //kmeans
-        Kmeans kmeans = new Kmeans(subMatrix.transpose());
+        Kmeans kmeans = new Kmeans(prod);
         kmeans.runKmeans(k, epsilon, repetitions);
 
         //fix index to graph index
@@ -84,31 +112,32 @@ public class SpectralClustering {
         return inverseClassification;
     }
 
-    public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        k = Integer.max(k, 1);
-        //compute laplacian matrix
-        Matrix W = getWeightMatrix(similarityMeasure);
-        Diagonal D = getDegreeMatrix(W);
-        Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
-        //compute eigenVectors
-        int rows = laplacianMatrix.getRows();
-        int maxEigenValue = Integer.min(k + 1, rows);
-        EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacianMatrix.getMatrix()));
+    /**
+     * Clustering jama.
+     *
+     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param k                 the k
+     * @param similarityMeasure the similarity measure
+     * @param epsilon           the epsilon
+     * @param repetitions       the repetitions
+     * @return the map
+     */
+    public Map<Integer, List<Integer>> clusteringJama(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        return clustering(heatTime, k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
+            private EigenvalueDecomposition symmetricEigen;
 
-        Matrix U = new Matrix(eigenvalueDecomposition.getV().getArray());
-        this.eigenCoeff = U;
-        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+            @Override
+            public Matrix getV(Matrix laplacian) {
+                symmetricEigen = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
+                return new Matrix(symmetricEigen.getV().getArray());
+            }
 
-        //kmeans
-        Kmeans kmeans = new Kmeans(subMatrix.transpose());
-        kmeans.runKmeans(k, epsilon, repetitions);
-
-        //fix index to graph index
-        this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
-        this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
-        return inverseClassification;
+            @Override
+            public double[] getEigenValues() {
+                return symmetricEigen.getRealEigenvalues();
+            }
+        });
     }
 
     /**
@@ -208,6 +237,11 @@ public class SpectralClustering {
         return eigenCoeff;
     }
 
+    /**
+     * Gets classification.
+     *
+     * @return the classification
+     */
     public Map<Integer, Integer> getClassification() {
         return classification;
     }
@@ -240,11 +274,57 @@ public class SpectralClustering {
         return ansMap;
     }
 
-    public boolean isNormalized() {
-        return isNormalized;
+    /**
+     * Gets heat time.
+     *
+     * @return the heat time
+     */
+    public double getHeatTime() {
+        return heatTime;
     }
 
-    public void setNormalized(boolean normalized) {
-        isNormalized = normalized;
+    /**
+     * Sets heat time.
+     *
+     * @param heatTime the heat time
+     */
+    public void setHeatTime(double heatTime) {
+        this.heatTime = heatTime;
+    }
+
+
+    /**
+     * Gets reduce dimension threshold.
+     *
+     * @return the reduce dimension threshold
+     */
+    public double getReduceDimensionThreshold() {
+        return reduceDimensionThreshold;
+    }
+
+    /**
+     * Sets reduce dimension threshold.
+     *
+     * @param reduceDimensionThreshold the reduce dimension threshold
+     */
+    public void setReduceDimensionThreshold(double reduceDimensionThreshold) {
+        this.reduceDimensionThreshold = reduceDimensionThreshold;
+    }
+
+    private interface SpectralMethod {
+        /**
+         * Gets v.
+         *
+         * @param laplacian the laplacian
+         * @return the v
+         */
+        Matrix getV(Matrix laplacian);
+
+        /**
+         * Get eigen values.
+         *
+         * @return the double [ ]
+         */
+        double[] getEigenValues();
     }
 }

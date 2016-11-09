@@ -3,17 +3,24 @@ package algebra.src;
 import algebra.utils.AlgebraException;
 
 /**
- * @author pedro
- *         <p>
+ * The type Vector.
+ * @author pedro <p>
  *         <p>
  *         vectors are n * 1 matrices
  */
 public class Vector extends Matrix {
+    /**
+     * Instantiates a new Vector.
+     *
+     * @param n the n
+     */
     public Vector(int n) {
         super(n, 1);
     }
 
     /**
+     * Instantiates a new Vector.
+     *
      * @param v receives 1 * n array but stores as a n * 1 vector
      */
     public Vector(double[] v) {
@@ -21,6 +28,11 @@ public class Vector extends Matrix {
         this.transpose();
     }
 
+    /**
+     * Instantiates a new Vector.
+     *
+     * @param v the v
+     */
     public Vector(Double[] v) {
         super(v.length, 1);
         for (int i = 0; i < v.length; i++) {
@@ -29,6 +41,8 @@ public class Vector extends Matrix {
     }
 
     /**
+     * Instantiates a new Vector.
+     *
      * @param v n * 1 matrix, can be used as copy method
      */
     public Vector(Matrix v) {
@@ -44,6 +58,9 @@ public class Vector extends Matrix {
 
     /**
      * static
+     * @param v1 the v 1
+     * @param v2 the v 2
+     * @return the double
      */
     public static double innerProd(Vector v1, Vector v2) {
         Matrix ans = transpose(v1);
@@ -51,10 +68,24 @@ public class Vector extends Matrix {
         return m.getXY(1, 1);
     }
 
+    /**
+     * Matrix prod.
+     *
+     * @param m the m
+     * @param v the v
+     * @return the vector
+     */
     public static Vector matrixProd(Matrix m, Vector v) {
         return m.prodVector(v);
     }
 
+    /**
+     * Matrix prod parallel.
+     *
+     * @param m the m
+     * @param v the v
+     * @return the vector
+     */
     public static Vector matrixProdParallel(Matrix m, Vector v) {
         Vector ret;
         Matrix m1 = prodParallel(m, v);
@@ -62,12 +93,26 @@ public class Vector extends Matrix {
         return ret;
     }
 
+    /**
+     * Add vector.
+     *
+     * @param v1 the v 1
+     * @param v2 the v 2
+     * @return the vector
+     */
     public static Vector add(Vector v1, Vector v2) {
         Matrix m = Matrix.add(v1, v2);
         Vector ret = new Vector(m);
         return ret;
     }
 
+    /**
+     * Diff vector.
+     *
+     * @param v1 the v 1
+     * @param v2 the v 2
+     * @return the vector
+     */
     public static Vector diff(Vector v1, Vector v2) {
         Matrix m = Matrix.diff(v1, v2);
         Vector ret = new Vector(m);
@@ -79,7 +124,7 @@ public class Vector extends Matrix {
      *
      * @param x real number
      * @param v vector
-     * @return
+     * @return vector vector
      */
     public static Vector scalarProd(double x, Vector v) {
         Matrix m = Matrix.scalarProd(x, v);
@@ -87,6 +132,12 @@ public class Vector extends Matrix {
         return ret;
     }
 
+    /**
+     * Normalize vector.
+     *
+     * @param v the v
+     * @return the vector
+     */
     public static Vector normalize(Vector v) {
         double norm = v.norm();
         Vector ret = norm == 0.0 ? new Vector(v) : Vector.scalarProd(1 / norm, v);
@@ -94,8 +145,10 @@ public class Vector extends Matrix {
     }
 
     /**
-     * @param u
-     * @param v
+     * Projection vector.
+     *
+     * @param u the u
+     * @param v the v
      * @return projection of u on v;
      */
     public static Vector projection(Vector u, Vector v) {
@@ -107,8 +160,10 @@ public class Vector extends Matrix {
     }
 
     /**
-     * @param u
-     * @param v
+     * Ortho projection.
+     *
+     * @param u the u
+     * @param v the v
      * @return return the orthogonal projection of u on v
      */
     public static Vector orthoProjection(Vector u, Vector v) {
@@ -119,6 +174,13 @@ public class Vector extends Matrix {
     }
 
 
+    /**
+     * Point mult.
+     *
+     * @param u the u
+     * @param v the v
+     * @return the vector
+     */
     public static Vector pointMult(Vector u, Vector v) {
         if (u.getDim() != v.getDim()) {
             throw new AlgebraException("In a pointMult vectors must be of the same size");
@@ -130,6 +192,11 @@ public class Vector extends Matrix {
         return ret;
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         Vector v = new Vector(100);
         v.fillRandom(-1, 1);
@@ -144,6 +211,12 @@ public class Vector extends Matrix {
         System.out.println(Vector.innerProd(u1, u2));
     }
 
+    /**
+     * Square norm.
+     *
+     * @param v the v
+     * @return the double
+     */
     public static double squareNorm(Vector v) {
         return Vector.innerProd(v, v);
     }
@@ -162,12 +235,17 @@ public class Vector extends Matrix {
      * Sets the x'th value of the vector to n
      *
      * @param x index from 1 to dimension of vector
-     * @param n
+     * @param n the n
      */
     public void setX(int x, double n) {
         this.setXY(x, 1, n);
     }
 
+    /**
+     * Norm double.
+     *
+     * @return the double
+     */
     public double norm() {
         Vector aux = new Vector(this);
         return Math.sqrt(Vector.innerProd(aux, aux));
@@ -185,19 +263,28 @@ public class Vector extends Matrix {
     }
 
     /**
-     * @return dimension/size of the vector
+     * Gets dim.
+     *
+     * @return dimension /size of the vector
      */
     public int getDim() {
         return this.getRows();
     }
 
     /**
-     * @return dimension/size of vector
+     * Size int.
+     *
+     * @return dimension /size of vector
      */
     public int size() {
         return this.getRows();
     }
 
+    /**
+     * Get array.
+     *
+     * @return the double [ ]
+     */
     public double[] getArray() {
         int n = this.getDim();
         double[] ans = new double[n];
@@ -207,14 +294,33 @@ public class Vector extends Matrix {
         return ans;
     }
 
+    /**
+     * Gets sub vector.
+     *
+     * @param xmin the xmin
+     * @param xmax the xmax
+     * @return the sub vector
+     */
     public Vector getSubVector(int xmin, int xmax) {
         return new Vector(this.getSubMatrix(xmin, xmax, 1, 1));
     }
 
+    /**
+     * Left prod.
+     *
+     * @param m the m
+     * @return the vector
+     */
     public Vector leftProd(Matrix m) {
         return Vector.matrixProd(m, this);
     }
 
+
+    /**
+     * Gets max.
+     *
+     * @return the max, where 1st coordinate is the value and the second coordinate is the index;
+     */
     public Vec2 getMax() {
         int dim = this.getDim();
         double max = Double.MIN_VALUE;
@@ -227,5 +333,24 @@ public class Vector extends Matrix {
             }
         }
         return new Vec2(max, maxIndex);
+    }
+
+    /**
+     * Gets min.
+     *
+     * @return the min, where 1st coordinate is the value and the second coordinate is the index;
+     */
+    public Vec2 getMin() {
+        int dim = this.getDim();
+        double min = Double.MAX_VALUE;
+        int minIndex = 0;
+        for (int i = 1; i <= dim; i++) {
+            double x = this.getX(i);
+            if (min > x) {
+                min = x;
+                minIndex = i;
+            }
+        }
+        return new Vec2(min, minIndex);
     }
 }

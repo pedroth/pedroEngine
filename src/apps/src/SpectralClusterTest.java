@@ -2,6 +2,7 @@ package apps.src;
 
 import algebra.src.Vec2;
 import apps.utils.MyFrame;
+import graph.DiffusionClustering;
 import graph.Graph;
 import graph.KnnGraph;
 import graph.SpectralClustering;
@@ -21,12 +22,14 @@ import java.util.Map;
 import java.util.Random;
 
 public class SpectralClusterTest extends MyFrame {
-    private static final int numPoints = 500;
+    private static final int numPoints = 100;
     private static final double length = 5;
     private int knn = 5;
     private int kcluster = 6;
     private boolean mySpectral = false;
     private boolean isNormalized = false;
+    private boolean isDiffusion = false;
+    private double heatTime = 5;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -62,19 +65,25 @@ public class SpectralClusterTest extends MyFrame {
 
     private void drawData() {
         engine.removeAllElements();
-        addData2Engine();
-        engine.buildBoundigBoxTree();
-        engine.setCameraAuto(1.25);
+//        addData2Engine();
         this.knnGraph = new KnnGraph<>(points, knn, (x, y) -> Vec2.diff(x, y).squareNorm());
         for (int i = 0; i < points.size(); i++) {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
-        SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
-        spectralClustering.setNormalized(isNormalized);
-        Map<Integer, java.util.List<Integer>> integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 500) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 500);
+
+        Map<Integer, java.util.List<Integer>> integerListMap;
+        if (isDiffusion) {
+            DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
+            integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 500) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 500);
+        } else {
+            SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
+            spectralClustering.setNormalized(isNormalized);
+            integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 500) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 500);
+        }
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
         engine.buildBoundigBoxTree();
+        engine.setCameraAuto(1.25);
     }
 
     private void drawClassification(Map<Integer, List<Integer>> inverseClassification) {
@@ -136,6 +145,10 @@ public class SpectralClusterTest extends MyFrame {
                 isNormalized = !isNormalized;
                 System.out.println("isNormalized: " + isNormalized);
                 break;
+            case KeyEvent.VK_D:
+                isDiffusion = !isDiffusion;
+                System.out.println("isDiffusion: " + isDiffusion);
+                break;
             case KeyEvent.VK_MINUS:
                 kcluster--;
                 System.out.println(kcluster);
@@ -171,11 +184,18 @@ public class SpectralClusterTest extends MyFrame {
             case KeyEvent.VK_9:
                 knn = 9;
                 break;
+            case KeyEvent.VK_W:
+                heatTime++;
+                System.out.println(heatTime);
+                break;
+            case KeyEvent.VK_S:
+                heatTime--;
+                System.out.println(heatTime);
+                break;
             default:
-                knn = 10;
+                //nothing here
         }
         drawData();
-
     }
 
     @Override

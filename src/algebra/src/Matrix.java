@@ -626,7 +626,7 @@ public class Matrix {
     }
 
     /**
-     * transpose matrix
+     * transpose matrix, this matrix is transposed
      *
      * @return the matrix
      */

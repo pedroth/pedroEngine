@@ -5,7 +5,7 @@ import nlp.lowbow.simpleLowBow.HeatMethod;
 import nlp.lowbow.simpleLowBow.LowBow;
 import nlp.lowbow.simpleLowBow.LowBowSummaryPrepositions;
 import nlp.lowbow.simpleLowBow.SparseHeatFlow;
-import nlp.lowbow.symbolSampler.SymbolAtMax;
+import nlp.symbolSampler.SymbolAtMax;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;

@@ -3,8 +3,8 @@ package nlp.lowbow.simpleLowBow;
 
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import nlp.lowbow.symbolSampler.SymbolSampler;
 import nlp.simpleDocModel.BaseDocumentModel;
+import nlp.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
 

@@ -11,12 +11,12 @@ import graph.RandomWalkGraph;
 import inputOutput.TextIO;
 import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
-import nlp.lowbow.symbolSampler.TopKSymbol;
-import nlp.lowbow.symbolSampler.TopKSymbolWithProb;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowCool;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
+import nlp.symbolSampler.TopKSymbol;
+import nlp.symbolSampler.TopKSymbolWithProb;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Distance;
@@ -83,6 +83,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     protected NecessaryWordPredicate necessaryWordPredicate;
     protected boolean cutVideo = true;
     protected Map<Integer, Vector> graphCentroidByClusterId;
+    protected double averageSegmentlength;
+    protected double standardDeviationSegmentLength;
 
     /**
      * Instantiates a new Arc summarizer.
@@ -191,6 +193,12 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             System.out.println("Segmentation done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
+            //segment statistics
+            this.averageSegmentlength = computeAverageSegmentLength(segmentedBows);
+            this.standardDeviationSegmentLength = computeStandardDeviationLength(segmentedBows, averageSegmentlength);
+            //reject segment outliers
+            rejectSegmentOutliers();
+
             //build knn-graph
             DistanceMatrix distanceMatrix = this.lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
             this.knnGraph = new KnnGraph(distanceMatrix, knn);
@@ -213,6 +221,13 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             System.out.println("Clustering done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
+
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Map.Entry<Integer, Graph> integerGraphEntry : graphByClusterIdMap.entrySet()) {
+                stringBuilder.append(integerGraphEntry.getValue().toStringGephi());
+            }
+            textIO.write(this.outputAddress + "segmentGraphPartition.txt", stringBuilder.toString());
+
             //summarize
             randomWalkSummary(segmentedBows, graphByClusterIdMap, timeLengthMinutes, this.outputAddress);
 
@@ -228,6 +243,38 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             e.printStackTrace();
             log.add(sw.toString());
         }
+    }
+
+    private void rejectSegmentOutliers() {
+        double mu = this.averageSegmentlength;
+        double sigma = this.standardDeviationSegmentLength;
+        for (int i = 0; i < segmentedBows.size(); i++) {
+            double t = segmentedBows.get(i).getTimeIntervalMinutes();
+            double z = (t - mu) / sigma;
+            if (z < -1) {
+                segmentedBows.remove(i);
+            }
+        }
+    }
+
+    private double computeStandardDeviationLength(List<BaseSegmentedBow> segmentedBows, double averageSegmentlength) {
+        double mu = 0;
+        int size = segmentedBows.size();
+        for (int i = 0; i < size; i++) {
+            double t = segmentedBows.get(i).getTimeIntervalMinutes();
+            mu += (t - averageSegmentlength) * (t - averageSegmentlength);
+        }
+        return Math.sqrt(mu / size);
+    }
+
+    private double computeAverageSegmentLength(List<BaseSegmentedBow> segmentedBows) {
+        double mu = 0;
+        int size = segmentedBows.size();
+        for (int i = 0; i < size; i++) {
+            double t = segmentedBows.get(i).getTimeIntervalMinutes();
+            mu += t;
+        }
+        return mu / size;
     }
 
     private void topWordsPrint(int k) {
@@ -421,5 +468,13 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     public Map<Integer, Vector> getGraphCentroidByClusterId() {
         return graphCentroidByClusterId;
+    }
+
+    public double getStandardDeviationSegmentLength() {
+        return standardDeviationSegmentLength;
+    }
+
+    public double getAverageSegmentlength() {
+        return averageSegmentlength;
     }
 }

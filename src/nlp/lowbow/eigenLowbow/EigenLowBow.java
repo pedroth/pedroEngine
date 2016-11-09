@@ -4,7 +4,7 @@ package nlp.lowbow.eigenLowbow;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.simpleLowBow.BaseLowBow;
-import nlp.lowbow.symbolSampler.SymbolSampler;
+import nlp.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
 import numeric.src.MyMath;
@@ -167,7 +167,7 @@ public class EigenLowBow extends BaseLowBow {
      * @return the matrix
      */
     protected Matrix expSt(double t, int k) {
-        Matrix expEigen = eigenValues.getSubMatrix(1, numberOfLowDimCoeff, 1, 1);
+        Matrix expEigen = eigenValues.getSubMatrix(1, k, 1, 1);
         expEigen.applyFunction(x -> Math.exp(-x * t));
         return Matrix.diag(expEigen);
     }

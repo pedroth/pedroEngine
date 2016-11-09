@@ -1,7 +1,7 @@
 package nlp.lowbow.simpleLowBow;
 
 import algebra.src.Vector;
-import nlp.lowbow.symbolSampler.SymbolSampler;
+import nlp.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
 import numeric.src.MyMath;

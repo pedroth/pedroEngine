@@ -7,7 +7,6 @@ import algebra.src.Vector;
 import nlp.lowbow.simpleLowBow.BaseLowBowManager;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowFactory;
-import nlp.segmentedBow.SegmentedBowHeat;
 import numeric.src.Distance;
 import numeric.src.MyMath;
 import utils.StopWatch;
@@ -99,7 +98,7 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         segmentedBows = new ArrayList<>();
         for (L docModel : docModels) {
             StopWatch stopWatch = new StopWatch();
-            List<SegmentedBowHeat> segmentation = docModel.getSegmentation(factory);
+            List<BaseSegmentedBow> segmentation = docModel.getSegmentation(factory);
             System.out.println("segmentation computation time : " + stopWatch.getEleapsedTime());
             segmentedBows.addAll(segmentation);
         }
