@@ -13,6 +13,7 @@ public class CsvReader extends HyperTable<Integer, String> {
     private TextIO textIO;
     private int[] size = new int[]{0, 0};
     private HashMap<String, Boolean> delimiters = new HashMap<>(3);
+    private String regex;
 
     /**
      * Instantiates a new Csv reader.
@@ -23,6 +24,7 @@ public class CsvReader extends HyperTable<Integer, String> {
         this.delimiters.put(",", true);
         this.delimiters.put(";", true);
         this.textIO = new TextIO();
+        this.regex = buildRegex();
     }
 
     /**
@@ -34,7 +36,6 @@ public class CsvReader extends HyperTable<Integer, String> {
         textIO.read(address);
         String text = textIO.getText();
         String[] split = text.split("\n");
-        String regex = buildRegex();
         for (int i = 0; i < split.length; i++) {
             String[] elements = split[i].split(regex);
             for (int j = 0; j < elements.length; j++) {
