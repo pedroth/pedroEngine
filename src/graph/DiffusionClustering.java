@@ -86,10 +86,10 @@ public class DiffusionClustering {
         Matrix U = spectralMethod.getV(laplacianMatrix);
         this.eigenCoeff = U;
 
+
         Vector eigenValues = new Vector(spectralMethod.getEigenValues());
         eigenValues.applyFunction((x) -> Math.exp(-x * heatTime));
 
-        double t = Math.max(0, heatTime);
         int compressDim = eigenValues.size();
 
         for (int i = 1; i <= eigenValues.size(); i++) {
@@ -98,8 +98,14 @@ public class DiffusionClustering {
                 break;
             }
         }
+
+        Vector compressEigen = new Vector(compressDim);
+        for (int i = 1; i <= compressDim; i++) {
+            compressEigen.setX(i, eigenValues.getX(i));
+        }
+
         // exp matrix
-        Matrix expT = Matrix.diag(eigenValues).getSubMatrix(1, compressDim, 1, compressDim);
+        Diagonal expT = new Diagonal(compressEigen);
         Matrix prod = expT.prod(Matrix.transpose(U).getSubMatrix(1, compressDim, 1, U.getRows()));
 
         //kmeans

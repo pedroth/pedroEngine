@@ -99,7 +99,11 @@ public class SpectralClustering {
 
         Matrix U = new Matrix(eigenvalueDecomposition.getV().getArray());
         this.eigenCoeff = U;
-        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+
+        if (isNormalized) {
+            subMatrix = normalizeRows(subMatrix);
+        }
 
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
@@ -109,6 +113,14 @@ public class SpectralClustering {
         this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
         this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
         return inverseClassification;
+    }
+
+    private Matrix normalizeRows(Matrix subMatrix) {
+        Vector[] rowsVectors = subMatrix.getRowsVectors();
+        for (int i = 0; i < rowsVectors.length; i++) {
+            rowsVectors[i] = Vector.normalize(rowsVectors[i]);
+        }
+        return new Matrix(rowsVectors).transpose();
     }
 
     /**

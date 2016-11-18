@@ -4,8 +4,9 @@ import algebra.src.Vec2;
 import algebra.src.Vector;
 import inputOutput.TextIO;
 import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.seriesSummary.ArcSummarizer;
+import nlp.seriesSummary.ArcSummarizerDiffusion;
 import nlp.seriesSummary.ArcSummarizerLda;
+import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.symbolSampler.TopKSymbol;
 import nlp.utils.Simplex;
@@ -23,7 +24,7 @@ public class ArcSummaryTest {
         String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/";
         String fileExtension = "mkv";
         String output = seriesAddress + "summary";
-        int numberOfCluster = 5;
+        int numberOfCluster = 6;
         double heat = 0.04;
         double entropy = 0.10;
         int knn = 5;
@@ -32,17 +33,22 @@ public class ArcSummaryTest {
 
         List<BaseArcSummarizer> baseArcSummarizerList = new ArrayList<>();
 
-        BaseArcSummarizer baseArcSummarizer = new ArcSummarizer(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.euclideanDist);
+        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.euclideanDist);
         baseArcSummarizer.setCutVideo(cutVideo);
-        ((ArcSummarizer) baseArcSummarizer).setNormalized(true);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         baseArcSummarizerList.add(baseArcSummarizer);
 
-        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.simplexDist);
+        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizerList.add(baseArcSummarizer);
 
-        baseArcSummarizer = new ArcSummarizer(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizer.simplexDist);
-        ((ArcSummarizer) baseArcSummarizer).setNormalized(false);
+        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizerList.add(baseArcSummarizer);
+
+        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(25);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizerList.add(baseArcSummarizer);
 
@@ -52,9 +58,9 @@ public class ArcSummaryTest {
             String outputAddress = output + i;
             baseArcSummarizer1.buildSummary(outputAddress, timeArc);
             TextIO textIO = new TextIO();
-            String intraDistanceHist = computeIntraDistanceHist(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, ArcSummarizer.cosineDist, 30);
+            String intraDistanceHist = computeIntraDistanceHist(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
-            String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizer.cosineDist, 30);
+            String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
         }
 
@@ -161,6 +167,8 @@ public class ArcSummaryTest {
         for (int i = 0; i < hist.length; i++) {
             stringBuilder.append(hist[i] + "\n");
         }
+        stringBuilder.append("min:" + xmin + "\n");
+        stringBuilder.append("max:" + xmax + "\n");
         return stringBuilder.toString();
     }
 

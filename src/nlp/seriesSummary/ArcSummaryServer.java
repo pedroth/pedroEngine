@@ -120,14 +120,16 @@ public class ArcSummaryServer {
                     TextIO text = new TextIO();
                     text.read(httpExchange.getRequestBody());
                     String[] input = parseInput(text.getText());
-                    ArcSummarizer arcSummarizer = new ArcSummarizer(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizer.getDistanceByName(input[6]));
+                    ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizerSpectral.getDistanceByName(input[6]));
+                    arcSummarizerSpectral.setSigma(2);
+                    arcSummarizerSpectral.setNormalized(true);
                     Thread thread = null;
                     if (SUMMARY_FOLDER_NAME.equals(input[7])) {
-                        thread = new Thread(() -> arcSummarizer.buildSummary(HOME_ADDRESS + input[7] + input[9], Double.valueOf(input[8])));
+                        thread = new Thread(() -> arcSummarizerSpectral.buildSummary(HOME_ADDRESS + input[7] + input[9], Double.valueOf(input[8])));
                     } else {
-                        thread = new Thread(() -> arcSummarizer.buildSummary(input[7], Double.valueOf(input[8])));
+                        thread = new Thread(() -> arcSummarizerSpectral.buildSummary(input[7], Double.valueOf(input[8])));
                     }
-                    arcSummarizerMap.put(input[9], new ArcSummaryThreadPair(thread, arcSummarizer));
+                    arcSummarizerMap.put(input[9], new ArcSummaryThreadPair(thread, arcSummarizerSpectral));
                     thread.start();
                     respondWithText(httpExchange, "loading . . . ");
                 } catch (Exception e) {
@@ -201,15 +203,15 @@ public class ArcSummaryServer {
     }
 
     private class ArcSummaryThreadPair {
-        private final ArcSummarizer arcSummarySummarizer;
+        private final BaseArcSummarizer arcSummarySummarizer;
         private final Thread thread;
 
-        public ArcSummaryThreadPair(Thread thread, ArcSummarizer arcSummarySummarizer) {
+        public ArcSummaryThreadPair(Thread thread, BaseArcSummarizer arcSummarySummarizer) {
             this.thread = thread;
             this.arcSummarySummarizer = arcSummarySummarizer;
         }
 
-        public ArcSummarizer getArcSummarySummarizer() {
+        public BaseArcSummarizer getArcSummarySummarizer() {
             return arcSummarySummarizer;
         }
 

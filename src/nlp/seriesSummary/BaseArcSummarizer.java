@@ -122,8 +122,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.045, 0.1, 5, 10, ArcSummarizer.simplexDist);
-        arcSummarizer.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 5);
+        ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.045, 0.1, 5, 10, ArcSummarizerSpectral.simplexDist);
+        arcSummarizerSpectral.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 5);
     }
 
     @Override

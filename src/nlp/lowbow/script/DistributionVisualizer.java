@@ -6,7 +6,7 @@ import apps.utils.MyFrame;
 import graph.Graph;
 import javafx.util.Pair;
 import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.seriesSummary.ArcSummarizer;
+import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.utils.Simplex;
 import twoDimEngine.TwoDimEngine;
@@ -66,7 +66,7 @@ public class DistributionVisualizer extends MyFrame implements MouseWheelListene
         int numberOfCluster = 6;
 
         // summary
-        BaseArcSummarizer arcSummarizer = new ArcSummarizer(seriesAddress, fileExtension, 0.04, 0.1, 3, numberOfCluster, BaseArcSummarizer.simplexDist);
+        BaseArcSummarizer arcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, 0.04, 0.1, 3, numberOfCluster, BaseArcSummarizer.simplexDist);
 //        arcSummarizer.setHistogramDistance(arcSummarizer.getTfIdfDistance());
         arcSummarizer.buildSummary(output, 10);
         List<BaseSegmentedBow> segmentedBows = arcSummarizer.getSegmentedBows();

@@ -22,14 +22,14 @@ import java.util.Map;
 import java.util.Random;
 
 public class SpectralClusterTest extends MyFrame {
-    private static final int numPoints = 100;
+    private static final int numPoints = 250;
     private static final double length = 5;
     private int knn = 5;
-    private int kcluster = 6;
+    private int kcluster = 4;
     private boolean mySpectral = false;
     private boolean isNormalized = false;
     private boolean isDiffusion = false;
-    private double heatTime = 5;
+    private double heatTime = 50;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -74,11 +74,11 @@ public class SpectralClusterTest extends MyFrame {
         Map<Integer, java.util.List<Integer>> integerListMap;
         if (isDiffusion) {
             DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
-            integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 500) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 500);
+            integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-5, 50) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-5, 50);
         } else {
             SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
             spectralClustering.setNormalized(isNormalized);
-            integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 500) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 500);
+            integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 50) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 50);
         }
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
@@ -185,11 +185,11 @@ public class SpectralClusterTest extends MyFrame {
                 knn = 9;
                 break;
             case KeyEvent.VK_W:
-                heatTime++;
+                heatTime += 0.1;
                 System.out.println(heatTime);
                 break;
             case KeyEvent.VK_S:
-                heatTime--;
+                heatTime -= 0.1;
                 System.out.println(heatTime);
                 break;
             default:

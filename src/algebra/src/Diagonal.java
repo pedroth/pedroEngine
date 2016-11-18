@@ -24,14 +24,25 @@ public class Diagonal extends Matrix {
         this.a = a;
     }
 
-    public Diagonal(Diagonal tridiagonalMatrix) {
+    public Diagonal(Diagonal diagonal) {
         super();
-        this.n = tridiagonalMatrix.n;
+        this.n = diagonal.n;
         this.rows = n;
         this.columns = n;
         this.a = new double[this.n];
         for (int i = 0; i < n; i++) {
-            a[i] = tridiagonalMatrix.a[i];
+            a[i] = diagonal.a[i];
+        }
+    }
+
+    public Diagonal(Vector diagonal) {
+        super();
+        this.n = diagonal.getDim();
+        this.rows = n;
+        this.columns = n;
+        this.a = new double[this.n];
+        for (int i = 0; i < n; i++) {
+            a[i] = diagonal.getX(i + 1);
         }
     }
 
@@ -88,6 +99,20 @@ public class Diagonal extends Matrix {
         return c;
     }
 
+
+    public Diagonal prod(Diagonal b) {
+        Diagonal c;
+        if (this.getColumns() == b.getRows()) {
+            c = new Diagonal(this.getRows());
+            for (int j = 1; j <= this.getRows(); j++) {
+                c.setXY(j, j, a[j - 1] * b.getXY(j, j));
+            }
+        } else {
+            throw new AlgebraException("the number of columns of the first matrix must be equal to the number of lines of the second one");
+        }
+        return c;
+    }
+
     public Vector solveDiagonalSystem(Vector y) {
         if (y.getDim() != n)
             return null;
@@ -127,5 +152,13 @@ public class Diagonal extends Matrix {
         Diagonal sqrt = new Diagonal(this);
         sqrt.applyFunction(Math::sqrt);
         return sqrt;
+    }
+
+    public Diagonal getSubMatrix(int xmin, int xmax) {
+        double[] ans = new double[xmax - xmin + 1];
+        for (int i = xmin; i <= xmax; i++) {
+            ans[i - 1] = a[i - 1];
+        }
+        return new Diagonal(ans);
     }
 }

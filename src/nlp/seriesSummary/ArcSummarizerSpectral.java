@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * The type Arc summarizer.
  */
-public class ArcSummarizer extends BaseArcSummarizer {
+public class ArcSummarizerSpectral extends BaseArcSummarizer {
     private double sigma = 1.0;
     private boolean isNormalized = true;
     private SpectralClustering spectralClustering;
@@ -27,7 +27,7 @@ public class ArcSummarizer extends BaseArcSummarizer {
      * @param kcluster          the kcluster
      * @param histogramDistance the histogram distance
      */
-    public ArcSummarizer(String seriesAddress, String videoExtension, double heat, double entropy, int knn, int kcluster, Distance<Vector> histogramDistance) {
+    public ArcSummarizerSpectral(String seriesAddress, String videoExtension, double heat, double entropy, int knn, int kcluster, Distance<Vector> histogramDistance) {
         super(seriesAddress, videoExtension, heat, entropy, knn, kcluster, histogramDistance);
     }
 
@@ -37,8 +37,8 @@ public class ArcSummarizer extends BaseArcSummarizer {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ArcSummarizer arcSummarizer = new ArcSummarizer("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "mkv", 0.045, 0.1, 3, 6, ArcSummarizer.simplexDist);
-        arcSummarizer.buildSummary("C:/pedro/escolas/ist/Tese/Series/MrRobot/summary3", 10);
+        ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "mkv", 0.045, 0.1, 3, 6, ArcSummarizerSpectral.simplexDist);
+        arcSummarizerSpectral.buildSummary("C:/pedro/escolas/ist/Tese/Series/MrRobot/summary3", 10);
     }
 
     @Override
