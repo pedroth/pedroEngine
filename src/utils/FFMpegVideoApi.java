@@ -15,14 +15,6 @@ public class FFMpegVideoApi {
         // empty on purpose
     }
 
-    public static String getFfmpegAddress() {
-        return ffmpegAddress;
-    }
-
-    public static void setFfmpegAddress(String ffmpegAddress) {
-        FFMpegVideoApi.ffmpegAddress = ffmpegAddress;
-    }
-
     public static void cutVideo(String videoAddress, LocalTime ti, LocalTime tf, String outputAddress) {
         String command = addQuotingToString(ffmpegAddress + "/ffmpeg");
         command += " -ss " + ti + " -i " + addQuotingToString(videoAddress) + " -to " + tf + " -c copy -copyts " + addQuotingToString(outputAddress);

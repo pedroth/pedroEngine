@@ -355,6 +355,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 acc += timeIntervalMinutes;
             }
         }
+
         //Write top k symbols from the selected segments
         TextIO text = new TextIO();
         text.write(auxAddress + clusterId + ".txt", stringBuilder.toString());

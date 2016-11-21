@@ -1,7 +1,7 @@
 var numberOfClusters;
 var isLoading = true;
 var timeOutTime = 100;
-var uID = Math.random();
+var uID = Math.random() * new Date().getTime();
 var videoAddress = [];
 var videoAddressReady = [];
 
@@ -18,10 +18,8 @@ function waitTimeInSeconds(time) {
 function createVideoTag(uID, clusterId, videoAddressUrl, videoId) {
     var address = "summary" + uID + "/" + clusterId + "/" + videoAddressUrl;
     var videoDiv = document.getElementById("video" + clusterId);
-    if(videoDiv.childNodes.length > 0) {
-        for(var i = 0; i < videoDiv.childNodes.length; i++) {
-            videoDiv.removeChild(videoDiv.childNodes[0]);
-        }
+    while( videoDiv.childNodes.length > 0) {
+        videoDiv.removeChild(videoDiv.childNodes[0]);
     }
     $("#video" + clusterId).append("<video width='320' height='240' controls> <source src='" + address + "' type='video/mp4'> Your browser does not support the video tag.</video>");
     $("#video" + clusterId).append("<a href='" + address + "'> download video</a>");
