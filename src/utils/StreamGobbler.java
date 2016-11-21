@@ -1,32 +1,40 @@
 package utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import inputOutput.TextIO;
+
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 /**
- * Copied from on http://www.javaworld.com/article/2071275/core-java/when-runtime-exec---won-t.html?page=2
+ * The type Stream gobbler.
  */
 public class StreamGobbler extends Thread {
 
-    InputStream is;
-    String type;
+    private InputStream inputStream;
+    private String type;
+    private TextIO textIO;
 
-    public StreamGobbler(InputStream is, String type) {
-        this.is = is;
+    /**
+     * Instantiates a new Stream gobbler.
+     *
+     * @param inputStream the input stream
+     * @param type        the type
+     */
+    public StreamGobbler(InputStream inputStream, String type) {
+        this.inputStream = inputStream;
         this.type = type;
     }
 
     public void run() {
-        try {
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            String line = null;
-            while ((line = br.readLine()) != null)
-                System.out.println(type + ">" + line);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        textIO = new TextIO();
+        textIO.read(inputStream);
+    }
+
+    /**
+     * Gets text iO with stream.
+     *
+     * @return the text iO
+     */
+    public TextIO getTextIO() {
+        return textIO;
     }
 }

@@ -20,6 +20,7 @@ import nlp.symbolSampler.TopKSymbolWithProb;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Distance;
+import utils.FFMpegVideoApi;
 import utils.FilesCrawler;
 import utils.StopWatch;
 
@@ -85,6 +86,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     protected Map<Integer, Vector> graphCentroidByClusterId;
     protected double averageSegmentlength;
     protected double standardDeviationSegmentLength;
+    protected boolean isVideoConcat = false;
 
     /**
      * Instantiates a new Arc summarizer.
@@ -332,6 +334,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     }
 
     private void cutVideoUnderConstraint(int[] permutation, String outputAddress, int clusterId, double timeLengthMinutes, Graph graphClass) {
+        List<String> segmentedAddresses = new ArrayList<>();
+
         // vertexIdByIndex values are index values in {1, ..., n}
         Integer[] vertexIdByIndex = graphClass.getKeyIndex();
 
@@ -349,10 +353,24 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
             if (acc + timeIntervalMinutes < timeLengthMinutes) {
                 if (cutVideo) {
-                    segmentedBow.cutSegment(auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval().toString().replace(" ", "") + ".mp4");
+                    String videoSegmentAddress = auxAddress + parseVideoAddress(segmentedBow.getVideoAddress()) + segmentedBow.getInterval().toString().replace(" ", "") + ".mp4";
+                    segmentedBow.cutSegment(videoSegmentAddress);
+                    segmentedAddresses.add(videoSegmentAddress);
                 }
                 stringBuilder.append(topKSymbol.nextSymbol(segmentedBow.getSegmentBow(), this.lowBowManager.getSimplex())).append("\n");
                 acc += timeIntervalMinutes;
+            }
+        }
+
+        if (isVideoConcat && segmentedAddresses.size() > 0) {
+            String accVideo = segmentedAddresses.get(0);
+            String outputConcatAdress = auxAddress + "Arc" + clusterId + "Summary.mp4";
+            for (int i = 1; i < segmentedAddresses.size(); i++) {
+                if (i == 1) {
+                    FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), outputAddress);
+                    accVideo = outputAddress;
+                }
+                FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), accVideo);
             }
         }
 
@@ -477,5 +495,13 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     public double getAverageSegmentlength() {
         return averageSegmentlength;
+    }
+
+    public boolean isVideoConcat() {
+        return isVideoConcat;
+    }
+
+    public void setVideoConcat(boolean videoConcat) {
+        isVideoConcat = videoConcat;
     }
 }
