@@ -16,8 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.fail;
-
 /**
  * based on  http://www.programcreek.com/java-api-examples/index.php?source_dir=middleman-master/test/middleman/proxy/DummyHttpServer.java
  */
@@ -89,9 +87,8 @@ public class ArcSummaryServer {
             summaryServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
         } catch (IOException e) {
             e.printStackTrace();
-            fail("Couldn't start server");
+            return;
         }
-
 
         summaryServer.createContext("/ArcSummary", new HttpHandler() {
             @Override
@@ -123,6 +120,7 @@ public class ArcSummaryServer {
                     ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizerSpectral.getDistanceByName(input[6]));
                     arcSummarizerSpectral.setSigma(2);
                     arcSummarizerSpectral.setNormalized(true);
+                    arcSummarizerSpectral.setVideoConcat(true);
                     Thread thread = null;
                     if (SUMMARY_FOLDER_NAME.equals(input[7])) {
                         thread = new Thread(() -> arcSummarizerSpectral.buildSummary(HOME_ADDRESS + input[7] + input[9], Double.valueOf(input[8])));

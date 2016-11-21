@@ -39,7 +39,7 @@ function appendVideos(videos, clusterId) {
     $("#" + div.id).append("<br><br>");
 
     //append videos to div
-    for (var j = 1; j < videos.length; j++) {
+    for (var j = 0; j < videos.length; j++) {
         var videoAddressUrl = encodeURIComponent(videos[j]);
         var videoButton = "<button class ='btn btn-primary' onclick=\"createVideoTag("  + uID +  "," + clusterId + ",'" + videoAddressUrl + "','video" + clusterId + "')\" >" + videos[j] + "</button>";
         $("#" + div.id).append(videoButton);

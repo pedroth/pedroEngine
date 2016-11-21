@@ -20,10 +20,12 @@ import nlp.symbolSampler.TopKSymbolWithProb;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Distance;
+import utils.CommandLineApi;
 import utils.FFMpegVideoApi;
 import utils.FilesCrawler;
 import utils.StopWatch;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
@@ -231,7 +233,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             textIO.write(this.outputAddress + "segmentGraphPartition.txt", stringBuilder.toString());
 
             //summarize
-            randomWalkSummary(segmentedBows, graphByClusterIdMap, timeLengthMinutes, this.outputAddress);
+            randomWalkSummary(graphByClusterIdMap, timeLengthMinutes, this.outputAddress);
 
             topWordsPrint(20);
 
@@ -319,7 +321,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     public abstract Map<Integer, List<Integer>> clusterArcs(int kcluster);
 
-    private void randomWalkSummary(List<BaseSegmentedBow> segmentedBows, Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
+    private void randomWalkSummary(Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
         for (Integer key : map.keySet()) {
             Graph graphClass = map.get(key);
 
@@ -363,15 +365,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
 
         if (isVideoConcat && segmentedAddresses.size() > 0) {
-            String accVideo = segmentedAddresses.get(0);
-            String outputConcatAdress = auxAddress + "Arc" + clusterId + "Summary.mp4";
-            for (int i = 1; i < segmentedAddresses.size(); i++) {
-                if (i == 1) {
-                    FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), outputAddress);
-                    accVideo = outputAddress;
-                }
-                FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), accVideo);
-            }
+            concatVideos(segmentedAddresses, auxAddress, String.valueOf(clusterId));
         }
 
         //Write top k symbols from the selected segments
@@ -384,6 +378,26 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             stringBuilder.append(segmentedBows.get(index - 1).cutSegmentSubtitleWords()).append("\n");
         }
         text.write(auxAddress + "segmentsCorpus.txt", stringBuilder.toString());
+    }
+
+    private void concatVideos(List<String> segmentedAddresses, String auxAddress, String clusterId) {
+        String accVideo = segmentedAddresses.get(0);
+        String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
+        for (int i = 1; i < segmentedAddresses.size(); i++) {
+            if (i == 1) {
+                FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
+                accVideo = outputConcatAddress + i;
+            }
+            FFMpegVideoApi.concat(accVideo + (i - 1) + ".mp4", segmentedAddresses.get(i), accVideo + i + ".mp4");
+        }
+        CommandLineApi commandLineApi = new CommandLineApi();
+        for (String segmentedAddress : segmentedAddresses) {
+            try {
+                commandLineApi.callCommand("rm " + segmentedAddress);
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private int[] getRandomWalkRankPermutation(Integer clusterId, Graph graphClass) {

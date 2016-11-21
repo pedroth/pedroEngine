@@ -64,6 +64,8 @@ public class FFMpegVideoApi {
             commandLineApi.callCommand(commandx);
             commandLineApi.callCommand(commandy);
             int state = commandLineApi.callCommand(commandz);
+            commandLineApi.callCommand("rm intermediate1.ts");
+            commandLineApi.callCommand("rm intermediate2.ts");
             System.out.println(state + ", time : " + stopWatch.getEleapsedTime());
         } catch (IOException e) {
             System.err.println("Error calling ffmpeg -ss -i -c copy -copyts");
