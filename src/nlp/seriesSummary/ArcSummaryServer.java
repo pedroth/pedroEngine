@@ -185,8 +185,6 @@ public class ArcSummaryServer {
                 }
             }
         });
-
-
         summaryServer.setExecutor(null);
         summaryServer.start();
     }

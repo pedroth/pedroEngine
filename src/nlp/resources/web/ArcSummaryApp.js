@@ -1,5 +1,6 @@
 var numberOfClusters;
-var isLoading = true;
+var isLoading;
+var isFinished = false;
 var timeOutTime = 100;
 var uID = Math.random() * new Date().getTime();
 var videoAddress = [];
@@ -103,13 +104,14 @@ function readLog() {
         success: function(result) {
             if(result.endsWith("FINISH<br>")) {
               isLoading = false;
+              isFinished = true;
             }
             $("#panel").html(result);
         }
     });
     if(isLoading) {
         setTimeout(readLog, timeOutTime);
-    } else {
+    } else if(isFinished){
         $("#log").slideToggle();
         getVideos();
     }
@@ -137,10 +139,18 @@ function sendRequest() {
         $("#container").slideToggle();
         $("#log").slideToggle();
         $("#panel").text(result);
+        isLoading = true;
         setTimeout(readLog, timeOutTime);
       }
     });
 }
 
+function cancelFunction() {
+    $("#log").slideToggle();
+    $("#container").slideToggle();
+    isLoading = !isLoading;
+    uID = Math.random() * new Date().getTime();
+}
+
 $("#submit").click(sendRequest);
-$("#cancel").click(function() {$("#log").slideToggle(); $("#container").slideToggle();  isLoading = !isLoading ? true : false;});
+$("#cancel").click(cancelFunction);

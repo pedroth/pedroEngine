@@ -200,7 +200,6 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             //segment statistics
             this.averageSegmentlength = computeAverageSegmentLength(segmentedBows);
             this.standardDeviationSegmentLength = computeStandardDeviationLength(segmentedBows, averageSegmentlength);
-            //reject segment outliers
             rejectSegmentOutliers();
 
             //build knn-graph
@@ -249,6 +248,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
     }
 
+    //Not useful
     private void rejectSegmentOutliers() {
         double mu = this.averageSegmentlength;
         double sigma = this.standardDeviationSegmentLength;
@@ -323,6 +323,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     private void randomWalkSummary(Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
         for (Integer key : map.keySet()) {
+            StopWatch stopWatch = new StopWatch();
             Graph graphClass = map.get(key);
 
             //random walk
@@ -332,6 +333,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
             // select most important segments under time constraint
             cutVideoUnderConstraint(permutation, outputAddress, key, timeLengthMinutes, graphClass);
+            String logString = "Video summary arc " + key + " is done " + stopWatch.getEleapsedTime();
+            log.add(logString);
+            System.out.println(logString);
         }
     }
 
@@ -381,22 +385,23 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     }
 
     private void concatVideos(List<String> segmentedAddresses, String auxAddress, String clusterId) {
-        String accVideo = segmentedAddresses.get(0);
-        String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
-        for (int i = 1; i < segmentedAddresses.size(); i++) {
-            if (i == 1) {
-                FFMpegVideoApi.concat(accVideo, segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
-                accVideo = outputConcatAddress + i;
-            }
-            FFMpegVideoApi.concat(accVideo + (i - 1) + ".mp4", segmentedAddresses.get(i), accVideo + i + ".mp4");
-        }
+        Collections.sort(segmentedAddresses);
         CommandLineApi commandLineApi = new CommandLineApi();
-        for (String segmentedAddress : segmentedAddresses) {
-            try {
-                commandLineApi.callCommand("rm " + segmentedAddress);
-            } catch (InterruptedException | IOException e) {
-                e.printStackTrace();
+        String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
+        try {
+            for (int i = 1; i < segmentedAddresses.size(); i++) {
+                if (i == 1) {
+                    FFMpegVideoApi.concat(segmentedAddresses.get(0), segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
+                    commandLineApi.callCommand("rm " + segmentedAddresses.get(0));
+                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i));
+                } else {
+                    FFMpegVideoApi.concat(outputConcatAddress + (i - 1) + ".mp4", segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
+                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i));
+                    commandLineApi.callCommand("rm " + outputConcatAddress + (i - 1) + ".mp4");
+                }
             }
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
         }
     }
 
