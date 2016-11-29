@@ -313,9 +313,9 @@ public class LowBowTests {
 
     @Test
     public void testSegmentation() {
-        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "srt");
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "mkv");
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
         Collections.sort(videos);
 
         SubsSplitter textSplitter = new SubsSplitter();

@@ -7,13 +7,15 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class BuildPage {
-    static String canonAddress = "C:/pedro/visualExperiments/tools/canon.html";
-    static String canonWithCommentsAddress = "C:/pedro/visualExperiments/tools/canonWithComments.html";
-    static String commentsAddress = "C:/pedro/visualExperiments/tools/comments.html";
-    static String mainAddress = "C:/pedro/visualExperiments/main.html";
-    static String indexAddress = "C:/pedro/visualExperiments/index.html";
-    static String javaExperimentsAdress = "C:/pedro/visualExperiments/JavaExperiments/JavaExperiments";
-    static String jsExperimentsAdress = "C:/pedro/visualExperiments/JsExperiments/JsExperiments";
+    static String base = "C:/pedro/";
+    static String canonAddress = base + "visualExperiments/tools/canon.html";
+    static String canonWithCommentsAddress = base + "visualExperiments/tools/canonWithComments.html";
+    static String commentsAddress = base + "visualExperiments/tools/comments.html";
+    static String mainAddress = base + "visualExperiments/main.html";
+    static String indexAddress = base + "visualExperiments/index.html";
+    static String javaExperimentsAddress = base + "visualExperiments/JavaExperiments/JavaExperiments";
+    static String jsExperimentsAddress = base + "visualExperiments/JsExperiments/JsExperiments";
+    static String blogAddress = base + "visualExperiments/Blog/Blog";
 
 
     public static void buildJavaPage(String name, String path) {
@@ -129,12 +131,16 @@ public class BuildPage {
     public static void BuildWeb() {
         String pathJava = "C:/pedro/visualExperiments/JavaExperiments";
         String pathJs = "C:/pedro/visualExperiments/JsExperiments";
+        String pathBlog = "C:/pedro/visualExperiments/Blog";
+
         buildPage(canonAddress, commentsAddress, canonWithCommentsAddress, "<!--Special-->");
         buildPage(canonAddress, mainAddress, indexAddress, "<!--Special-->");
-        buildPage(canonAddress, javaExperimentsAdress + "App.html", javaExperimentsAdress + ".html", "<!--Special-->");
-        buildPage(canonAddress, jsExperimentsAdress + "App.html", jsExperimentsAdress + ".html", "<!--Special-->");
+        buildPage(canonAddress, javaExperimentsAddress + "App.html", javaExperimentsAddress + ".html", "<!--Special-->");
+        buildPage(canonAddress, jsExperimentsAddress + "App.html", jsExperimentsAddress + ".html", "<!--Special-->");
+        buildPage(canonAddress, blogAddress + "App.html", blogAddress + ".html", "<!--Special-->");
         buildPages(pathJava, BuildPage::buildJavaPage);
         buildPages(pathJs, BuildPage::buildJsPage);
+        buildPages(pathBlog, BuildPage::buildJsPage);
     }
 
     public static void main(String[] args) {

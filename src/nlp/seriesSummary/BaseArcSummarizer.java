@@ -9,8 +9,10 @@ import graph.Graph;
 import graph.KnnGraph;
 import graph.RandomWalkGraph;
 import inputOutput.TextIO;
+import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
+import nlp.lowbow.eigenLowbow.ZeroSecondDerivativeSegmentator;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowCool;
 import nlp.simpleDocModel.BaseDocModelManager;
@@ -30,6 +32,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
+/**
+ * The type Base arc summarizer.
+ */
 public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * The constant distanceByNameMap.
@@ -65,40 +70,101 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         distanceByNameMap.put("cosine", cosineDist);
     }
 
+    /**
+     * The Log.
+     */
     protected List<String> log = new ArrayList<>();
-    // percentage of eigenvalues that are preserved after heat;
+    /**
+     * The Heat.
+     */
+// percentage of eigenvalues that are preserved after heat;
     protected double heat;
-    // (1 - percentage) of max entropy, cut words with high and low entropy in documents
+    /**
+     * The Entropy.
+     */
+// (1 - percentage) of max entropy, cut words with high and low entropy in documents
     protected double entropy;
-    // number of neighbours in knn-graph
+    /**
+     * The Knn.
+     */
+// number of neighbours in knn-graph
     protected int knn;
-    // number of cluster (number of arcs)
+    /**
+     * The Kcluster.
+     */
+// number of cluster (number of arcs)
     protected int kcluster;
-    // distance of histograms
+    /**
+     * The Histogram distance.
+     */
+// distance of histograms
     protected Distance<Vector> histogramDistance;
+    /**
+     * The Segmented bows.
+     */
     protected List<BaseSegmentedBow> segmentedBows;
+    /**
+     * The Graph by cluster id map.
+     */
     protected Map<Integer, Graph> graphByClusterIdMap;
+    /**
+     * The Random walk distribution by cluster id map.
+     */
     protected Map<Integer, Vector> randomWalkDistributionByClusterIdMap;
+    /**
+     * The Low bow manager.
+     */
     protected SummaryGenLowBowManager<LowBowSubtitles> lowBowManager;
+    /**
+     * The Segment index by cluster id.
+     */
     protected Map<Integer, List<Integer>> segmentIndexByClusterId;
+    /**
+     * The Knn graph.
+     */
     protected KnnGraph knnGraph;
+    /**
+     * The Output address.
+     */
     protected String outputAddress;
+    /**
+     * The Necessary word predicate.
+     */
     protected NecessaryWordPredicate necessaryWordPredicate;
+    /**
+     * The Cut video.
+     */
     protected boolean cutVideo = true;
+    /**
+     * The Graph centroid by cluster id.
+     */
     protected Map<Integer, Vector> graphCentroidByClusterId;
+    /**
+     * The Average segmentlength.
+     */
     protected double averageSegmentlength;
+    /**
+     * The Standard deviation segment length.
+     */
     protected double standardDeviationSegmentLength;
+    /**
+     * The Is video concat.
+     */
     protected boolean isVideoConcat = false;
+    /**
+     * The Low bow segmentator.
+     */
+    protected LowBowSegmentator lowBowSegmentator = new ZeroSecondDerivativeSegmentator();
 
     /**
      * Instantiates a new Arc summarizer.
      *
-     * @param seriesAddress     the series address
-     * @param videoExtension    the video extension
-     * @param heat              the heat
-     * @param entropy           the entropy
-     * @param knn               the knn
-     * @param kcluster          the kcluster
+     * @param seriesAddress the series address
+     * @param videoExtension the video extension
+     * @param heat the heat
+     * @param entropy the entropy
+     * @param knn the knn
+     * @param kcluster the kcluster
      * @param histogramDistance the histogram distance
      */
     public BaseArcSummarizer(String seriesAddress, String videoExtension, double heat, double entropy, int knn, int kcluster, Distance<Vector> histogramDistance) {
@@ -177,7 +243,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             for (int i = 0; i < subtitles.size(); i++) {
                 text.read(subtitles.get(i));
                 textSplitter = new SubsSplitter(this.necessaryWordPredicate);
-                this.lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+                LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
+                low.setLowBowSegmentator(lowBowSegmentator);
+                this.lowBowManager.add(low);
             }
             log.add("Lowbow for each episode: " + stopWatch.getEleapsedTime());
             System.out.println("Lowbow for each episode: " + stopWatch.getEleapsedTime());
@@ -317,8 +385,19 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         textIO.write(outputAddress + "GraphCentroid.txt", stringBuilder2.toString());
     }
 
+    /**
+     * Gets clustered graph.
+     *
+     * @return the clustered graph
+     */
     protected abstract Map<Integer, Graph> getClusteredGraph();
 
+    /**
+     * Cluster arcs.
+     *
+     * @param kcluster the kcluster
+     * @return the map
+     */
     public abstract Map<Integer, List<Integer>> clusterArcs(int kcluster);
 
     private void randomWalkSummary(Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
@@ -460,6 +539,11 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return segmentedBows;
     }
 
+    /**
+     * Gets segment index by cluster id.
+     *
+     * @return the segment index by cluster id
+     */
     public Map<Integer, List<Integer>> getSegmentIndexByClusterId() {
         return segmentIndexByClusterId;
     }
@@ -470,14 +554,29 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return secondSplit[0];
     }
 
+    /**
+     * Gets low bow manager.
+     *
+     * @return the low bow manager
+     */
     public SummaryGenLowBowManager<LowBowSubtitles> getLowBowManager() {
         return lowBowManager;
     }
 
+    /**
+     * Gets knn graph.
+     *
+     * @return the knn graph
+     */
     public KnnGraph getKnnGraph() {
         return knnGraph;
     }
 
+    /**
+     * Gets tf idf distance.
+     *
+     * @return the tf idf distance
+     */
     public Distance<Vector> getTfIdfDistance() {
         return (x, y) -> {
             Vector wordEntropy = this.necessaryWordPredicate.getWordProbForSimplex(lowBowManager.getSimplex());
@@ -488,39 +587,102 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         };
     }
 
+    /**
+     * Gets histogram distance.
+     *
+     * @return the histogram distance
+     */
     public Distance<Vector> getHistogramDistance() {
         return histogramDistance;
     }
 
+    /**
+     * Sets histogram distance.
+     *
+     * @param histogramDistance the histogram distance
+     */
     public void setHistogramDistance(Distance<Vector> histogramDistance) {
         this.histogramDistance = histogramDistance;
     }
 
+    /**
+     * Is cut video.
+     *
+     * @return the boolean
+     */
     public boolean isCutVideo() {
         return cutVideo;
     }
 
+    /**
+     * Sets cut video.
+     *
+     * @param cutVideo the cut video
+     */
     public void setCutVideo(boolean cutVideo) {
         this.cutVideo = cutVideo;
     }
 
+    /**
+     * Gets graph centroid by cluster id.
+     *
+     * @return the graph centroid by cluster id
+     */
     public Map<Integer, Vector> getGraphCentroidByClusterId() {
         return graphCentroidByClusterId;
     }
 
+    /**
+     * Gets standard deviation segment length.
+     *
+     * @return the standard deviation segment length
+     */
     public double getStandardDeviationSegmentLength() {
         return standardDeviationSegmentLength;
     }
 
+    /**
+     * Gets average segmentlength.
+     *
+     * @return the average segmentlength
+     */
     public double getAverageSegmentlength() {
         return averageSegmentlength;
     }
 
+    /**
+     * Is video concat.
+     *
+     * @return the boolean
+     */
     public boolean isVideoConcat() {
         return isVideoConcat;
     }
 
+    /**
+     * Sets video concat.
+     *
+     * @param videoConcat the video concat
+     */
     public void setVideoConcat(boolean videoConcat) {
         isVideoConcat = videoConcat;
+    }
+
+    /**
+     * Gets low bow segmentator.
+     *
+     * @return the low bow segmentator
+     */
+    public LowBowSegmentator getLowBowSegmentator() {
+        return lowBowSegmentator;
+    }
+
+    /**
+     * Sets low bow segmentator.
+     *
+     * @param lowBowSegmentator the low bow segmentator
+     */
+    public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
+        this.lowBowSegmentator = lowBowSegmentator;
     }
 }
