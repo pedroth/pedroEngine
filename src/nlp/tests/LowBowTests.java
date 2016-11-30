@@ -313,9 +313,9 @@ public class LowBowTests {
 
     @Test
     public void testSegmentation() {
-        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "srt");
         Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/MrRobot/", "mkv");
         Collections.sort(videos);
 
         SubsSplitter textSplitter = new SubsSplitter();
@@ -338,7 +338,7 @@ public class LowBowTests {
             textSplitter = new SubsSplitter(predicate);
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
         }
-        lowBowManager.buildModel(0.04);
+        lowBowManager.buildModel(0.02);
         text.write("C:/Users/Pedroth/Desktop/epi1.txt", lowBowManager.getDocModels().get(0).generateText(new TopKSymbol(10)));
         lowBowManager.buildSegmentations(SegmentedBowHeat::new);
         List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();

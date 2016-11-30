@@ -11,8 +11,8 @@ import graph.RandomWalkGraph;
 import inputOutput.TextIO;
 import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.lowbow.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
 import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
-import nlp.lowbow.eigenLowbow.ZeroSecondDerivativeSegmentator;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowCool;
 import nlp.simpleDocModel.BaseDocModelManager;
@@ -154,7 +154,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * The Low bow segmentator.
      */
-    protected LowBowSegmentator lowBowSegmentator = new ZeroSecondDerivativeSegmentator();
+    protected LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
 
     /**
      * Instantiates a new Arc summarizer.
