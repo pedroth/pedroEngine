@@ -1,7 +1,7 @@
 var numberOfClusters;
 var isLoading = true;
 var timeOutTime = 100;
-var uID = Math.random();
+var uID = Math.random() * new Date().getTime();
 
 
 function readLog() {

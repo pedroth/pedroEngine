@@ -5,13 +5,13 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
 import utils.FilesCrawler;
+import utils.JServerUtils;
 
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,7 @@ public class ArcSummaryServer {
     private final static String SUMMARY_FOLDER_NAME = "summary";
     private final static String OUTPUT_VIDEO_EXTENSION = "mp4";
     private final int serverPort;
+    private JServerUtils serverUtils = new JServerUtils();
     private Map<String, ArcSummaryThreadPair> arcSummarizerMap = new HashMap<>(3);
 
     public ArcSummaryServer(int serverPort) {
@@ -33,40 +34,6 @@ public class ArcSummaryServer {
     public static void main(String[] args) {
         ArcSummaryServer arcSummaryServer = new ArcSummaryServer(8080);
         arcSummaryServer.start();
-    }
-
-    private void respondWithTextFile(HttpExchange httpExchange, String file) throws IOException {
-        TextIO text = new TextIO(file);
-        byte[] response = text.getText().getBytes();
-        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, response.length);
-        httpExchange.getResponseBody().write(response);
-        httpExchange.getResponseBody().flush();
-        httpExchange.getResponseBody().close();
-    }
-
-    private void respondWithText(HttpExchange httpExchange, String text) throws IOException {
-        byte[] response = text.getBytes();
-        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, response.length);
-        httpExchange.getResponseBody().write(response);
-        httpExchange.getResponseBody().flush();
-        httpExchange.getResponseBody().close();
-    }
-
-    private void respondWithBytes2(HttpExchange httpExchange, String file) throws IOException {
-        File myfile = new File(file);
-        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, file.length());
-        OutputStream outputStream = httpExchange.getResponseBody();
-        Files.copy(myfile.toPath(), outputStream);
-        outputStream.flush();
-        outputStream.close();
-    }
-
-    private void respondWithBytes(HttpExchange httpExchange, String file) throws IOException {
-        byte[] response = Files.readAllBytes(Paths.get(file));
-        httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_ACCEPTED, response.length);
-        httpExchange.getResponseBody().write(response, 0, response.length);
-        httpExchange.getResponseBody().flush();
-        httpExchange.getResponseBody().close();
     }
 
     private String[] parseInput(String request) {
@@ -99,12 +66,12 @@ public class ArcSummaryServer {
                     System.out.println(this.getClass() + " - received message from " + httpExchange.getRemoteAddress());
                     String file = parseGetInput(requestURI.toString());
                     if (OUTPUT_VIDEO_EXTENSION.equals(FilesCrawler.getExtension(file))) {
-                        respondWithBytes(httpExchange, HOME_ADDRESS + file);
+                        serverUtils.respondWithBytes(httpExchange, HOME_ADDRESS + file);
                     } else {
-                        respondWithTextFile(httpExchange, HOME_ADDRESS + file);
+                        serverUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
                     }
                 } catch (Exception e) {
-                    respondWithText(httpExchange, getTraceError(e));
+                    serverUtils.respondWithText(httpExchange, getTraceError(e));
                 }
             }
         });
@@ -129,9 +96,9 @@ public class ArcSummaryServer {
                     }
                     arcSummarizerMap.put(input[9], new ArcSummaryThreadPair(thread, arcSummarizerSpectral));
                     thread.start();
-                    respondWithText(httpExchange, "loading . . . ");
+                    serverUtils.respondWithText(httpExchange, "loading . . . ");
                 } catch (Exception e) {
-                    respondWithText(httpExchange, getTraceError(e));
+                    serverUtils.respondWithText(httpExchange, getTraceError(e));
                 }
             }
         });
@@ -152,9 +119,9 @@ public class ArcSummaryServer {
                     for (String log : arcSummaryThreadPair.getArcSummarySummarizer().getLog()) {
                         stringBuilder.append(log + "<br>");
                     }
-                    respondWithText(httpExchange, "loading . . .  " + stringBuilder);
+                    serverUtils.respondWithText(httpExchange, "loading . . .  " + stringBuilder);
                 } catch (Exception e) {
-                    respondWithText(httpExchange, getTraceError(e));
+                    serverUtils.respondWithText(httpExchange, getTraceError(e));
                 }
             }
         });
@@ -179,9 +146,9 @@ public class ArcSummaryServer {
                         String[] split = filesWithExtension.get(i).replace("\\", "/").split("/");
                         stringBuilder.append(split[split.length - 1]).append(i == filesWithExtension.size() - 1 ? "" : " ");
                     }
-                    respondWithText(httpExchange, stringBuilder.toString());
+                    serverUtils.respondWithText(httpExchange, stringBuilder.toString());
                 } catch (Exception e) {
-                    respondWithText(httpExchange, getTraceError(e));
+                    serverUtils.respondWithText(httpExchange, getTraceError(e));
                 }
             }
         });
