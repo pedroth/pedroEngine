@@ -1,23 +1,30 @@
 package other;
 
 
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
 import utils.JServerUtils;
+import utils.StopWatch;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PublicChatServer {
     private final static String HOME_ADDRESS = "src/other/resources/";
+    // time in seconds
+    private final static double TIMEOUT = 10;
     private final int serverPort;
-    private List<String> log = new ArrayList<>();
+    private List<UnitLog> log = new ArrayList<>();
     private JServerUtils serverUtils = new JServerUtils();
+    private Map<String, Double> uID2TimeMap = new ConcurrentHashMap<>();
+    private StopWatch stopWatch;
+
 
     public PublicChatServer(int serverPort) {
         this.serverPort = serverPort;
@@ -30,6 +37,27 @@ public class PublicChatServer {
 
     public void start() {
         HttpServer summaryServer = null;
+        stopWatch = new StopWatch();
+
+        //check for dead clients
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                double dt = stopWatch.getEleapsedTime();
+                stopWatch.resetTime();
+                for (String id : uID2TimeMap.keySet()) {
+                    Double t = uID2TimeMap.get(id);
+                    if (t > TIMEOUT) {
+                        uID2TimeMap.remove(id);
+                    } else {
+                        uID2TimeMap.put(id, t + dt);
+                    }
+                }
+            }
+        }, 0, 1000);
+
+
         try {
             InetSocketAddress inetSocketAddress = new InetSocketAddress(serverPort);
             System.out.println("Start public chat server at : " + inetSocketAddress);
@@ -38,13 +66,12 @@ public class PublicChatServer {
             e.printStackTrace();
             return;
         }
+
         summaryServer.createContext("/PublicChat", httpExchange -> {
             try {
-                URI requestURI = httpExchange.getRequestURI();
-                System.out.println(httpExchange.getRequestMethod() + " " + requestURI);
-                System.out.println("address : " + httpExchange.getRemoteAddress());
-                String file = parseGetInput(requestURI.toString());
-                if ("".equals(file)) {
+                printClientData(httpExchange);
+                String file = parseGetInput(httpExchange.getRequestURI().toString());
+                if ("".equals(file) || "/PublicChat".equals(file)) {
                     file = "PublicChat.html";
                 }
                 serverUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
@@ -53,18 +80,57 @@ public class PublicChatServer {
             }
         });
 
-
         summaryServer.createContext("/chat", httpExchange -> {
             try {
-                URI requestURI = httpExchange.getRequestURI();
-                System.out.println(httpExchange.getRequestMethod() + " " + requestURI);
-                System.out.println("address : " + httpExchange.getRemoteAddress());
+                printClientData(httpExchange);
                 TextIO textIO = new TextIO();
                 textIO.read(httpExchange.getRequestBody());
-                String[] in = parsePostInput(textIO.getText());
-                for (String s : in) {
-                    System.out.println(s);
+                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                for (Map.Entry<String, String> entry : stringMap.entrySet()) {
+                    System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
+                String id = stringMap.get("id");
+                putClientInMap(id);
+                String jsonAns = getLogInfo(Integer.valueOf(stringMap.get("index")));
+                System.out.println(jsonAns);
+                serverUtils.respondWithText(httpExchange, jsonAns);
+            } catch (Exception e) {
+                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+            }
+        });
+
+        summaryServer.createContext("/putText", httpExchange -> {
+            try {
+                printClientData(httpExchange);
+
+                TextIO textIO = new TextIO();
+                textIO.read(httpExchange.getRequestBody());
+                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                for (Map.Entry<String, String> entry : stringMap.entrySet()) {
+                    System.out.println(entry.getKey() + " : " + entry.getValue());
+                }
+
+                String id = stringMap.get("id");
+                putClientInMap(id);
+                log.add(new UnitLog(id, stringMap.get("log")));
+                serverUtils.respondWithText(httpExchange, "OK");
+            } catch (Exception e) {
+                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+            }
+        });
+
+        summaryServer.createContext("/clear", httpExchange -> {
+            try {
+                printClientData(httpExchange);
+
+                TextIO textIO = new TextIO();
+                textIO.read(httpExchange.getRequestBody());
+                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                for (Map.Entry<String, String> entry : stringMap.entrySet()) {
+                    System.out.println(entry.getKey() + " : " + entry.getValue());
+                }
+                log.removeAll(log);
+                serverUtils.respondWithText(httpExchange, "OK");
             } catch (Exception e) {
                 serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
@@ -74,16 +140,44 @@ public class PublicChatServer {
         summaryServer.start();
     }
 
+    private String getLogInfo(int index) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("{ \"users\": [");
+        String[] uids = uID2TimeMap.keySet().toArray(new String[uID2TimeMap.size()]);
+        for (int i = 0; i < uids.length; i++) {
+            stringBuilder.append("\"" + uids[i] + "\"" + ((i == uids.length - 1) ? "" : ","));
+        }
+
+        stringBuilder.append("],");
+        stringBuilder.append("\"log\": [");
+        for (int i = index + 1; i < log.size(); i++) {
+            UnitLog unitLog = log.get(i);
+            stringBuilder.append("{\"id\": \"" + unitLog.getId() + "\", \"text\":\"" + unitLog.getText() + "\"}" + ((i == log.size() - 1) ? "" : ","));
+        }
+
+        stringBuilder.append("],");
+        stringBuilder.append("\"needClean\": ");
+        stringBuilder.append("" + (index > log.size()) + "");
+        stringBuilder.append("}");
+
+        return stringBuilder.toString();
+    }
+
     private String parseGetInput(String request) {
         return request.replace("/PublicChat/", "").replace("%5B", "[").replace("%5D", "]").replace("%2C", ",");
     }
 
-    private String[] parsePostInput(String request) {
-        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("\n", "").split("&");
+    private Map<String, String> parsePostInput(String request) {
+        Map<String, String> ans = new HashMap<>();
+        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("\n", "").replace("+", " ").split("&");
         for (int i = 0; i < split.length; i++) {
-            split[i] = split[i].split("=")[1];
+            String[] split1 = split[i].split("=");
+            String key = split1[0];
+            String value = split1[1];
+            ans.put(key, value);
         }
-        return split;
+        return ans;
     }
 
     private String getTraceError(Exception e) {
@@ -93,4 +187,41 @@ public class PublicChatServer {
         e.printStackTrace();
         return sw.toString();
     }
+
+    private void printClientData(HttpExchange httpExchange) {
+        URI requestURI = httpExchange.getRequestURI();
+        System.out.println(httpExchange.getRequestMethod() + " " + requestURI);
+        System.out.println("address : " + httpExchange.getRemoteAddress());
+    }
+
+    private void putClientInMap(String id) {
+        uID2TimeMap.put(id, 0.0);
+    }
+
+    private class UnitLog {
+        private String id;
+        private String text;
+
+        public UnitLog(String id, String text) {
+            this.id = id;
+            this.text = text;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+    }
+
 }
