@@ -158,7 +158,7 @@ public class PublicChatServer {
 
         stringBuilder.append("],");
         stringBuilder.append("\"needClean\": ");
-        stringBuilder.append("" + (index > log.size()) + "");
+        stringBuilder.append("" + (index >= log.size()) + "");
         stringBuilder.append("}");
 
         return stringBuilder.toString();

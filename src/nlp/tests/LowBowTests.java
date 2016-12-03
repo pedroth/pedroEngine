@@ -333,7 +333,7 @@ public class LowBowTests {
         NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
 
         //lowbow representation
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 3; i++) {
             text.read(subtitles.get(i));
             textSplitter = new SubsSplitter(predicate);
             lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
