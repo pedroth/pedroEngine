@@ -101,7 +101,7 @@ public class MyMath {
         ExpressionFunction in;
         in = new ExpressionFunction(s, new String[]{});
         in.init();
-        return in.compute(new Vector(new double[]{}));
+        return in.compute(new Vector(1));
     }
 
     public static int positiveMod(int x, int y) {

@@ -147,6 +147,11 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The Standard deviation segment length.
      */
     protected double standardDeviationSegmentLength;
+
+    /**
+     * The Segment length data.
+     */
+    protected List<Double> segmentLengthData;
     /**
      * The Is video concat.
      */
@@ -266,8 +271,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             stopWatch.resetTime();
 
             //segment statistics
-            this.averageSegmentlength = computeAverageSegmentLength(segmentedBows);
-            this.standardDeviationSegmentLength = computeStandardDeviationLength(segmentedBows, averageSegmentlength);
+            this.segmentLengthData = getSegmentLengthData();
+            this.averageSegmentlength = computeAverageSegmentLength();
+            this.standardDeviationSegmentLength = computeStandardDeviationLength();
             rejectSegmentOutliers();
 
             //build knn-graph
@@ -316,6 +322,17 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
     }
 
+    public List<Double> getSegmentLengthData() {
+        if (segmentLengthData != null) {
+            return segmentLengthData;
+        }
+        List<Double> ans = new ArrayList<>(segmentedBows.size());
+        for (int i = 0; i < segmentedBows.size(); i++) {
+            ans.add(segmentedBows.get(i).getTimeIntervalMinutes());
+        }
+        return ans;
+    }
+
     //Not useful
     private void rejectSegmentOutliers() {
         double mu = this.averageSegmentlength;
@@ -329,7 +346,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
     }
 
-    private double computeStandardDeviationLength(List<BaseSegmentedBow> segmentedBows, double averageSegmentlength) {
+    private double computeStandardDeviationLength() {
         double mu = 0;
         int size = segmentedBows.size();
         for (int i = 0; i < size; i++) {
@@ -339,7 +356,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return Math.sqrt(mu / size);
     }
 
-    private double computeAverageSegmentLength(List<BaseSegmentedBow> segmentedBows) {
+    private double computeAverageSegmentLength() {
         double mu = 0;
         int size = segmentedBows.size();
         for (int i = 0; i < size; i++) {

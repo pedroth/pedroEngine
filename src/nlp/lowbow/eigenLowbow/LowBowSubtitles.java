@@ -3,6 +3,7 @@ package nlp.lowbow.eigenLowbow;
 
 import algebra.src.LineGradient;
 import algebra.src.Matrix;
+import algebra.src.Vector;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowFactory;
 import nlp.textSplitter.SubsSplitter;
@@ -117,5 +118,19 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
      */
     public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
         this.lowBowSegmentator = lowBowSegmentator;
+    }
+
+    public double getHeatEnergy() {
+        double heatTime = getHeatTime();
+        int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
+
+        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
+        Matrix prod = diag.prod(getEigenCoord());
+        Vector[] rowsVectors = prod.getRowsVectors();
+        double acc = 0;
+        for (int i = 0; i < rowsVectors.length; i++) {
+            acc += rowsVectors[i].squareNorm();
+        }
+        return acc;
     }
 }

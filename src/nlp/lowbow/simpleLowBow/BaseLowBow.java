@@ -30,20 +30,6 @@ public abstract class BaseLowBow extends BaseDocumentModel {
         super(lowBow);
     }
 
-    protected void processText(String in) {
-        text = textSplitter.split(in);
-        int acmIndex = 0;
-        for (int i = 0; i < text.length; i++) {
-            Integer aux = simplex.get(text[i]);
-            if (aux == null) {
-                acmIndex++;
-                simplex.put(text[i], acmIndex);
-            }
-        }
-        textLength = text.length;
-        numWords = simplex.size();
-    }
-
     public void build() {
         rawCurve = new Matrix(textLength, numWords);
         int n = rawCurve.getRows();

@@ -14,6 +14,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PublicChatServer {
     private final static String HOME_ADDRESS = "src/other/resources/";
@@ -31,8 +33,16 @@ public class PublicChatServer {
     }
 
     public static void main(String[] args) {
-        PublicChatServer publicChatServer = new PublicChatServer(8080);
-        publicChatServer.start();
+        if (args.length > 0) {
+            final String regex = "[0-9]*";
+            final Pattern pattern = Pattern.compile(regex);
+            final Matcher matcher = pattern.matcher(args[0]);
+            PublicChatServer publicChatServer = new PublicChatServer(matcher.find() ? Integer.valueOf(args[0]) : 8080);
+            publicChatServer.start();
+        } else {
+            PublicChatServer publicChatServer = new PublicChatServer(8080);
+            publicChatServer.start();
+        }
     }
 
     public void start() {
@@ -174,6 +184,7 @@ public class PublicChatServer {
         for (int i = 0; i < split.length; i++) {
             String[] split1 = split[i].split("=");
             String key = split1[0];
+
             String value = split1[1];
             ans.put(key, value);
         }

@@ -118,7 +118,10 @@ public class EigenLowBow extends BaseLowBow {
      * @param k k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
      */
     public void buildHeatRepresentation(Matrix eigenBasis, Vector eigenValues, int k) {
-        this.numberOfLowDimCoeff = k;
+        if (rawCurve == null) {
+            this.build();
+        }
+        this.numberOfLowDimCoeff = Integer.max(Integer.min(k, eigenBasis.getRows()), 1);
         this.eigenBasis = eigenBasis;
         this.eigenValues = eigenValues;
         if (textLength > 50) {
@@ -183,7 +186,7 @@ public class EigenLowBow extends BaseLowBow {
             return 0;
         }
         if (numberOfLowDimCoeff == 1) {
-            return 1;
+            return Double.MAX_VALUE;
         }
         return -Math.log(epsilon) / eigenValues.getX(numberOfLowDimCoeff);
     }

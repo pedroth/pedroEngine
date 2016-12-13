@@ -6,6 +6,8 @@ import inputOutput.TextIO;
 import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
 import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.seriesSummary.ArcSummarizerDiffusion;
+import nlp.seriesSummary.ArcSummarizerLda;
 import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.symbolSampler.TopKSymbol;
@@ -29,8 +31,8 @@ public class ArcSummaryTest {
         double entropy = 0.10;
         int knn = 5;
         double timeArc = 100000;
-        boolean cutVideo = true;
-        boolean concatVideo = true;
+        boolean cutVideo = false;
+        boolean concatVideo = false;
         LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
 
         List<BaseArcSummarizer> baseArcSummarizerList = new ArrayList<>();
@@ -42,25 +44,26 @@ public class ArcSummaryTest {
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         baseArcSummarizerList.add(baseArcSummarizer);
 
-//        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-//        baseArcSummarizer.setCutVideo(cutVideo);
-//        baseArcSummarizer.setVideoConcat(concatVideo);
-//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-//        baseArcSummarizerList.add(baseArcSummarizer);
-//
-//        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-//        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
-//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-//        baseArcSummarizer.setCutVideo(cutVideo);
-//        baseArcSummarizer.setVideoConcat(concatVideo);
-//        baseArcSummarizerList.add(baseArcSummarizer);
-//
-//        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-//        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(25);
-//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-//        baseArcSummarizer.setCutVideo(cutVideo);
-//        baseArcSummarizer.setVideoConcat(concatVideo);
-//        baseArcSummarizerList.add(baseArcSummarizer);
+        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        baseArcSummarizerList.add(baseArcSummarizer);
+
+        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizerList.add(baseArcSummarizer);
+
+        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
+        ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizerList.add(baseArcSummarizer);
 
         // summary
         for (int i = 0; i < baseArcSummarizerList.size(); i++) {
@@ -96,6 +99,31 @@ public class ArcSummaryTest {
 //        TextIO textIO = new TextIO();
 //        textIO.write(seriesAddress + "ldaTopicAssignment", stringBuilder.toString());
 
+
+    }
+
+    @Test
+    public void lowbowTimeLengthStatistics() {
+        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/";
+        String fileExtension = "mkv";
+        String output = seriesAddress + "summary";
+        int numberOfCluster = 6;
+        double heat = 0.04;
+        double entropy = 0.10;
+        int knn = 5;
+        double timeArc = 100000;
+        boolean cutVideo = false;
+        boolean concatVideo = true;
+        LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+
+        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.euclideanDist);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
+
+        baseArcSummarizer.buildSummary(output, timeArc);
+        baseArcSummarizer.getSegmentLengthData().forEach(System.out::println);
 
     }
 

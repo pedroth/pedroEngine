@@ -72,8 +72,11 @@ public class SpectralClustering {
 
         Matrix U = new Matrix(symmetricEigen.getEigenVectors());
         this.eigenCoeff = U;
-        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
+        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
+        if (isNormalized) {
+            subMatrix = normalizeRows(subMatrix);
+        }
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
         kmeans.runKmeans(k, epsilon, repetitions);
@@ -104,6 +107,7 @@ public class SpectralClustering {
         if (isNormalized) {
             subMatrix = normalizeRows(subMatrix);
         }
+//        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());

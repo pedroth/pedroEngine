@@ -13,6 +13,7 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     private DiffusionClustering diffusionClustering;
     private double sigma = 1.0;
     private double heatTime = 1.0;
+    private boolean isNormalized = false;
 
     /**
      * Instantiates a new Arc summarizer.
@@ -37,6 +38,7 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     @Override
     public Map<Integer, List<Integer>> clusterArcs(int kcluster) {
         this.diffusionClustering = new DiffusionClustering(knnGraph);
+        this.diffusionClustering.setNormalized(isNormalized);
         return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
     }
 
@@ -54,5 +56,13 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
 
     public void setHeatTime(double heatTime) {
         this.heatTime = heatTime;
+    }
+
+    public boolean isNormalized() {
+        return isNormalized;
+    }
+
+    public void setNormalized(boolean normalized) {
+        isNormalized = normalized;
     }
 }

@@ -31,6 +31,7 @@ public class DiffusionClustering {
     private Map<Integer, Integer> classification;
     private Matrix eigenCoeff;
     private double reduceDimensionThreshold = 0.1;
+    private boolean isNormalized = false;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -80,7 +81,9 @@ public class DiffusionClustering {
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
         Diagonal D = getDegreeMatrix(W);
-        Matrix laplacianMatrix = Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        //danger
+        Diagonal sqrt = D.sqrt().inverse();
+        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
         Matrix U = spectralMethod.getV(laplacianMatrix);
@@ -315,6 +318,15 @@ public class DiffusionClustering {
      */
     public void setReduceDimensionThreshold(double reduceDimensionThreshold) {
         this.reduceDimensionThreshold = reduceDimensionThreshold;
+    }
+
+
+    public boolean isNormalized() {
+        return isNormalized;
+    }
+
+    public void setNormalized(boolean normalized) {
+        isNormalized = normalized;
     }
 
     private interface SpectralMethod {

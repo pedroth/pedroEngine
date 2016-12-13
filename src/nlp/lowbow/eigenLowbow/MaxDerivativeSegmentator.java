@@ -17,6 +17,7 @@ public class MaxDerivativeSegmentator implements LowBowSegmentator {
         Vector maxIndicator = findLocalMax(segFunc);
         int minIndex = 1;
         int size = maxIndicator.size();
+
         for (int i = 2; i <= size; i++) {
             if (maxIndicator.getX(i) == 1.0 && i != minIndex) {
                 segmentedBows.add(factory.getInstance(new Interval(minIndex, i), lowBowSubtitles));
