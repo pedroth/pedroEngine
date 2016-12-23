@@ -4,6 +4,7 @@ import inputOutput.TextIO;
 import nlp.textSplitter.TextSplitter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * The type My set.
@@ -32,6 +33,13 @@ public class MySet {
      */
     public MySet() {
         set = new HashMap<>();
+    }
+
+    public MySet(HashSet<String> input) {
+        set = new HashMap<>();
+        for (String s : input) {
+            set.put(s, true);
+        }
     }
 
     /**

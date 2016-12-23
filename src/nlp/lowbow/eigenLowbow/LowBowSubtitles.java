@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * The type Low bow subtitles.
  *
- * @param <T> the type parameter
+ * @param <T>  the type parameter
  */
 public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
     private String videoAddress;
@@ -65,7 +65,6 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
     public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory) {
         return lowBowSegmentator.getSegmentation(factory, this);
     }
-
 
     /**
      * Compute low bow 2 nd derivative.
@@ -120,6 +119,11 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
         this.lowBowSegmentator = lowBowSegmentator;
     }
 
+    /**
+     * Gets heat energy.
+     *
+     * @return the heat energy
+     */
     public double getHeatEnergy() {
         double heatTime = getHeatTime();
         int numberOfLowDimCoeff = getNumberOfLowDimCoeff();

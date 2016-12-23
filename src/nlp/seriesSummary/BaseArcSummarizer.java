@@ -702,4 +702,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
         this.lowBowSegmentator = lowBowSegmentator;
     }
+
+    public NecessaryWordPredicate getNecessaryWordPredicate() {
+        return necessaryWordPredicate;
+    }
 }

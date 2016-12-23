@@ -109,7 +109,7 @@ public class ArcSummaryTest {
         String output = seriesAddress + "summary";
         int numberOfCluster = 6;
         double heat = 0.04;
-        double entropy = 0.10;
+        double entropy = 0.01;
         int knn = 5;
         double timeArc = 100000;
         boolean cutVideo = false;

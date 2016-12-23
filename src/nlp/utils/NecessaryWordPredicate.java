@@ -39,6 +39,7 @@ public class NecessaryWordPredicate implements Predicate<String> {
 
     private double computeMaxEntropy() {
         int size = bowManager.getDocModels().size();
+        size = size == 1 ? 2 : size;
         return -Math.log(1.0 / size);
     }
 

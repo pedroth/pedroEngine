@@ -25,6 +25,7 @@ public class SpectralClustering {
     private Map<Integer, Integer> classification;
     private Matrix eigenCoeff;
     private boolean isNormalized = false;
+    private boolean isAdrewEtAL = true;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -74,9 +75,12 @@ public class SpectralClustering {
         this.eigenCoeff = U;
         Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
-        if (isNormalized) {
+        if (isNormalized && isAdrewEtAL) {
             subMatrix = normalizeRows(subMatrix);
+        } else if (isNormalized) {
+            subMatrix = sqrt.prod(subMatrix);
         }
+
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
         kmeans.runKmeans(k, epsilon, repetitions);
@@ -88,6 +92,8 @@ public class SpectralClustering {
     }
 
     public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        // TODO: need to abstract the way eigenvector are calculated, check diffusion clustering
+
         k = Integer.max(k, 1);
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
@@ -104,10 +110,11 @@ public class SpectralClustering {
         this.eigenCoeff = U;
         Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
-        if (isNormalized) {
+        if (isNormalized && isAdrewEtAL) {
             subMatrix = normalizeRows(subMatrix);
+        } else if (isNormalized) {
+            subMatrix = sqrt.prod(subMatrix);
         }
-//        Matrix subMatrix = isNormalized ? sqrt.prod(U).getSubMatrix(1, U.getRows(), 2, maxEigenValue) : U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
         //kmeans
         Kmeans kmeans = new Kmeans(subMatrix.transpose());
@@ -262,5 +269,13 @@ public class SpectralClustering {
 
     public void setNormalized(boolean normalized) {
         isNormalized = normalized;
+    }
+
+    public boolean isAdrewEtAL() {
+        return isAdrewEtAL;
+    }
+
+    public void setAdrewEtAL(boolean adrewEtAL) {
+        isAdrewEtAL = adrewEtAL;
     }
 }

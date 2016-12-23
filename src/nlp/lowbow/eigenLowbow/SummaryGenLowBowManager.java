@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * The type Summary gen low bow manager.
  *
- * @param <L> the type parameter
+ * @param <L>  the type parameter
  */
 public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowBowManager<L> {
     // Eigen vectors of the LineLaplacian matrix
@@ -81,6 +81,12 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         return getDistanceMatrix(distance);
     }
 
+    /**
+     * Gets distance matrix of segmentations.
+     *
+     * @param distance the distance
+     * @return the distance matrix of segmentations
+     */
     public DistanceMatrix getDistanceMatrixOfSegmentations(Distance<Vector> distance) {
         int size = segmentedBows.size();
         DistanceMatrix distanceMatrix = new DistanceMatrix(size);
@@ -94,6 +100,11 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         return distanceMatrix;
     }
 
+    /**
+     * Build segmentations.
+     *
+     * @param factory the factory
+     */
     public void buildSegmentations(SegmentedBowFactory<BaseSegmentedBow> factory) {
         segmentedBows = new ArrayList<>();
         for (L docModel : docModels) {
@@ -104,6 +115,11 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
         }
     }
 
+    /**
+     * Gets segmented bows.
+     *
+     * @return the segmented bows
+     */
     public List<BaseSegmentedBow> getSegmentedBows() {
         return segmentedBows;
     }
