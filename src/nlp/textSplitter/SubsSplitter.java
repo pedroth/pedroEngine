@@ -95,6 +95,9 @@ public class SubsSplitter implements TextSplitter {
             }
             try {
                 Interval<LocalTime> interval = new Interval(LocalTime.parse(split[0]), LocalTime.parse(split[1]));
+                if (interval.isEmptyInterval()) {
+                    continue;
+                }
                 subtitle.setInterval(interval);
             } catch (Exception e) {
                 continue;

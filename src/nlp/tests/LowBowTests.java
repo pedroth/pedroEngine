@@ -10,8 +10,8 @@ import graph.RandomWalkGraph;
 import graph.SpectralClustering;
 import inputOutput.CsvReader;
 import inputOutput.TextIO;
-import nlp.lowbow.eigenLowbow.LowBowSubtitles;
-import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
+import javafx.util.Pair;
+import nlp.lowbow.eigenLowbow.*;
 import nlp.lowbow.simpleLowBow.BaseLowBowManager;
 import nlp.lowbow.simpleLowBow.LambdaTestFlow;
 import nlp.lowbow.simpleLowBow.LowBow;
@@ -19,6 +19,7 @@ import nlp.lowbow.simpleLowBow.MatrixHeatFlow;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowCool;
 import nlp.segmentedBow.SegmentedBowHeat;
+import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.symbolSampler.SymbolAtMax;
@@ -38,10 +39,7 @@ import utils.FilesCrawler;
 import utils.StopWatch;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The type Low simpleDocModel tests.
@@ -317,9 +315,9 @@ public class LowBowTests {
 
     @Test
     public void testSegmentation() {
-        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
+        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "srt");
         Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
+        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4");
         Collections.sort(videos);
 
         SubsSplitter textSplitter = new SubsSplitter();
@@ -337,10 +335,12 @@ public class LowBowTests {
         NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.08);
 
         //lowbow representation
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 1; i++) {
             text.read(subtitles.get(i));
             textSplitter = new SubsSplitter(predicate);
-            lowBowManager.add(new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i)));
+            LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
+            low.setLowBowSegmentator(new SubtitleSegmentator());
+            lowBowManager.add(low);
         }
         lowBowManager.buildModel(0.04);
         text.write("C:/Users/Pedroth/Desktop/epi1.txt", lowBowManager.getDocModels().get(0).generateText(new TopKSymbol(10)));
@@ -368,11 +368,13 @@ public class LowBowTests {
         address.add("BattleStarGalactica");
         extension.add("avi");
         int samplesEpisodes = 8;
-        int samplesK = 100;
+        int samplesK = 30;
         int n = address.size();
         Matrix kData = new Matrix();
+        Matrix countDataPerc = new Matrix();
         Matrix countData = new Matrix();
         Matrix timePerSegmentData = new Matrix();
+        int index = 0;
 
         for (int i = 0; i < n; i++) {
             List<String> subtitles = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", "srt");
@@ -388,9 +390,9 @@ public class LowBowTests {
             SubsSplitter textSplitter = new SubsSplitter();
             List<Integer> episodeIndex = new ArrayList<>();
             for (int j = 0; j < samplesEpisodes; j++) {
-                int index = (int) (Math.random() * subtitles.size());
-                episodeIndex.add(index);
-                textIO.read(subtitles.get(index));
+                int randomIndex = (int) (Math.random() * subtitles.size());
+                episodeIndex.add(randomIndex);
+                textIO.read(subtitles.get(randomIndex));
                 bowManager.add(new Bow(textIO.getText(), textSplitter));
             }
             bowManager.build();
@@ -401,6 +403,7 @@ public class LowBowTests {
             //lowbow representation
             SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
             kData = kData.concat(new Matrix(samplesK, samplesEpisodes));
+            countDataPerc = countDataPerc.concat(new Matrix(samplesK, samplesEpisodes));
             countData = countData.concat(new Matrix(samplesK, samplesEpisodes));
             timePerSegmentData = timePerSegmentData.concat(new Matrix(samplesK, samplesEpisodes));
 
@@ -426,20 +429,23 @@ public class LowBowTests {
                 for (int s = 0; s < samplesK; s++) {
                     StopWatch stopWatch2 = new StopWatch();
                     low.buildHeatRepresentation(eigenBasis, eigenValues, k);
-                    kData.setXY(s + 1, j + 1, 1.0 * k / textLength);
-                    countData.setXY(s + 1, j + 1, 1.0 * low.getSegmentation(SegmentedBowCool::new).size() / textLength);
-                    timePerSegmentData.setXY(s + 1, j + 1, 1.0 * textLength / low.getSegmentation(SegmentedBowCool::new).size());
+                    kData.setXY(s + 1, index + j + 1, 1.0 * k / textLength);
+                    countDataPerc.setXY(s + 1, index + j + 1, 1.0 * low.getSegmentation(SegmentedBowCool::new).size() / textLength);
+                    countData.setXY(s + 1, index + j + 1, low.getSegmentation(SegmentedBowCool::new).size());
+                    timePerSegmentData.setXY(s + 1, index + j + 1, 1.0 * textLength / low.getSegmentation(SegmentedBowCool::new).size());
                     System.out.println(stopWatch2.getEleapsedTime());
                     stopWatch2.resetTime();
                     k += h;
                 }
             }
+            index += samplesEpisodes;
         }
         TextIO textIO = new TextIO();
         File desktop = new File(System.getProperty("user.home"), "Desktop");
-        textIO.write(desktop.getAbsolutePath() + "/k2.txt", kData.toString());
-        textIO.write(desktop.getAbsolutePath() + "/count2.txt", countData.toString());
-        textIO.write(desktop.getAbsolutePath() + "/time2.txt", timePerSegmentData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/k.txt", kData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/count.txt", countDataPerc.toString());
+        textIO.write(desktop.getAbsolutePath() + "/segments.txt", countData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/time.txt", timePerSegmentData.toString());
     }
 
 
@@ -652,36 +658,208 @@ public class LowBowTests {
 
     @Test
     public void testSegmentationHist() {
-        List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BattleStarGalactica/", "srt");
-        Collections.sort(subtitles);
-        List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BattleStarGalactica/", "avi");
-        Collections.sort(videos);
+        double entropy = 0.1;
+        int samplesEpisodes = 8;
+        int samplesK = 50;
+        int samples = 100;
+        boolean isNeigh = true;
+        LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+        String src = "C:/pedro/escolas/ist/Tese/Series/";
+        List<String> address = new ArrayList<>();
+        List<String> extension = new ArrayList<>();
+        address.add("OverTheGardenWall");
+        extension.add("mkv");
+        address.add("MrRobot");
+        extension.add("mkv");
+        address.add("BreakingBad");
+        extension.add("mp4");
+        address.add("BattleStarGalactica");
+        extension.add("avi");
+        int n = address.size();
+        List<javafx.util.Pair> similarityData = new ArrayList<>();
 
-        SubsSplitter textSplitter = new SubsSplitter();
-        TextIO text = new TextIO();
-        BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+        for (int i = 0; i < n; i++) {
+            List<String> subtitles = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", "srt");
+            Collections.sort(subtitles);
+            List<String> videos = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", extension.get(i));
+            Collections.sort(videos);
 
-        //bow representation
-        for (String subtitle : subtitles) {
-            text.read(subtitle);
-            bowManager.add(new Bow(text.getText(), textSplitter));
+            TextIO textIO = new TextIO();
+            //bow representation
+            BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+            SubsSplitter textSplitter = new SubsSplitter();
+            List<Integer> episodeIndex = new ArrayList<>();
+            for (int j = 0; j < samplesEpisodes; j++) {
+                int randomIndex = (int) (Math.random() * subtitles.size());
+                episodeIndex.add(randomIndex);
+                textIO.read(subtitles.get(randomIndex));
+                bowManager.add(new Bow(textIO.getText(), textSplitter));
+            }
+            bowManager.build();
+
+            //build predicate
+            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+
+            //lowbow representation
+            SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+
+            for (int j = 0; j < samplesEpisodes; j++) {
+                textIO.read(subtitles.get(episodeIndex.get(j)));
+                SubsSplitter textSplitterLowBow = new SubsSplitter(predicate);
+                LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitterLowBow, videos.get(j));
+                low.setLowBowSegmentator(lowBowSegmentator);
+                lowBowManager.add(low);
+            }
+
+            int maxTextLength = (int) lowBowManager.getMaxTextLength();
+            LineLaplacian laplacian = new LineLaplacian(maxTextLength);
+            Matrix eigenBasis = new Matrix(laplacian.getEigenVectors());
+            Vector eigenValues = new Vector(laplacian.getEigenValues());
+
+            for (int j = 0; j < samplesEpisodes; j++) {
+                LowBowSubtitles<SubsSplitter> low = lowBowManager.getDocModels().get(j);
+                int textLength = low.getTextLength();
+                int h = (textLength - 1) / (samplesK - 1);
+                int k = 1;
+                for (int s = 0; s < samplesK; s++) {
+                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
+                    List<BaseSegmentedBow> segmentation = low.getSegmentation(SegmentedBowHeat::new);
+                    if (isNeigh) {
+                        compareNeighborSegments(segmentation, similarityData, BaseArcSummarizer.cosineDist, 1.0 * k / textLength, samples);
+                    } else {
+                        compareSegments(segmentation, similarityData, BaseArcSummarizer.cosineDist, 1.0 * k / textLength, samples);
+                    }
+                    k += h;
+                }
+            }
         }
-        bowManager.build();
 
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
+        StringBuilder stringBuilder = new StringBuilder(similarityData.size());
+        for (Pair pair : similarityData) {
+            stringBuilder.append(pair.getKey() + "\t" + pair.getValue() + "\n");
+        }
 
-        //lowbow representation
-        int i = 0;
-        text.read(subtitles.get(i));
-        textSplitter = new SubsSplitter(predicate);
-        LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
-        int n = low.getTextLength();
-        LineLaplacian laplacian = new LineLaplacian(n);
-        Matrix eigenBasis = new Matrix(laplacian.getEigenVectors());
-        Vector eigenValues = new Vector(laplacian.getEigenValues());
-        for (int k = 1; k <= n; k += 10) {
-            low.buildHeatRepresentation(eigenBasis, eigenValues, k);
-            System.out.println(low.getSegmentation(SegmentedBowCool::new).size());
+        TextIO textIO = new TextIO();
+        File desktop = new File(System.getProperty("user.home"), "Desktop");
+        textIO.write(desktop.getAbsolutePath() + "/similarityDataNeigh.txt", stringBuilder.toString());
+    }
+
+    @Test
+    public void testSegmentationHistSub() {
+        double entropy = 0.1;
+        int samplesEpisodes = 8;
+        int samples = 100;
+        boolean isNeigh = true;
+        LowBowSegmentator lowBowSegmentator = new SubtitleSegmentator();
+        String src = "C:/pedro/escolas/ist/Tese/Series/";
+        List<String> address = new ArrayList<>();
+        List<String> extension = new ArrayList<>();
+        address.add("OverTheGardenWall");
+        extension.add("mkv");
+        address.add("MrRobot");
+        extension.add("mkv");
+        address.add("BreakingBad");
+        extension.add("mp4");
+        address.add("BattleStarGalactica");
+        extension.add("avi");
+        int n = address.size();
+        List<javafx.util.Pair> similarityData = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            List<String> subtitles = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", "srt");
+            Collections.sort(subtitles);
+            List<String> videos = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", extension.get(i));
+            Collections.sort(videos);
+
+            TextIO textIO = new TextIO();
+            //bow representation
+            BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
+            SubsSplitter textSplitter = new SubsSplitter();
+            List<Integer> episodeIndex = new ArrayList<>();
+            for (int j = 0; j < samplesEpisodes; j++) {
+                int randomIndex = (int) (Math.random() * subtitles.size());
+                episodeIndex.add(randomIndex);
+                textIO.read(subtitles.get(randomIndex));
+                bowManager.add(new Bow(textIO.getText(), textSplitter));
+            }
+            bowManager.build();
+
+            //build predicate
+            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+
+            //lowbow representation
+            SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+
+            for (int j = 0; j < samplesEpisodes; j++) {
+                textIO.read(subtitles.get(episodeIndex.get(j)));
+                SubsSplitter textSplitterLowBow = new SubsSplitter(predicate);
+                LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitterLowBow, videos.get(j));
+                low.setLowBowSegmentator(lowBowSegmentator);
+                lowBowManager.add(low);
+            }
+
+            for (int j = 0; j < samplesEpisodes; j++) {
+                LowBowSubtitles<SubsSplitter> low = lowBowManager.getDocModels().get(j);
+                low.build();
+                List<BaseSegmentedBow> segmentation = low.getSegmentation(SegmentedBowCool::new);
+                if (isNeigh) {
+                    compareNeighborSegments(segmentation, similarityData, BaseArcSummarizer.cosineDist, 0.0, samples);
+                } else {
+                    compareSegments(segmentation, similarityData, BaseArcSummarizer.cosineDist, 0.0, samples);
+                }
+                low.deleteRawCurve();
+            }
+        }
+
+        StringBuilder stringBuilder = new StringBuilder(similarityData.size());
+        for (Pair pair : similarityData) {
+            stringBuilder.append(pair.getKey() + "\t" + pair.getValue() + "\n");
+        }
+
+        TextIO textIO = new TextIO();
+        File desktop = new File(System.getProperty("user.home"), "Desktop");
+        textIO.write(desktop.getAbsolutePath() + "/similarityDataSubNeigh.txt", stringBuilder.toString());
+    }
+
+    private void compareSegments(List<BaseSegmentedBow> segmentation, List<Pair> similarityData, Distance<Vector> distance, double k, int samples) {
+        int n = segmentation.size();
+        samples = Integer.min(samples, (n * (n - 1)) / 2);
+        Random random = new Random();
+        if (n <= 1) {
+            return;
+        }
+        for (int i = 0; i < samples; i++) {
+            int l = random.nextInt(n);
+            int m = (l + random.nextInt(n - 1) + 1) % n;
+            Vector segmentBow1 = segmentation.get(l).getSegmentBow();
+            Vector segmentBow2 = segmentation.get(m).getSegmentBow();
+            similarityData.add(new Pair(k, distance.dist(segmentBow1, segmentBow2)));
+        }
+    }
+
+    private void compareNeighborSegments(List<BaseSegmentedBow> segmentation, List<Pair> similarityData, Distance<Vector> distance, double k, int samples) {
+        int n = segmentation.size();
+        Random random = new Random();
+        if (n <= 1) {
+            return;
+        }
+        for (int i = 0; i < samples; i++) {
+            int l = random.nextInt(n);
+            if (l == 0) {
+                Vector segmentBow1 = segmentation.get(l).getSegmentBow();
+                Vector segmentBow2 = segmentation.get(l + 1).getSegmentBow();
+                similarityData.add(new Pair(k, distance.dist(segmentBow1, segmentBow2)));
+            } else if (l == n - 1) {
+                Vector segmentBow1 = segmentation.get(l).getSegmentBow();
+                Vector segmentBow3 = segmentation.get(l - 1).getSegmentBow();
+                similarityData.add(new Pair(k, distance.dist(segmentBow1, segmentBow3)));
+            } else {
+                Vector segmentBow1 = segmentation.get(l).getSegmentBow();
+                Vector segmentBow2 = segmentation.get(l + 1).getSegmentBow();
+                Vector segmentBow3 = segmentation.get(l - 1).getSegmentBow();
+                similarityData.add(new Pair(k, distance.dist(segmentBow1, segmentBow2)));
+                similarityData.add(new Pair(k, distance.dist(segmentBow1, segmentBow3)));
+            }
         }
     }
 }

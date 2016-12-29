@@ -13,9 +13,9 @@ import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.symbolSampler.TopKSymbol;
 import nlp.utils.Simplex;
 import numeric.src.Distance;
-import numeric.src.MyMath;
 import numeric.src.MySet;
 import org.junit.Test;
+import utils.Histogram;
 
 import java.util.*;
 
@@ -176,37 +176,14 @@ public class ArcSummaryTest {
     }
 
     private String buildHist(List<Double> data, int bins) {
-        double[] hist = new double[bins];
-        double xmin = Double.MAX_VALUE;
-        double xmax = Double.MIN_VALUE;
-        for (Double x : data) {
-            xmin = Math.min(xmin, x);
-            xmax = Math.max(xmax, x);
-        }
-
-        double h = (xmax - xmin) / bins;
-
-        for (Double x : data) {
-            double z = (x - xmin) / h;
-            //because float point errors
-            z = MyMath.clamp(z, 0, 30);
-            int index = -1;
-            // try floor function as index
-            for (int i = 0; i < bins; i++) {
-                if (i <= z && z <= i + 1) {
-                    index = i;
-                    break;
-                }
-            }
-            hist[index]++;
-        }
-
+        Histogram histogram = new Histogram(data, bins);
+        List<Integer> hist = histogram.getHistogram();
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < hist.length; i++) {
-            stringBuilder.append(hist[i] + "\n");
+        for (int i = 0; i < hist.size(); i++) {
+            stringBuilder.append(hist.get(i) + "\n");
         }
-        stringBuilder.append("min:" + xmin + "\n");
-        stringBuilder.append("max:" + xmax + "\n");
+        stringBuilder.append("min:" + histogram.getXmin() + "\n");
+        stringBuilder.append("max:" + histogram.getXmax() + "\n");
         return stringBuilder.toString();
     }
 
@@ -217,7 +194,7 @@ public class ArcSummaryTest {
         int n = segmentIndexByClusterId.size();
         for (int i = 0; i < samples; i++) {
             int clusterId1 = random.nextInt(n);
-            int clusterId2 = (clusterId1 + random.nextInt(n - 1)) % n;
+            int clusterId2 = (clusterId1 + random.nextInt(n - 1) + 1) % n;
             List<Integer> cluster1 = segmentIndexByClusterId.get(clusterId1);
             int n1 = cluster1.size();
             List<Integer> cluster2 = segmentIndexByClusterId.get(clusterId2);
