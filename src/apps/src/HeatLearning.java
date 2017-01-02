@@ -16,23 +16,93 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class HeatLearning extends MyFrame {
 
-    private final Function<Vec2, Double> knnMonteCarlo = x -> {
-        int index = -1;
-        double minDist = Double.MAX_VALUE;
-        int size = this.points.size();
-        int monteCarloSample = 20;
-        int knnSample = Integer.min(5, size);
+    private static final double dataRadius = 0.01;
+    private static final int MIN_SAMPLES = 100;
+    private BoxEngine engine;
+    private PaintMethod2D shader;
+    private List<Vec2> points = new ArrayList<>(10);
+    private List<Double> output = new ArrayList<>(10);
+    private final MyModel knnMonteCarlo = new MyModel() {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+            int monteCarloSample = 20;
+            int knnSample = Integer.min(5, size);
 
-        if (size == 0) {
-            return 0.0;
+            if (size == 0) {
+                return 0.0;
+            }
+
+            double acc = 0;
+            for (int k = 0; k < monteCarloSample; k++) {
+                int[] sampleIndex = new int[knnSample];
+                for (int i = 0; i < knnSample; i++) {
+                    sampleIndex[i] = (int) (Math.random() * size);
+                }
+
+                for (int i = 0; i < knnSample; i++) {
+                    int randomIndex = sampleIndex[i];
+                    double dist = Vec2.diff(x, points.get(randomIndex)).norm();
+                    if (minDist > dist) {
+                        minDist = dist;
+                        index = randomIndex;
+                    }
+                }
+                acc += output.get(index);
+            }
+            return acc / monteCarloSample;
         }
 
-        double acc = 0;
-        for (int k = 0; k < monteCarloSample; k++) {
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            // empty
+        }
+    };
+    private final MyModel knn = new MyModel() {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            for (int i = 0; i < size; i++) {
+                double dist = Vec2.diff(x, points.get(i)).norm();
+                if (minDist > dist) {
+                    minDist = dist;
+                    index = i;
+                }
+            }
+            return output.get(index);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            //empty
+        }
+    };
+    private final MyModel knnRandom = new MyModel() {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            int knnSample = Integer.min(10, size);
+
             int[] sampleIndex = new int[knnSample];
             for (int i = 0; i < knnSample; i++) {
                 sampleIndex[i] = (int) (Math.random() * size);
@@ -40,75 +110,20 @@ public class HeatLearning extends MyFrame {
 
             for (int i = 0; i < knnSample; i++) {
                 int randomIndex = sampleIndex[i];
-                double dist = Vec2.diff(x, this.points.get(randomIndex)).norm();
+                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
                 if (minDist > dist) {
                     minDist = dist;
                     index = randomIndex;
                 }
             }
-            acc += this.output.get(index);
+            return output.get(index);
         }
-        return acc / monteCarloSample;
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+
+        }
     };
-
-    private final Function<Vec2, Double> knn = x -> {
-        int index = -1;
-        double minDist = Double.MAX_VALUE;
-        int size = this.points.size();
-
-        if (size == 0) {
-            return 0.0;
-        }
-
-        for (int i = 0; i < size; i++) {
-            double dist = Vec2.diff(x, this.points.get(i)).norm();
-            if (minDist > dist) {
-                minDist = dist;
-                index = i;
-            }
-        }
-        return this.output.get(index);
-    };
-
-    private final Function<Vec2, Double> knnRandom = x -> {
-        int index = -1;
-        double minDist = Double.MAX_VALUE;
-        int size = this.points.size();
-
-        if (size == 0) {
-            return 0.0;
-        }
-
-        int knnSample = Integer.min(10, size);
-
-        int[] sampleIndex = new int[knnSample];
-        for (int i = 0; i < knnSample; i++) {
-            sampleIndex[i] = (int) (Math.random() * size);
-        }
-
-        for (int i = 0; i < knnSample; i++) {
-            int randomIndex = sampleIndex[i];
-            double dist = Vec2.diff(x, this.points.get(randomIndex)).norm();
-            if (minDist > dist) {
-                minDist = dist;
-                index = randomIndex;
-            }
-        }
-        return this.output.get(index);
-    };
-
-    private static final double dataRadius = 0.01;
-
-    private static final int MIN_SAMPLES = 100;
-
-    private BoxEngine engine;
-
-    private PaintMethod2D shader;
-
-    private List<Vec2> points = new ArrayList<>(10);
-
-    private List<Double> output = new ArrayList<>(10);
-
     private boolean isShiftPressed = false;
 
     private boolean isVisualMode = false;
@@ -124,7 +139,7 @@ public class HeatLearning extends MyFrame {
 
     private int[] colorBuffer;
 
-    private Function<Vec2, Double> model;
+    private MyModel model;
 
     public HeatLearning(String title, int width, int height) {
         super(title, width, height);
@@ -228,10 +243,15 @@ public class HeatLearning extends MyFrame {
                 break;
             case KeyEvent.VK_V:
                 this.isVisualMode = !this.isVisualMode;
+                trainModel();
                 break;
             default:
                 //nothing here
         }
+    }
+
+    private void trainModel() {
+        this.model.train(points, output);
     }
 
     private void resetData() {
@@ -316,6 +336,13 @@ public class HeatLearning extends MyFrame {
     public void mouseMoved(MouseEvent arg0) {
         // TODO Auto-generated method stub
 
+    }
+
+
+    private interface MyModel {
+        Double apply(Vec2 x);
+
+        void train(List<Vec2> x, List<Double> y);
     }
 
 }
