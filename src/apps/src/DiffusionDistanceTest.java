@@ -216,7 +216,7 @@ public class DiffusionDistanceTest extends MyFrame {
     public void mousePressed(MouseEvent e) {
         mx = e.getX();
         my = e.getY();
-        Vec2 mouse = new Vec2(engine.InverseCoordX(mx), engine.InverseCoordY(my));
+        Vec2 mouse = new Vec2(engine.inverseCoordX(mx), engine.inverseCoordY(my));
         double min = Double.MAX_VALUE;
         int minIndex = -1;
         for (int i = 0; i < points.size(); i++) {

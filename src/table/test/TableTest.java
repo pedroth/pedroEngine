@@ -14,6 +14,6 @@ public class TableTest {
         CsvReader table = new CsvReader();
         table.read("src/numeric/test/resource/testData.csv");
         System.out.println(table);
-        Assert.assertTrue(3.768 == Double.valueOf(table.get(new Integer[]{14, 1})));
+        Assert.assertTrue(3.768 == Double.valueOf(table.get(new Integer[] { 14, 1 })));
     }
 }
