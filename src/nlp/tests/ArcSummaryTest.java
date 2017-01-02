@@ -23,39 +23,39 @@ public class ArcSummaryTest {
 
     @Test
     public void lowbowLdaStatistics() {
-        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/";
-        String fileExtension = "mkv";
+        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/BattleStarGalactica/";
+        String fileExtension = "avi";
         String output = seriesAddress + "summary";
         int numberOfCluster = 6;
         double heat = 0.04;
-        double entropy = 0.10;
+        double entropy = 0.05;
         int knn = 5;
-        double timeArc = 100000;
-        boolean cutVideo = false;
-        boolean concatVideo = false;
+        double timeArc = 10;
+        boolean cutVideo = true;
+        boolean concatVideo = true;
         LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
 
-        List<BaseArcSummarizer> baseArcSummarizerList = new ArrayList<>();
+        Stack<BaseArcSummarizer> stack = new Stack<>();
 
-        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.euclideanDist);
+        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
-        baseArcSummarizerList.add(baseArcSummarizer);
+        stack.add(baseArcSummarizer);
 
         baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        baseArcSummarizerList.add(baseArcSummarizer);
+        stack.add(baseArcSummarizer);
 
         baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizerList.add(baseArcSummarizer);
+        stack.add(baseArcSummarizer);
 
         baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
@@ -63,11 +63,12 @@ public class ArcSummaryTest {
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizerList.add(baseArcSummarizer);
+        stack.add(baseArcSummarizer);
 
         // summary
-        for (int i = 0; i < baseArcSummarizerList.size(); i++) {
-            BaseArcSummarizer baseArcSummarizer1 = baseArcSummarizerList.get(i);
+        int i = 0;
+        while (!stack.isEmpty()) {
+            BaseArcSummarizer baseArcSummarizer1 = stack.pop();
             String outputAddress = output + i;
             baseArcSummarizer1.buildSummary(outputAddress, timeArc);
             TextIO textIO = new TextIO();
@@ -75,18 +76,19 @@ public class ArcSummaryTest {
             textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
             String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
+            i++;
         }
 
 
-//        Map<Integer, Vector> phis = baseArcSummarizerList.get(1).getGraphCentroidByClusterId();
+//        Map<Integer, Vector> phis = stack.get(1).getGraphCentroidByClusterId();
 //
 //        StringBuilder stringBuilder = new StringBuilder();
 //        for (int i = 0; i < phis.size(); i++) {
-//            int size = baseArcSummarizerList.size();
+//            int size = stack.size();
 //            int[] indexCorr = new int[size];
 //            double[] distanceCorr = new double[size];
 //            for (int j = 0; j < size; j++) {
-//                Vec2 ans = findMaxJaccardIndex2Phi(phis.get(i), baseArcSummarizerList.get(j).getGraphCentroidByClusterId(), baseArcSummarizer.getLowBowManager().getSimplex());
+//                Vec2 ans = findMaxJaccardIndex2Phi(phis.get(i), stack.get(j).getGraphCentroidByClusterId(), baseArcSummarizer.getLowBowManager().getSimplex());
 //                indexCorr[j] = (int) ans.getX();
 //                distanceCorr[j] = ans.getY();
 //            }

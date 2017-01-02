@@ -339,7 +339,9 @@ public class LowBowTests {
             text.read(subtitles.get(i));
             textSplitter = new SubsSplitter(predicate);
             LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
-            low.setLowBowSegmentator(new SubtitleSegmentator());
+            EqualSpaceSegmentator lowBowSegmentator = new EqualSpaceSegmentator();
+            lowBowSegmentator.setSpacePercent(0.90);
+            low.setLowBowSegmentator(lowBowSegmentator);
             lowBowManager.add(low);
         }
         lowBowManager.buildModel(0.04);
@@ -368,7 +370,7 @@ public class LowBowTests {
         address.add("BattleStarGalactica");
         extension.add("avi");
         int samplesEpisodes = 8;
-        int samplesK = 30;
+        int samplesK = 50;
         int n = address.size();
         Matrix kData = new Matrix();
         Matrix countDataPerc = new Matrix();
@@ -428,7 +430,12 @@ public class LowBowTests {
                 int k = 1;
                 for (int s = 0; s < samplesK; s++) {
                     StopWatch stopWatch2 = new StopWatch();
-                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
+//                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
+
+                    EqualSpaceSegmentator lowbowSeg = new EqualSpaceSegmentator();
+                    lowbowSeg.setSpacePercent(1.0 * k / textLength);
+                    low.setLowBowSegmentator(lowbowSeg);
+
                     kData.setXY(s + 1, index + j + 1, 1.0 * k / textLength);
                     countDataPerc.setXY(s + 1, index + j + 1, 1.0 * low.getSegmentation(SegmentedBowCool::new).size() / textLength);
                     countData.setXY(s + 1, index + j + 1, low.getSegmentation(SegmentedBowCool::new).size());
@@ -442,10 +449,10 @@ public class LowBowTests {
         }
         TextIO textIO = new TextIO();
         File desktop = new File(System.getProperty("user.home"), "Desktop");
-        textIO.write(desktop.getAbsolutePath() + "/k.txt", kData.toString());
-        textIO.write(desktop.getAbsolutePath() + "/count.txt", countDataPerc.toString());
-        textIO.write(desktop.getAbsolutePath() + "/segments.txt", countData.toString());
-        textIO.write(desktop.getAbsolutePath() + "/time.txt", timePerSegmentData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/kE.txt", kData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/countE.txt", countDataPerc.toString());
+        textIO.write(desktop.getAbsolutePath() + "/segmentsE.txt", countData.toString());
+        textIO.write(desktop.getAbsolutePath() + "/timeE.txt", timePerSegmentData.toString());
     }
 
 
@@ -722,8 +729,13 @@ public class LowBowTests {
                 int h = (textLength - 1) / (samplesK - 1);
                 int k = 1;
                 for (int s = 0; s < samplesK; s++) {
-                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
-                    List<BaseSegmentedBow> segmentation = low.getSegmentation(SegmentedBowHeat::new);
+//                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
+
+                    EqualSpaceSegmentator lowBowSegmentatorEqual = new EqualSpaceSegmentator();
+                    lowBowSegmentatorEqual.setSpacePercent(1.0 * k / textLength);
+                    low.setLowBowSegmentator(lowBowSegmentatorEqual);
+
+                    List<BaseSegmentedBow> segmentation = low.getSegmentation(SegmentedBowCool::new);
                     if (isNeigh) {
                         compareNeighborSegments(segmentation, similarityData, BaseArcSummarizer.cosineDist, 1.0 * k / textLength, samples);
                     } else {
@@ -741,7 +753,7 @@ public class LowBowTests {
 
         TextIO textIO = new TextIO();
         File desktop = new File(System.getProperty("user.home"), "Desktop");
-        textIO.write(desktop.getAbsolutePath() + "/similarityDataNeigh.txt", stringBuilder.toString());
+        textIO.write(desktop.getAbsolutePath() + "/similarityNeighEqualData.txt", stringBuilder.toString());
     }
 
     @Test
