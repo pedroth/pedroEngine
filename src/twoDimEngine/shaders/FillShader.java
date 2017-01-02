@@ -24,8 +24,8 @@ public class FillShader extends Wireframe {
 		int[] x = new int[length];
 		int[] y = new int[length];
 		for (int i = 0; i < length; i++) {
-			x[i] = (int) engine.IntegerCoordX(vec[i].getX());
-			y[i] = (int) engine.IntegerCoordY(vec[i].getY());
+			x[i] = (int) engine.integerCoordX(vec[i].getX());
+			y[i] = (int) engine.integerCoordY(vec[i].getY());
 		}
 		g.setColor(element2d.getColor(0));
 		g.fillPolygon(x, y, length);
@@ -45,8 +45,8 @@ public class FillShader extends Wireframe {
 	@Override
 	public void paintPoint(Point2D element) {
 		Graphics g = engine.getImageGraphics();
-		int i = (int) engine.IntegerCoordX(element.getVertex(0).getX());
-		int j = (int) engine.IntegerCoordY(element.getVertex(0).getY());
+		int i = (int) engine.integerCoordX(element.getVertex(0).getX());
+		int j = (int) engine.integerCoordY(element.getVertex(0).getY());
 		g.setColor(element.getColor(0));
 		
 		double radius = element.getRadius();
@@ -54,8 +54,8 @@ public class FillShader extends Wireframe {
 		if(radius == 0.0)
 			g.drawLine(i, j, i, j);
 		else {
-			int rx = (int) (engine.IntegerCoordX(element.getRadius()) - engine.IntegerCoordX(0.0));
-			int ry = (int) Math.abs(engine.IntegerCoordY(element.getRadius()) - engine.IntegerCoordY(0.0));
+			int rx = (int) (engine.integerCoordX(element.getRadius()) - engine.integerCoordX(0.0));
+			int ry = (int) Math.abs(engine.integerCoordY(element.getRadius()) - engine.integerCoordY(0.0));
 			g.fillOval(i - rx, j - ry, 2 * rx, 2 * ry);
 		}
 	}

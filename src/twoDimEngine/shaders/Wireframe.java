@@ -15,10 +15,10 @@ public class Wireframe extends PaintMethod2D {
 	private void drawLine(double x1, double y1, double x2, double y2,Color c) {
 		Graphics g = engine.getImageGraphics();
 		int i1, j1, i2, j2;
-		i1 = (int) engine.IntegerCoordX(x1);
-		j1 = (int) engine.IntegerCoordY(y1);
-		i2 = (int) engine.IntegerCoordX(x2);
-		j2 = (int) engine.IntegerCoordY(y2);
+		i1 = (int) engine.integerCoordX(x1);
+		j1 = (int) engine.integerCoordY(y1);
+		i2 = (int) engine.integerCoordX(x2);
+		j2 = (int) engine.integerCoordY(y2);
 		g.setColor(c);
 		g.drawLine(i1, j1, i2, j2);
 	}
@@ -50,8 +50,8 @@ public class Wireframe extends PaintMethod2D {
 	public void paintPoint(Point2D element) {
 		Graphics g = engine.getImageGraphics();
 		int i, j;
-		i = (int) engine.IntegerCoordX(element.getVertex(0).getX());
-		j = (int) engine.IntegerCoordY(element.getVertex(0).getY());
+		i = (int) engine.integerCoordX(element.getVertex(0).getX());
+		j = (int) engine.integerCoordY(element.getVertex(0).getY());
 		g.setColor(element.getColor(0));
 		
 		double radius = element.getRadius();
@@ -59,8 +59,8 @@ public class Wireframe extends PaintMethod2D {
 		if(radius == 0.0)
 			g.drawLine(i, j, i, j);
 		else {
-			int rx = (int) (engine.IntegerCoordX(element.getRadius()) - engine.IntegerCoordX(0.0));
-			int ry = (int) Math.abs(engine.IntegerCoordY(element.getRadius()) - engine.IntegerCoordY(0.0));
+			int rx = (int) (engine.integerCoordX(element.getRadius()) - engine.integerCoordX(0.0));
+			int ry = (int) Math.abs(engine.integerCoordY(element.getRadius()) - engine.integerCoordY(0.0));
 			g.drawOval(i - rx, j - ry, 2 * rx, 2 * ry);
 		}
 	}
@@ -70,8 +70,8 @@ public class Wireframe extends PaintMethod2D {
 		Vec2[] points = element.getVertices();
 		double x = points[0].getX();
 		double y = points[0].getY();
-		int i = (int) engine.IntegerCoordX(x);
-		int j = (int) engine.IntegerCoordY(y);
+		int i = (int) engine.integerCoordX(x);
+		int j = (int) engine.integerCoordY(y);
 		Graphics g = engine.getImageGraphics();
 		g.setFont(element.getFont());
 		g.setColor(element.getColor(0));

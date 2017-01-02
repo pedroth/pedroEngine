@@ -25,10 +25,10 @@ public class ThickLineShader extends FillShader {
     private void drawLine(double x1, double y1, double x2, double y2, Color c) {
         Graphics g = engine.getImageGraphics();
         int i1, j1, i2, j2;
-        i1 = (int) engine.IntegerCoordX(x1);
-        j1 = (int) engine.IntegerCoordY(y1);
-        i2 = (int) engine.IntegerCoordX(x2);
-        j2 = (int) engine.IntegerCoordY(y2);
+        i1 = (int) engine.integerCoordX(x1);
+        j1 = (int) engine.integerCoordY(y1);
+        i2 = (int) engine.integerCoordX(x2);
+        j2 = (int) engine.integerCoordY(y2);
         g.setColor(c);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(3));
