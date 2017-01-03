@@ -1,8 +1,11 @@
 package apps.src;
 
+import algebra.src.Matrix;
 import algebra.src.Vec2;
+import algebra.src.Vector;
 import apps.utils.MyFrame;
 import numeric.src.MyMath;
+import twoDimEngine.AbstractDrawAble2D;
 import twoDimEngine.BoxEngine;
 import twoDimEngine.elements.Point2D;
 import twoDimEngine.shaders.FillShader;
@@ -20,11 +23,48 @@ import java.util.List;
 public class HeatLearning extends MyFrame {
 
     private static final double dataRadius = 0.01;
+
     private static final int MIN_SAMPLES = 100;
+
     private BoxEngine engine;
+
     private PaintMethod2D shader;
+
     private List<Vec2> points = new ArrayList<>(10);
+
     private List<Double> output = new ArrayList<>(10);
+
+    private final MyModel knnLeastSquare = new MyModel() {
+        @Override
+        public Double apply(Vec2 x) {
+            int n = points.size();
+            if(n == 0) {
+                return 0.0;
+            }
+            Matrix X = new Matrix(points.toArray(new Vec2[n]));
+            Matrix transpose = Matrix.transpose(X);
+            Vector y = transpose.prodVector(x);
+            Matrix sigma = transpose.prod(X);
+            Vector omega = Matrix.solveLinearSystem(sigma, y);
+            List<AbstractDrawAble2D> things = engine.getThings();
+            int size = things.size();
+            double max = omega.getMax().getX();
+            double min = omega.getMin().getX();
+            omega.applyFunction((z) -> (z - min) / (max - min));
+            Vector ones = new Vector(omega.getDim());
+            ones.fill(1.0);
+            double sum = Vector.innerProd(omega, ones);
+            omega.scalarProd(sum);
+            Vector out = new Vector(output.toArray(new Double[output.size()]));
+            return Vector.innerProd(omega,out);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            // empty
+        }
+    };
+
     private final MyModel knnMonteCarlo = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -58,12 +98,12 @@ public class HeatLearning extends MyFrame {
             return acc / monteCarloSample;
         }
 
-
         @Override
         public void train(List<Vec2> x, List<Double> y) {
             // empty
         }
     };
+
     private final MyModel knn = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -90,6 +130,7 @@ public class HeatLearning extends MyFrame {
             //empty
         }
     };
+
     private final MyModel knnRandom = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -124,7 +165,10 @@ public class HeatLearning extends MyFrame {
 
         }
     };
+
     private boolean isShiftPressed = false;
+
+    private boolean isControlPressed = false;
 
     private boolean isVisualMode = false;
 
@@ -150,7 +194,7 @@ public class HeatLearning extends MyFrame {
         this.engine.setCamera(-1, 1, -1, 1);
         this.init();
         initColorBuffer(MIN_SAMPLES);
-        this.model = knnMonteCarlo;
+        this.model = knnLeastSquare;
     }
 
     public static void main(String[] args) {
@@ -159,9 +203,9 @@ public class HeatLearning extends MyFrame {
 
     public float[] getHeatColor(double intensity) {
         float[] ans = new float[3];
-        ans[0] = (float) MyMath.clamp((10.0 / 4.0) * intensity, 0, 1);
-        ans[1] = (float) MyMath.clamp((10.0 / 4.0) * (intensity - 0.4), 0, 1);
-        ans[2] = (float) MyMath.clamp(5 * (intensity - 0.8), 0, 1);
+        ans[0] = (float) MyMath.clamp(10.0 / 4.0 * intensity, 0, 1);
+        ans[1] = (float) MyMath.clamp(10.0 / 4.0 * (intensity - 0.6), 0, 1);
+        ans[2] = (float) (MyMath.clamp(8 * (intensity - 0.9), 0, 1) + MyMath.clamp(1 - 2 * intensity, 0, 1));
         return ans;
     }
 
@@ -238,6 +282,9 @@ public class HeatLearning extends MyFrame {
             case KeyEvent.VK_SHIFT:
                 this.isShiftPressed = true;
                 break;
+            case KeyEvent.VK_CONTROL:
+                this.isControlPressed = true;
+                break;
             case KeyEvent.VK_R:
                 resetData();
                 break;
@@ -263,8 +310,15 @@ public class HeatLearning extends MyFrame {
 
     @Override
     public void keyReleased(KeyEvent arg0) {
-        if (arg0.getKeyCode() == KeyEvent.VK_SHIFT) {
-            this.isShiftPressed = false;
+        switch (arg0.getKeyCode()) {
+            case KeyEvent.VK_SHIFT:
+                this.isShiftPressed = false;
+                break;
+            case KeyEvent.VK_CONTROL:
+                this.isControlPressed = false;
+                break;
+            default:
+                break;
         }
 
     }
@@ -312,14 +366,36 @@ public class HeatLearning extends MyFrame {
         double dy = this.newMy - this.my;
         double h = -2 * (dx / this.widthChanged);
         double k = 2 * (dy / this.heightChanged);
+        Vec2 mouse = new Vec2(this.engine.inverseCoordX(this.mx), this.engine.inverseCoordY(this.my));
         if (SwingUtilities.isLeftMouseButton(e)) {
-            Vec2 mouse = new Vec2(this.engine.inverseCoordX(this.mx), this.engine.inverseCoordY(this.my));
-            addPoint(mouse, this.isShiftPressed);
+            if (this.isControlPressed) {
+                crazyStuff(mouse);
+            } else {
+                addPoint(mouse, this.isShiftPressed);
+            }
         } else {
             this.engine.setCamera(this.engine.getXmin() + h, this.engine.getXmax() + h, this.engine.getYmin() + k, this.engine.getYmax() + k);
         }
         this.mx = this.newMx;
         this.my = this.newMy;
+    }
+
+    private void crazyStuff(Vec2 mouse) {
+        int n = points.size();
+        Matrix X = new Matrix(points.toArray(new Vec2[n]));
+        Matrix transpose = Matrix.transpose(X);
+        Vector y = transpose.prodVector(mouse);
+        Matrix sigma = transpose.prod(X);
+        Vector omega = Matrix.solveLinearSystem(sigma, y);
+        List<AbstractDrawAble2D> things = engine.getThings();
+        int size = things.size();
+        double max = omega.getMax().getX();
+        double min = omega.getMin().getX();
+        for (int i = 0; i < size; i++) {
+            Point2D point2D = (Point2D) things.get(i);
+            float[] heatColor = getHeatColor((omega.getX(i + 1) - min) / (max - min));
+            point2D.setColor(new Color(heatColor[0], heatColor[1], heatColor[2]));
+        }
     }
 
     private void addPoint(Vec2 mouse, boolean out) {
@@ -337,7 +413,6 @@ public class HeatLearning extends MyFrame {
         // TODO Auto-generated method stub
 
     }
-
 
     private interface MyModel {
         Double apply(Vec2 x);
