@@ -4,6 +4,8 @@ import algebra.src.Matrix;
 import algebra.src.Vec2;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
+import graph.DiffusionClustering;
+import graph.KnnGraph;
 import numeric.src.MyMath;
 import twoDimEngine.AbstractDrawAble2D;
 import twoDimEngine.BoxEngine;
@@ -176,6 +178,47 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         }
     };
 
+    private final MyModel diffusionLearning = new MyModel() {
+        private Matrix eigenV;
+
+        private double heatTime = 10;
+
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            int knnSample = Integer.min(10, size);
+
+            int[] sampleIndex = new int[knnSample];
+            for (int i = 0; i < knnSample; i++) {
+                sampleIndex[i] = (int) (Math.random() * size);
+            }
+
+            for (int i = 0; i < knnSample; i++) {
+                int randomIndex = sampleIndex[i];
+                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
+                if (minDist > dist) {
+                    minDist = dist;
+                    index = randomIndex;
+                }
+            }
+            return output.get(index);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            KnnGraph<Vec2> graph = new KnnGraph<>(x, 3, (p, q) -> Vec2.diff(p, q).norm());
+            DiffusionClustering diffusionClustering = new DiffusionClustering(graph);
+            diffusionClustering.clusteringJama(this.heatTime, 2, d -> Math.exp(-(d * d / 2)), 0.01, 10);
+        }
+    };
+
     private boolean isShiftPressed = false;
 
     private boolean isControlPressed = false;
@@ -186,6 +229,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
      * mouse coordinates
      */
     private int mx, my, newMx, newMy;
+
     private int sqrtSamples;
 
     private int samples;
@@ -337,7 +381,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
     }
 
-
     @Override
     public void keyTyped(KeyEvent arg0) {
         // TODO Auto-generated method stub
@@ -400,7 +443,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         this.mx = this.newMx;
         this.my = this.newMy;
     }
-
 
     private void removeCrazy() {
         List<AbstractDrawAble2D> things = engine.getThings();
@@ -469,7 +511,8 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         double percent = 0.1;
         double sizeX = engine.getXmax() - engine.getXmin();
         double sizeY = engine.getYmax() - engine.getYmin();
-        engine.setCamera(engine.getXmin() - mRotation * percent * 0.5 * sizeX, engine.getXmax() + mRotation * percent * 0.5 * sizeX, engine.getYmin() - mRotation * percent * 0.5 * sizeY, engine.getYmax() + mRotation * percent * 0.5 * sizeY);
+        engine.setCamera(engine.getXmin() - mRotation * percent * 0.5 * sizeX, engine.getXmax() + mRotation * percent * 0.5 * sizeX,
+                engine.getYmin() - mRotation * percent * 0.5 * sizeY, engine.getYmax() + mRotation * percent * 0.5 * sizeY);
     }
 
     private interface MyModel {

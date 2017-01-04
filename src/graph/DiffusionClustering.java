@@ -23,14 +23,18 @@ public class DiffusionClustering {
 
     private final static String CLASS_VERTEX_PROPERTY = "class";
     private final KnnGraph graph;
+
     /**
      * The Heat time.
      */
     double heatTime;
     private Map<Integer, List<Integer>> inverseClassification;
     private Map<Integer, Integer> classification;
-    private Matrix eigenCoeff;
+    private Matrix eigenVectors;
+    private Vector eigenValues;
+    private Matrix eigenEmbedding;
     private double reduceDimensionThreshold = 0.1;
+
     private boolean isNormalized = false;
 
     /**
@@ -45,11 +49,11 @@ public class DiffusionClustering {
     /**
      * Spectral clustering.
      *
-     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
-     * @param k                 the k number of clusters
+     * @param heatTime the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param k the k number of clusters
      * @param similarityMeasure the similarity measure
-     * @param epsilon           the epsilon
-     * @param repetitions       the repetitions
+     * @param epsilon the epsilon
+     * @param repetitions the repetitions
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
@@ -87,11 +91,12 @@ public class DiffusionClustering {
 
         //compute eigenVectors
         Matrix U = spectralMethod.getV(laplacianMatrix);
-        this.eigenCoeff = U;
+        this.eigenVectors = U;
 
 
-        Vector eigenValues = new Vector(spectralMethod.getEigenValues());
-        eigenValues.applyFunction((x) -> Math.exp(-x * heatTime));
+        this.eigenValues = new Vector(spectralMethod.getEigenValues());
+        Vector eigenValueCopy = new Vector(this.eigenValues);
+        eigenValueCopy.applyFunction((x) -> Math.exp(-x * heatTime));
 
         int compressDim = eigenValues.size();
 
@@ -104,12 +109,14 @@ public class DiffusionClustering {
 
         Vector compressEigen = new Vector(compressDim);
         for (int i = 1; i <= compressDim; i++) {
-            compressEigen.setX(i, eigenValues.getX(i));
+            compressEigen.setX(i, eigenValueCopy.getX(i));
         }
 
         // exp matrix
         Diagonal expT = new Diagonal(compressEigen);
         Matrix prod = expT.prod(Matrix.transpose(U).getSubMatrix(1, compressDim, 1, U.getRows()));
+
+        this.eigenEmbedding = prod;
 
         //kmeans
         Kmeans kmeans = new Kmeans(prod);
@@ -121,15 +128,14 @@ public class DiffusionClustering {
         return inverseClassification;
     }
 
-
     /**
      * Clustering jama.
      *
-     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
-     * @param k                 the k
+     * @param heatTime the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param k the k
      * @param similarityMeasure the similarity measure
-     * @param epsilon           the epsilon
-     * @param repetitions       the repetitions
+     * @param epsilon the epsilon
+     * @param repetitions the repetitions
      * @return the map
      */
     public Map<Integer, List<Integer>> clusteringJama(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
@@ -242,8 +248,26 @@ public class DiffusionClustering {
      *
      * @return the eigen coeff
      */
-    public Matrix getEigenCoeff() {
-        return eigenCoeff;
+    public Matrix getEigenVectors() {
+        return eigenVectors;
+    }
+
+    /**
+     * Gets eigen values.
+     *
+     * @return the eigen values
+     */
+    public Vector getEigenValues() {
+        return this.eigenValues;
+    }
+
+    /**
+     * Gets eigen embedding.
+     *
+     * @return the eigen embedding
+     */
+    public Matrix getEigenEmbedding() {
+        return this.eigenEmbedding;
     }
 
     /**
@@ -301,7 +325,6 @@ public class DiffusionClustering {
         this.heatTime = heatTime;
     }
 
-
     /**
      * Gets reduce dimension threshold.
      *
@@ -320,11 +343,20 @@ public class DiffusionClustering {
         this.reduceDimensionThreshold = reduceDimensionThreshold;
     }
 
-
+    /**
+     * Is normalized.
+     *
+     * @return the boolean
+     */
     public boolean isNormalized() {
         return isNormalized;
     }
 
+    /**
+     * Sets normalized.
+     *
+     * @param normalized the normalized
+     */
     public void setNormalized(boolean normalized) {
         isNormalized = normalized;
     }
