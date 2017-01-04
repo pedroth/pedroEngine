@@ -15,16 +15,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HeatLearning extends MyFrame {
+public class HeatLearning extends MyFrame implements MouseWheelListener {
 
     private static final double dataRadius = 0.01;
 
-    private static final int MIN_SAMPLES = 100;
+    private static final int MIN_SAMPLES = 50;
 
     private BoxEngine engine;
 
@@ -38,25 +40,33 @@ public class HeatLearning extends MyFrame {
         @Override
         public Double apply(Vec2 x) {
             int n = points.size();
-            if(n == 0) {
+            if (n == 0) {
                 return 0.0;
             }
-            Matrix X = new Matrix(points.toArray(new Vec2[n]));
+
+            int samples = 100;
+            Vec2[] randomPoints = new Vec2[samples];
+            double[] randomOut = new double[samples];
+            for (int i = 0; i < samples; i++) {
+                int r = (int) (Math.random() * n);
+                randomPoints[i] = points.get(r);
+                randomOut[i] = output.get(r);
+            }
+
+            Matrix X = new Matrix(randomPoints);
             Matrix transpose = Matrix.transpose(X);
             Vector y = transpose.prodVector(x);
             Matrix sigma = transpose.prod(X);
             Vector omega = Matrix.solveLinearSystem(sigma, y);
-            List<AbstractDrawAble2D> things = engine.getThings();
-            int size = things.size();
             double max = omega.getMax().getX();
             double min = omega.getMin().getX();
             omega.applyFunction((z) -> (z - min) / (max - min));
             Vector ones = new Vector(omega.getDim());
             ones.fill(1.0);
             double sum = Vector.innerProd(omega, ones);
-            omega.scalarProd(sum);
-            Vector out = new Vector(output.toArray(new Double[output.size()]));
-            return Vector.innerProd(omega,out);
+            omega = Vector.scalarProd(1.0 / sum, omega);
+            Vector out = new Vector(randomOut);
+            return Vector.innerProd(omega, out);
         }
 
         @Override
@@ -176,7 +186,6 @@ public class HeatLearning extends MyFrame {
      * mouse coordinates
      */
     private int mx, my, newMx, newMy;
-
     private int sqrtSamples;
 
     private int samples;
@@ -192,9 +201,12 @@ public class HeatLearning extends MyFrame {
         this.engine.setDefaultPainter(this.shader);
         this.engine.setBackGroundColor(Color.white);
         this.engine.setCamera(-1, 1, -1, 1);
+        this.addMouseWheelListener(this);
+
         this.init();
         initColorBuffer(MIN_SAMPLES);
-        this.model = knnLeastSquare;
+        this.model = knn;
+
     }
 
     public static void main(String[] args) {
@@ -252,6 +264,7 @@ public class HeatLearning extends MyFrame {
             this.setTitle(" FPS: " + format.format(aux));
         }
         this.engine.drawElements();
+//        this.engine.drawTree();
         this.engine.paintImage(this.getGraphics());
     }
 
@@ -316,12 +329,14 @@ public class HeatLearning extends MyFrame {
                 break;
             case KeyEvent.VK_CONTROL:
                 this.isControlPressed = false;
+                removeCrazy();
                 break;
             default:
                 break;
         }
 
     }
+
 
     @Override
     public void keyTyped(KeyEvent arg0) {
@@ -374,10 +389,28 @@ public class HeatLearning extends MyFrame {
                 addPoint(mouse, this.isShiftPressed);
             }
         } else {
-            this.engine.setCamera(this.engine.getXmin() + h, this.engine.getXmax() + h, this.engine.getYmin() + k, this.engine.getYmax() + k);
+            double xmin = this.engine.getXmin();
+            double xmax = this.engine.getXmax();
+            double ymin = this.engine.getYmin();
+            double ymax = this.engine.getYmax();
+            double v = (xmax - xmin) * h;
+            double u = (ymax - ymin) * k;
+            this.engine.setCamera(xmin + v, xmax + v, ymin + u, ymax + u);
         }
         this.mx = this.newMx;
         this.my = this.newMy;
+    }
+
+
+    private void removeCrazy() {
+        List<AbstractDrawAble2D> things = engine.getThings();
+        int size = things.size();
+        for (int i = 0; i < size; i++) {
+            Point2D point2D = (Point2D) things.get(i);
+            Double color = output.get(i);
+            boolean b = color > 0.5;
+            point2D.setColor(new Color(b ? 0 : 255, b ? 255 : 0, 0));
+        }
     }
 
     private void crazyStuff(Vec2 mouse) {
@@ -396,6 +429,22 @@ public class HeatLearning extends MyFrame {
             float[] heatColor = getHeatColor((omega.getX(i + 1) - min) / (max - min));
             point2D.setColor(new Color(heatColor[0], heatColor[1], heatColor[2]));
         }
+        omega.applyFunction((z) -> (z - min) / (max - min));
+        Vector ones = new Vector(omega.getDim());
+        ones.fill(1.0);
+        double sum = Vector.innerProd(omega, ones);
+        omega = Vector.scalarProd(1.0 / sum, omega);
+        Vector out = new Vector(output.toArray(new Double[output.size()]));
+        double expectedV = Vector.innerProd(omega, out);
+        Graphics image = this.getGraphics();
+        int r = (int) MyMath.clamp((1.0 - expectedV) * 255.0, 0.0, 255.0);
+        int g = (int) MyMath.clamp((expectedV * 255), 0.0, 255.0);
+        int b = 0;
+        image.setColor(new Color(r, g, b));
+        double w = Math.ceil(2.0 * this.widthChanged / this.sqrtSamples);
+        double h = Math.ceil(2.0 * this.heightChanged / this.sqrtSamples);
+
+        image.fillRect((int) this.engine.integerCoordX(mouse.getX()), (int) this.engine.integerCoordY(mouse.getY()), (int) w, (int) h);
     }
 
     private void addPoint(Vec2 mouse, boolean out) {
@@ -404,14 +453,23 @@ public class HeatLearning extends MyFrame {
         Point2D e = new Point2D(mouse);
         e.setRadius(dataRadius);
         e.setColor(out ? Color.green : Color.red);
-        this.engine.addtoList(e);
-        this.engine.buildBoundigBoxTree();
+        this.engine.addtoTree(e);
+
     }
 
     @Override
     public void mouseMoved(MouseEvent arg0) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        int mRotation = e.getWheelRotation();
+        double percent = 0.1;
+        double sizeX = engine.getXmax() - engine.getXmin();
+        double sizeY = engine.getYmax() - engine.getYmin();
+        engine.setCamera(engine.getXmin() - mRotation * percent * 0.5 * sizeX, engine.getXmax() + mRotation * percent * 0.5 * sizeX, engine.getYmin() - mRotation * percent * 0.5 * sizeY, engine.getYmax() + mRotation * percent * 0.5 * sizeY);
     }
 
     private interface MyModel {
