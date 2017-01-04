@@ -1,6 +1,5 @@
 package nlp.seriesSummary;
 
-
 import algebra.src.DistanceMatrix;
 import algebra.src.Matrix;
 import algebra.src.Vector;
@@ -30,7 +29,11 @@ import utils.StopWatch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The type Base arc summarizer.
@@ -40,6 +43,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The constant distanceByNameMap.
      */
     public static Map<String, Distance<Vector>> distanceByNameMap = new HashMap<>(3);
+
     /**
      * The constant simplexDist.
      */
@@ -50,19 +54,20 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
         return Math.acos(acc);
     };
+
     /**
      * The constant cosineDist.
      */
     public static Distance<Vector> cosineDist = (x, y) -> {
         return 1 - Vector.innerProd(x, y) / (x.norm() * y.norm());
     };
+
     /**
      * The constant euclideanDist.
      */
     public static Distance<Vector> euclideanDist = (x, y) -> {
         return Vector.diff(x, y).norm();
     };
-
 
     static {
         distanceByNameMap.put("simplex", simplexDist);
@@ -74,75 +79,87 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The Log.
      */
     protected List<String> log = new ArrayList<>();
+
     /**
-     * The Heat.
+     * The Heat: percentage of eigenvalues that are preserved after heat
      */
-// percentage of eigenvalues that are preserved after heat;
     protected double heat;
+
     /**
-     * The Entropy.
+     * The Entropy: (1 - percentage) of max entropy, cut words with high and low entropy in documents
      */
-// (1 - percentage) of max entropy, cut words with high and low entropy in documents
     protected double entropy;
+
     /**
-     * The Knn.
+     * The Knn: number of neighbours in knn-graph
      */
-// number of neighbours in knn-graph
     protected int knn;
+
     /**
-     * The Kcluster.
+     * The Kcluster: number of cluster (number of arcs)
      */
-// number of cluster (number of arcs)
     protected int kcluster;
+
     /**
-     * The Histogram distance.
+     * The Histogram distance: distance of histograms
      */
-// distance of histograms
     protected Distance<Vector> histogramDistance;
+
     /**
      * The Segmented bows.
      */
     protected List<BaseSegmentedBow> segmentedBows;
+
     /**
      * The Graph by cluster id map.
      */
     protected Map<Integer, Graph> graphByClusterIdMap;
+
     /**
      * The Random walk distribution by cluster id map.
      */
     protected Map<Integer, Vector> randomWalkDistributionByClusterIdMap;
+
     /**
      * The Low bow manager.
      */
     protected SummaryGenLowBowManager<LowBowSubtitles> lowBowManager;
+
     /**
      * The Segment index by cluster id.
      */
     protected Map<Integer, List<Integer>> segmentIndexByClusterId;
+
     /**
      * The Knn graph.
      */
     protected KnnGraph knnGraph;
+
     /**
      * The Output address.
      */
     protected String outputAddress;
+
     /**
      * The Necessary word predicate.
      */
     protected NecessaryWordPredicate necessaryWordPredicate;
+
     /**
      * The Cut video.
      */
     protected boolean cutVideo = true;
+
     /**
      * The Graph centroid by cluster id.
      */
     protected Map<Integer, Vector> graphCentroidByClusterId;
+
     /**
      * The Average segmentlength.
      */
     protected double averageSegmentlength;
+
     /**
      * The Standard deviation segment length.
      */
@@ -152,10 +169,12 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The Segment length data.
      */
     protected List<Double> segmentLengthData;
+
     /**
      * The Is video concat.
      */
     protected boolean isVideoConcat = false;
+
     /**
      * The Low bow segmentator.
      */
@@ -197,7 +216,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.045, 0.1, 5, 10, ArcSummarizerSpectral.simplexDist);
+        ArcSummarizerSpectral arcSummarizerSpectral =
+                new ArcSummarizerSpectral("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4", 0.045, 0.1, 5, 10, ArcSummarizerSpectral.simplexDist);
         arcSummarizerSpectral.buildSummary("C:/pedro/escolas/ist/Tese/Series/BreakingBad/summary", 5);
     }
 
@@ -242,7 +262,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
             textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
 
-            if (videos.size() == 0 || subtitles.size() == 0) throw new RuntimeException("no video or subtitle files");
+            if (videos.size() == 0 || subtitles.size() == 0) {
+                throw new RuntimeException("no video or subtitle files");
+            }
 
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {
@@ -278,7 +300,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
             //build knn-graph
             DistanceMatrix distanceMatrix = this.lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
-            this.knnGraph = new KnnGraph(distanceMatrix, knn);
+            this.knnGraph = new KnnGraph(distanceMatrix, knn < 1 ? (int) Math.log(distanceMatrix.getRows()) : knn);
             log.add("knn graph done!! : " + stopWatch.getEleapsedTime());
             System.out.println("knn graph done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
@@ -297,7 +319,6 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             log.add("Clustering done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Clustering done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
-
 
             StringBuilder stringBuilder = new StringBuilder();
             for (Map.Entry<Integer, Graph> integerGraphEntry : graphByClusterIdMap.entrySet()) {
@@ -385,7 +406,6 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 acc = Vector.add(segmentedBows.get(i - 1).getSegmentBow(), acc);
             }
             acc = Vector.scalarProd(1.0 / segmentIndex.size(), acc);
-
 
             if (graphCentroidByClusterId == null) {
                 graphCentroidByClusterId = new HashMap<>();

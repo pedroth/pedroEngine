@@ -3,7 +3,14 @@ package graph;
 import algebra.src.Matrix;
 import javafx.util.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * The type Graph.
@@ -15,15 +22,20 @@ public class Graph {
      * The constant EDGE_WEIGHT_KEY.
      */
     public static final String EDGE_WEIGHT_KEY = "weight";
+
     private Map<Integer, HashSet<Integer>> edges = new HashMap<>(7);
+
     private Map<Integer, Map<String, Object>> vertexProperties = new HashMap<>(7);
+
     private Map<Pair<Integer, Integer>, Map<String, Object>> edgeProperties = new HashMap<>(7);
+
     private int numVertex;
 
     /*
      * Adjacency matrix and weightedGraphMatrix will be created using lazy creation
      */
     private Matrix adjacencyMatrix;
+
     private Matrix weightedGraphMatrix;
 
     private boolean isGraphChanged = false;
@@ -308,7 +320,7 @@ public class Graph {
      * Put vertex property.
      *
      * @param <T> the type parameter
-     * @param i   the i
+     * @param i the i
      * @param str the str
      * @param obj the obj
      */
@@ -322,7 +334,7 @@ public class Graph {
     /**
      * Gets vertex property.
      *
-     * @param i   the i
+     * @param i the i
      * @param str the str
      * @return the vertex property
      */
@@ -337,10 +349,10 @@ public class Graph {
     /**
      * Put edge property.
      *
-     * @param <T>  the type parameter
+     * @param <T> the type parameter
      * @param pair the pair
-     * @param str  the str
-     * @param obj  the obj
+     * @param str the str
+     * @param obj the obj
      */
     public <T> void putEdgeProperty(Pair<Integer, Integer> pair, String str, T obj) {
         if (edges.get(pair.getKey()).contains(pair.getValue())) {
@@ -355,7 +367,7 @@ public class Graph {
      * Gets edge property.
      *
      * @param pair the pair
-     * @param str  the str
+     * @param str the str
      * @return the edge property
      */
     public <T> T getEdgeProperty(Pair<Integer, Integer> pair, String str) {
@@ -391,7 +403,8 @@ public class Graph {
         for (int i = 1; i <= numVertex; i++) {
             for (int j = 1; j <= numVertex; j++) {
                 Pair<Integer, Integer> key = new Pair<>(keyArray[i - 1], keyArray[j - 1]);
-                w.setXY(i, j, (Double) (edgeProperties.containsKey(key) ? (edgeProperties.get(key).containsKey(EDGE_WEIGHT_KEY) ? edgeProperties.get(key).get(EDGE_WEIGHT_KEY) : defaultValue) : defaultValue));
+                w.setXY(i, j, (Double) (edgeProperties.containsKey(key) ? (edgeProperties.get(key).containsKey(EDGE_WEIGHT_KEY) ? edgeProperties.get(key).get(EDGE_WEIGHT_KEY)
+                        : defaultValue) : defaultValue));
             }
         }
         return w;
@@ -407,15 +420,13 @@ public class Graph {
         return keys.toArray(new Integer[keys.size()]);
     }
 
-
     public Map<Integer, Integer> getInverseKeyIndex() {
         Map<Integer, Integer> map = new HashMap<>();
         Integer[] keyIndex = getKeyIndex();
         for (int i = 0; i < keyIndex.length; i++) {
-            map.put(keyIndex[i], i);
+            map.put(keyIndex[i], i + 1);
         }
         return map;
     }
-
 
 }

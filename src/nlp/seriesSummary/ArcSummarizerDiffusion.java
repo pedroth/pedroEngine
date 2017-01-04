@@ -1,6 +1,7 @@
 package nlp.seriesSummary;
 
 
+import algebra.src.DistanceMatrix;
 import algebra.src.Vector;
 import graph.DiffusionClustering;
 import graph.Graph;
@@ -8,10 +9,11 @@ import numeric.src.Distance;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     private DiffusionClustering diffusionClustering;
-    private double sigma = 1.0;
+    private double sigma = 0.0;
     private double heatTime = 1.0;
     private boolean isNormalized = false;
 
@@ -37,9 +39,33 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
 
     @Override
     public Map<Integer, List<Integer>> clusterArcs(int kcluster) {
+        if (sigma == 0.0) {
+            computeSigma();
+        }
         this.diffusionClustering = new DiffusionClustering(knnGraph);
         this.diffusionClustering.setNormalized(isNormalized);
         return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
+    }
+
+    private void computeSigma() {
+        DistanceMatrix distanceMatrix = knnGraph.getDistanceMatrix();
+        Integer[] keyIndex = knnGraph.getKeyIndex();
+        Map<Integer, Integer> inverseKeyIndex = knnGraph.getInverseKeyIndex();
+        int rows = distanceMatrix.getRows();
+        int samples = Integer.max(1, rows / 2);
+        double acc = 0;
+        for (int i = 0; i < samples; i++) {
+            int randomIndex = (int) (Math.random() * rows);
+            Set<Integer> adjVertex = knnGraph.getAdjVertex(keyIndex[randomIndex]);
+            double acc2 = 0;
+            for (Integer vertex : adjVertex) {
+                acc2 += distanceMatrix.getXY(randomIndex + 1, inverseKeyIndex.get(vertex));
+            }
+            acc2 /= adjVertex.size();
+            acc += acc2;
+        }
+        acc /= samples;
+        sigma = acc;
     }
 
     public double getSigma() {
