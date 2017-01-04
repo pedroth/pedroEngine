@@ -43,6 +43,13 @@ public class BoxEngine extends AbstractEngine2D {
         }
     }
 
+    public void addtoTree(AbstractDrawAble2D e) {
+        things.add(e);
+        Leaf node = new Leaf(e);
+        leafByIdMap.put(node.getId(), node);
+        tree.insert(node);
+    }
+
     public void setCameraAuto(double alpha) {
         BoundingBox rectangle = tree.getRectangle();
         setCamera(alpha * rectangle.getXmin(), alpha * rectangle.getXmax(), alpha * rectangle.getYmin(), alpha * rectangle.getYmax());

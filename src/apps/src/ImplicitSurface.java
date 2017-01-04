@@ -51,7 +51,7 @@ public class ImplicitSurface extends MyFrame {
 
     private int indexFunction = 0;
 
-    private int[] traceSamplesIndex = {10, 50, 100, 60, 90, 90, 60, 300, 20, 20};
+    private int[] traceSamplesIndex = {10, 75, 150, 60, 90, 90, 60, 300, 20, 20};
     private int traceSamples = traceSamplesIndex[0];
 
     private double[][] particlePos = {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
