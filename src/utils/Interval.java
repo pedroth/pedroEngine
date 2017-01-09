@@ -38,6 +38,10 @@ public class Interval<X extends Comparable<X>> {
         isEmptyInterval = emptyInterval;
     }
 
+    public boolean isOneItem() {
+        return xmax.compareTo(xmin) == 0;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
