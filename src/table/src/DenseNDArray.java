@@ -24,6 +24,9 @@ public class DenseNDArray<T> {
             this.powers[i + 1] = acc;
         }
         denseNDArray = new ArrayList<>(this.powers[this.powers.length - 1]);
+        for (int i = 0; i < size(); i++) {
+            denseNDArray.add(null);
+        }
     }
 
     public T get(int[] x) {
@@ -48,25 +51,27 @@ public class DenseNDArray<T> {
         int[] newDim = computeNewDim(intervals);
         DenseNDArray newDenseNDArray = new DenseNDArray(newDim);
         int size = newDenseNDArray.size();
+        int[] y = new int[dim.length];
         for (int i = 0; i < size; i++) {
-            int[] y = new int[dim.length];
+            int k = 0;
             for (int j = 0; j < intervals.length; j++) {
-                int index = i % powers[j + 1] / powers[j];
                 Interval<Integer> interval = intervals[j];
-                y[j] = interval.getXmin() + index * (interval.getXmax() - interval.getXmin());
+                int dx = interval.getXmax() - interval.getXmin();
+                int index = i % newDenseNDArray.powers[k + 1] / newDenseNDArray.powers[k];
+                k = dx == 0 ? k : k + 1;
+                y[j] = dx == 0 ? interval.getXmin() : interval.getXmin() + index;
             }
             newDenseNDArray.denseNDArray.set(i, this.get(y));
         }
-
-        return new DenseNDArray<>(new int[] { 1, 2 });
+        return newDenseNDArray;
     }
 
     private int[] computeNewDim(Interval<Integer>[] intervals) {
         List<Integer> dimBuff = new ArrayList<>(intervals.length);
         for (int i = 0; i < intervals.length; i++) {
             int dx = intervals[i].getXmax() - intervals[i].getXmin();
-            if (dx == 0) {
-                dimBuff.add(dx);
+            if (dx != 0) {
+                dimBuff.add(dx + 1);
             }
         }
         int[] newDim = new int[dimBuff.size()];
