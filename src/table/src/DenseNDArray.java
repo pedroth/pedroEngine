@@ -52,7 +52,7 @@ public class DenseNDArray<T> {
     public DenseNDArray<T> get(String x) {
         Interval<Integer>[] intervals = getIntervalFromStr(x);
         int[] newDim = computeNewDim(intervals);
-        DenseNDArray newDenseNDArray = new DenseNDArray(newDim);
+        DenseNDArray<T> newDenseNDArray = new DenseNDArray<>(newDim);
         int size = newDenseNDArray.size();
         int[] y = new int[dim.length];
         for (int i = 0; i < size; i++) {
@@ -67,6 +67,23 @@ public class DenseNDArray<T> {
             newDenseNDArray.denseNDArray.set(i, this.get(y));
         }
         return newDenseNDArray;
+    }
+
+    public void set(String x, DenseNDArray<T> vol) {
+        Interval<Integer>[] intervals = getIntervalFromStr(x);
+        int size = vol.size();
+        int[] y = new int[dim.length];
+        for (int i = 0; i < size; i++) {
+            int k = 0;
+            for (int j = 0; j < intervals.length; j++) {
+                Interval<Integer> interval = intervals[j];
+                int dx = interval.getXmax() - interval.getXmin();
+                int index = i % vol.powers[k + 1] / vol.powers[k];
+                k = dx == 0 ? k : k + 1;
+                y[j] = dx == 0 ? interval.getXmin() : interval.getXmin() + index;
+            }
+            this.set(y, vol.denseNDArray.get(i));
+        }
     }
 
     private int[] computeNewDim(Interval<Integer>[] intervals) {
