@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.function.Function;
 
 public class DenseNDArray<T> {
+    /*
+     * row major array
+     */
     List<T> denseNDArray;
 
     int[] powers;
