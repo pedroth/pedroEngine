@@ -46,4 +46,9 @@ public class Real implements AlgebraField<Double> {
     public Double reciprocal() {
         return 1.0 / x;
     }
+
+    @Override
+    public Double clone() {
+        return x;
+    }
 }

@@ -11,11 +11,11 @@ public class DenseNDArray<T> {
     /*
      * row major array
      */
-    List<T> denseNDArray;
+    protected List<T> denseNDArray;
 
-    int[] powers;
+    protected int[] powers;
 
-    int[] dim;
+    protected int[] dim;
 
     public DenseNDArray(int[] dim) {
         this.dim = dim;
