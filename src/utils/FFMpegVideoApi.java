@@ -1,5 +1,6 @@
 package utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.regex.Matcher;
@@ -37,26 +38,33 @@ public class FFMpegVideoApi {
         System.out.println(command);
         String[] localTime = null;
         CommandLineApi commandLineApi = new CommandLineApi();
+        LocalTime localTimeAns = null;
         try {
             commandLineApi.callCommand(command);
             String line = commandLineApi.getErrorStream().getText();
             Pattern pattern = Pattern.compile("(Duration:)\\s*((\\d+\\.?\\d*)|:)*");
             Matcher matcher = pattern.matcher(line);
-            matcher.find();
-            line = matcher.group(0);
-            localTime = !line.isEmpty() ? line.split("Duration:\\s+") : new String[]{"00:00:00"};
+            if (matcher.find()) {
+                line = matcher.group(0);
+                localTime = line.split("Duration:\\s+");
+                localTimeAns = LocalTime.parse(localTime[1]);
+            } else {
+                localTimeAns = LocalTime.parse("00:00:00");
+            }
         } catch (IOException e) {
             System.err.println("Error calling ffmpeg -i ");
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return LocalTime.parse(localTime[1]);
+        return localTimeAns;
     }
 
     public static void concat(String videoAddress1, String videoAddress2, String outputAddress) {
-        String commandx = addQuotingToString(ffmpegAddress + "/ffmpeg") + " -i " + addQuotingToString(videoAddress1) + " -c copy -bsf:v h264_mp4toannexb -f mpegts intermediate1.ts";
-        String commandy = addQuotingToString(ffmpegAddress + "/ffmpeg") + " -i " + addQuotingToString(videoAddress2) + " -c copy -bsf:v h264_mp4toannexb -f mpegts intermediate2.ts";
+        String commandx =
+                addQuotingToString(ffmpegAddress + "/ffmpeg") + " -i " + addQuotingToString(videoAddress1) + " -c copy -bsf:v h264_mp4toannexb -f mpegts intermediate1.ts";
+        String commandy =
+                addQuotingToString(ffmpegAddress + "/ffmpeg") + " -i " + addQuotingToString(videoAddress2) + " -c copy -bsf:v h264_mp4toannexb -f mpegts intermediate2.ts";
         String commandz = addQuotingToString(ffmpegAddress + "/ffmpeg") + "-i \"concat:intermediate1.ts|intermediate2.ts\" -c copy -bsf:a aac_adtstoasc " + outputAddress;
         CommandLineApi commandLineApi = new CommandLineApi();
         try {
@@ -76,19 +84,17 @@ public class FFMpegVideoApi {
     }
 
     private static String addQuotingToString(String s) {
-        return "\"" + s + "\"";
+        return '"' + s + '"';
     }
 
     public static void main(String[] args) {
-        String videoAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWallS1E1.mkv";
-        String outputAddress = "C:/Users/Pedroth/Desktop/cut0.mp4";
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 0, 22), LocalTime.of(0, 7, 39, 477), outputAddress);
-        outputAddress = "C:/Users/Pedroth/Desktop/cut1.mp4";
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 39, 477), LocalTime.of(0, 8, 26, 358), outputAddress);
-        outputAddress = "C:/Users/Pedroth/Desktop/cut2.mp4";
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 8, 26, 358), LocalTime.of(0, 9, 23, 144), outputAddress);
-        System.out.println("Duration: " + FFMpegVideoApi.getVideoDuration(videoAddress));
-        FFMpegVideoApi.concat("C:/Users/Pedroth/Desktop/cut1.mp4", "C:/Users/Pedroth/Desktop/cut2.mp4", "C:/Users/Pedroth/Desktop/cut1+2.mp4");
+        String videoAddress = "C:/Dados/CIA/CIA-SharedDocuments/Other/ciaMovie.mp4";
+        File desktop = new File(System.getProperty("user.home"), "Desktop");
+        String desktopPath = desktop.toString().replace("\\","/");
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 0, 0, 0), LocalTime.of(0, 1, 0, 0), desktopPath + "/cut0.mp4");
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 1, 0, 1), LocalTime.of(0, 1, 30, 0), desktopPath + "/cut1.mp4");
+        //System.out.println("Duration: " + FFMpegVideoApi.getVideoDuration(videoAddress));
+        FFMpegVideoApi.concat(desktopPath + "/cut0.mp4", desktopPath + "/cut1.mp4", desktopPath + "/cut0+1.mp4");
     }
 
 }
