@@ -7,16 +7,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * The type Dense nD array.
+ * @param <T>  the type parameter
+ */
 public class DenseNDArray<T> {
-    /*
+    /**
+     * The Dense nD array.
+     */
+/*
      * row major array
      */
     protected List<T> denseNDArray;
 
+    /**
+     * The Powers.
+     */
     protected int[] powers;
 
+    /**
+     * The Dim.
+     */
     protected int[] dim;
 
+    /**
+     * Instantiates a new Dense nD array.
+     *
+     * @param dim the dim
+     */
     public DenseNDArray(int[] dim) {
         this.dim = dim;
         this.powers = new int[dim.length + 1];
@@ -32,16 +50,33 @@ public class DenseNDArray<T> {
         }
     }
 
+    /**
+     * Get t.
+     *
+     * @param x the x
+     * @return the t
+     */
     public T get(int[] x) {
         checkIndexDimension(x.length);
         return denseNDArray.get(getIndex(x));
     }
 
+    /**
+     * Set void.
+     *
+     * @param x the x
+     * @param value the value
+     */
     public void set(int[] x, T value) {
         checkIndexDimension(x.length);
         denseNDArray.set(getIndex(x), value);
     }
 
+    /**
+     * For each.
+     *
+     * @param function the function
+     */
     public void forEach(Function<T, T> function) {
         int size = size();
         for (int i = 0; i < size; i++) {
@@ -49,6 +84,12 @@ public class DenseNDArray<T> {
         }
     }
 
+    /**
+     * Get dense nD array.
+     *
+     * @param x the x
+     * @return the dense nD array
+     */
     public DenseNDArray<T> get(String x) {
         Interval<Integer>[] intervals = getIntervalFromStr(x);
         int[] newDim = computeNewDim(intervals);
@@ -69,6 +110,12 @@ public class DenseNDArray<T> {
         return newDenseNDArray;
     }
 
+    /**
+     * Set void.
+     *
+     * @param x the x
+     * @param vol the vol
+     */
     public void set(String x, DenseNDArray<T> vol) {
         Interval<Integer>[] intervals = getIntervalFromStr(x);
         int size = vol.size();
@@ -130,10 +177,20 @@ public class DenseNDArray<T> {
         return intervals;
     }
 
+    /**
+     * Size int.
+     *
+     * @return the int
+     */
     public int size() {
         return this.powers[this.powers.length - 1];
     }
 
+    /**
+     * Get dim.
+     *
+     * @return the int [ ]
+     */
     public int[] getDim() {
         return this.dim;
     }
@@ -150,5 +207,19 @@ public class DenseNDArray<T> {
         if (d != dim.length) {
             throw new RuntimeException("index dimension incorrect : " + d + " correct dimension should be : " + dim.length);
         }
+    }
+
+    @Override
+    public String toString() {
+        int size = size();
+        StringBuilder stringBuilder = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            stringBuilder.append("[ ");
+            for (int j = 0; j < dim.length; j++) {
+                stringBuilder.append(i % powers[j + 1] / powers[j] + " " + (j == dim.length - 1 ? "" : ","));
+            }
+            stringBuilder.append(" ]: " + denseNDArray.get(i) + "\n");
+        }
+        return stringBuilder.toString();
     }
 }

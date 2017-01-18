@@ -209,7 +209,7 @@ public class Matrix {
     }
 
     /**
-     * this solves the following equation m * x = y, where m is a n*n matrix, x
+     * this solves the following equation m * x = y, where m is a n*n positive definite matrix, x
      * and y are n * 1 matrices or vectors of n dimension
      *
      * @param m       the m
@@ -218,10 +218,7 @@ public class Matrix {
      * @return vector with solution to equation m * x = y.
      */
     public static Vector solveLinearSystem(Matrix m, Vector y, double epsilon) {
-        Matrix normMTrans = Matrix.transpose(m);
-
-        Vector gamma = Vector.matrixProd(normMTrans, y);
-        Vector x = gamma.copy();
+        Vector x = y.copy();
         Vector grad;
         do {
             grad = Vector.diff(Vector.matrixProd(m, x), y);
@@ -229,7 +226,7 @@ public class Matrix {
             if (d2fdt == 0) {
                 return x;
             }
-            double t = (grad.squareNorm() / d2fdt);
+            double t = grad.squareNorm() / d2fdt;
             grad = Vector.scalarProd(-t, grad);
             x = Vector.add(x, grad);
         } while (grad.norm() > epsilon);
@@ -239,7 +236,7 @@ public class Matrix {
     /**
      * Solve linear system.
      *
-     * @param m the m
+     * @param m the m is n * n positive definite matrix
      * @param y the y
      * @return solution x, to the linear system m*x = y
      */
@@ -248,7 +245,7 @@ public class Matrix {
     }
 
     /**
-     * Solve linear system sVD.
+     * Solve linear system using SVD.
      *
      * @param m the m
      * @param y the y

@@ -7,7 +7,7 @@ import java.util.Vector;
 
 /**
  * @author pedro
- *         <p>
+ *         <p/>
  *         little dirty code
  */
 public class NumbersTokenizer extends SuffixTreeTokenizer {
@@ -18,7 +18,7 @@ public class NumbersTokenizer extends SuffixTreeTokenizer {
 
     public static void main(String args[]) {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        String[] s = {"x1", "pedro93", "abc123"};
+        String[] s = { "x1", "pedro93", "abc123" };
         NumbersTokenizer st = new NumbersTokenizer(s);
         st.init();
         String line = null;
@@ -48,7 +48,7 @@ public class NumbersTokenizer extends SuffixTreeTokenizer {
             } else if (state.isFinalState()) {
                 answer.add(state.getToken());
                 i--;
-                state = root;
+                state = super.root;
             } else if (state.hasNextFail(c)) {
                 state = state.getFail(c);
             }
@@ -56,19 +56,19 @@ public class NumbersTokenizer extends SuffixTreeTokenizer {
              * numbers recognition
              */
             else if (Character.isDigit(c)) {
-                int j = DoublesSM(s, i);
+                int j = doublesSM(s, i);
                 answer.add(s.substring(i, i + j));
                 i += j - 1;
-                continue;
             }
         }
-        if (state.isFinalState())
+        if (state.isFinalState()) {
             answer.add(state.getToken());
-        return answer.toArray(new String[0]);
+        }
+        return answer.toArray(new String[answer.size()]);
 
     }
 
-    int DoublesSM(String s, int i) {
+    int doublesSM(String s, int i) {
         int state = 0;
         int size = s.length();
         int j;
@@ -84,12 +84,8 @@ public class NumbersTokenizer extends SuffixTreeTokenizer {
                     return j - i;
                 }
             }
-            if (state == 1) {
-                if (Character.isDigit(c)) {
-                    continue;
-                } else {
-                    return j - i;
-                }
+            if (!Character.isDigit(c)) {
+                return j - i;
             }
         }
         return j - i;

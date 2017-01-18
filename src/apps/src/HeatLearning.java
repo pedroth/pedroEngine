@@ -249,7 +249,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         this.init();
         initColorBuffer(MIN_SAMPLES);
-        this.model = knn;
+        this.model = knnLeastSquare;
 
     }
 
