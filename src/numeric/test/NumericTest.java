@@ -37,6 +37,16 @@ public class NumericTest {
     }
 
     @Test
+    public void matrixExponentialTest3() {
+        Matrix matrix = new Matrix(new double[][]{{0, -1}, {1, 0}});
+        Vector initial = new Vec2(1, 0);
+        double alpha = 8 * Math.PI;
+
+        Vector x = MatrixExponetial.exp(alpha, matrix, initial, 0.00001);
+        Assert.assertTrue(Vector.diff(x, new Vec2(Math.cos(alpha), Math.sin(alpha))).norm() < 0.01);
+    }
+
+    @Test
     public void sVDTest() {
         Matrix matrix = new Matrix(new double[][]{{1, 0, 0}, {-1, 2, -1}, {0, 0, 1}});
         SVD svd = new SVD(matrix);
