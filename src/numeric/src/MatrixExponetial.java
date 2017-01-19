@@ -4,9 +4,6 @@ import algebra.src.Diagonal;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 
-/**
- * Created by Pedroth on 12/30/2015.
- */
 public class MatrixExponetial {
 
     /**
@@ -47,16 +44,16 @@ public class MatrixExponetial {
         int n = 1;
         do {
             xOld = x.copy();
-            x = exp(t, matrix, initial, n++);
+            x = exp(t, matrix, initial, n << 1);
+            n = n << 1;
         } while (Vector.diff(xOld, x).squareNorm() > epsilon);
         return x;
     }
 
-
     /**
      * Exp vector.
      *
-     * @param t        the t
+     * @param t the t
      * @param diagonal the diagonal
      * @return the vector
      */
@@ -66,12 +63,11 @@ public class MatrixExponetial {
         return Matrix.diag(diag);
     }
 
-
     /**
      * Exp vector.
      *
-     * @param t       the t
-     * @param matrix  the matrix
+     * @param t the t
+     * @param matrix the matrix
      * @param initial the initial
      * @return the vector
      */
