@@ -37,8 +37,6 @@ public abstract class MyFrame extends JFrame implements KeyListener,
     private int fps;
     private int fpsCount;
 
-    private boolean isApplet = false;
-
 
     /**
      * Instantiates a new My frame.
@@ -73,8 +71,38 @@ public abstract class MyFrame extends JFrame implements KeyListener,
         fpsCount = 0;
     }
 
+    public MyFrame(String title, int width, int height, boolean isApplet) {
+        // Set JFrame title
+        super(title);
+
+        /*
+         * Set default close operation for JFrame.
+		 */
+        if (!isApplet) {
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        }
+
+        // Set JFrame size
+        setSize(width, height);
+
+        widthChanged = width;
+        heightChanged = height;
+
+        this.addKeyListener(this);
+
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
+
+        /**
+         * time in seconds
+         */
+        oldTime = (System.currentTimeMillis()) * 1E-03;
+        fps = 0;
+        fpsCount = 0;
+    }
+
     /**
-     * Init void.
+     * start JFrame
      */
     public void init() {
         //Make JFrame visible
@@ -197,27 +225,6 @@ public abstract class MyFrame extends JFrame implements KeyListener,
         this.heightChanged = heightChanged;
     }
 
-    /**
-     * Is applet.
-     *
-     * @return the boolean
-     */
-    public boolean isApplet() {
-        return isApplet;
-    }
-
-    /**
-     * Sets applet.
-     *
-     * @param isApplet the is applet
-     */
-    public void setApplet(boolean isApplet) {
-        this.isApplet = isApplet;
-        if (!isApplet)
-            this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        else
-            this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    }
 
     /**
      * this method is automatically called every time the window needs to be

@@ -16,6 +16,7 @@ import java.text.NumberFormat;
 import java.util.Random;
 
 public class ImplicitSurface extends MyFrame {
+
     protected double maxVision = 20;
     private TwoDimEngine engine;
     private String2D fps;
@@ -57,8 +58,8 @@ public class ImplicitSurface extends MyFrame {
     private double[][] particlePos = {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
     private double[][] particleVel;
 
-    public ImplicitSurface(String title, int width, int height) {
-        super(title, width, height);
+    public ImplicitSurface(String title, int width, int height, boolean isApplet) {
+        super(title + " - Press h for Help", width, height, isApplet);
         engine = new TwoDimEngine(width, height);
         engine.setBackGroundColor(Color.blue);
         engine.setCamera(-1, 1, -1, 1);
@@ -78,7 +79,7 @@ public class ImplicitSurface extends MyFrame {
     }
 
     public static void main(String[] args) {
-        new ImplicitSurface("Implicit Surface", 700, 700);
+        new ImplicitSurface("Implicit Surface", 700, 700, false);
     }
 
     public void initParticles() {

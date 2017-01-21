@@ -95,7 +95,11 @@ public class PublicChatServer {
                 printClientData(httpExchange);
                 TextIO textIO = new TextIO();
                 textIO.read(httpExchange.getRequestBody());
-                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                String text = textIO.getText();
+                if ("".equals(text)) {
+                    throw new RuntimeException("Empty String");
+                }
+                Map<String, String> stringMap = parsePostInput(text);
                 for (Map.Entry<String, String> entry : stringMap.entrySet()) {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }

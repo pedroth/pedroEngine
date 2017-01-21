@@ -1,27 +1,21 @@
-package apps.utils;
+package apps;
 
 import apps.src.ImplicitSurface;
+import apps.utils.MyFrame;
 
 import javax.swing.*;
-import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-public class FrameApplet extends Applet implements ComponentListener {
-	/**
-	 * 
-	 */
+public class FrameApplet extends JApplet implements ComponentListener {
+    /**
+     * Needs to be in this package in order to be coherent with the other Applets in pedroth.github.io/visualExperiments
+     */
 	private static final long serialVersionUID = 1L;
-	JFrame frame;
-	boolean started = false;
-
-	void destroyFrame() {
-		if (frame != null)
-			frame.dispose();
-		frame = null;
-		repaint();
-	}
+    MyFrame frame;
+    JLabel text = new JLabel();
+    boolean started = false;
 
 	public void init() {
 		addComponentListener(this);
@@ -30,8 +24,9 @@ public class FrameApplet extends Applet implements ComponentListener {
 	void showFrame() {
 		if (frame == null) {
 			started = true;
-			frame = new ImplicitSurface("Implicit Surface", 700, 700);
-			repaint();
+            frame = new ImplicitSurface("Implicit Surface", 700, 700, true);
+            this.add(text);
+            repaint();
 		}
 	}
 
@@ -43,8 +38,8 @@ public class FrameApplet extends Applet implements ComponentListener {
 			s = "Applet is finished.";
 		else
 			frame.repaint();
-		g.drawString(s, 10, 30);
-	}
+        text.setText(s);
+    }
 
 	public void componentHidden(ComponentEvent e) {
 	}
