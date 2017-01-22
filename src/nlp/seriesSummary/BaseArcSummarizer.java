@@ -29,11 +29,7 @@ import utils.StopWatch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The type Base arc summarizer.
@@ -183,12 +179,12 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * Instantiates a new Arc summarizer.
      *
-     * @param seriesAddress the series address
-     * @param videoExtension the video extension
-     * @param heat the heat
-     * @param entropy the entropy
-     * @param knn the knn
-     * @param kcluster the kcluster
+     * @param seriesAddress     the series address
+     * @param videoExtension    the video extension
+     * @param heat              the heat
+     * @param entropy           the entropy
+     * @param knn               the knn
+     * @param kcluster          the kcluster
      * @param histogramDistance the histogram distance
      */
     public BaseArcSummarizer(String seriesAddress, String videoExtension, double heat, double entropy, int knn, int kcluster, Distance<Vector> histogramDistance) {
@@ -254,13 +250,14 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
             bowManager.build();
 
-            //build predicate
-            this.necessaryWordPredicate = new NecessaryWordPredicate(bowManager, entropy);
-            log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
-            System.out.println("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
-            stopWatch.resetTime();
-
-            textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+            if (entropy == 0.0) {
+                //build predicate
+                this.necessaryWordPredicate = new NecessaryWordPredicate(bowManager, entropy);
+                log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
+                System.out.println("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
+                stopWatch.resetTime();
+                textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+            }
 
             if (videos.size() == 0 || subtitles.size() == 0) {
                 throw new RuntimeException("no video or subtitle files");
@@ -269,7 +266,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {
                 text.read(subtitles.get(i));
-                textSplitter = new SubsSplitter(this.necessaryWordPredicate);
+                textSplitter = this.necessaryWordPredicate == null ? new SubsSplitter() : new SubsSplitter(this.necessaryWordPredicate);
                 LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
                 low.setLowBowSegmentator(lowBowSegmentator);
                 this.lowBowManager.add(low);
@@ -505,15 +502,15 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         CommandLineApi commandLineApi = new CommandLineApi();
         String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
         try {
-            for (int i = 1; i < segmentedAddresses.size(); i++) {
-                if (i == 1) {
-                    FFMpegVideoApi.concat(segmentedAddresses.get(0), segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
-                    commandLineApi.callCommand("rm " + segmentedAddresses.get(0));
+            for (int i = 0; i < segmentedAddresses.size() - 1; i++) {
+                if (i == 0) {
+                    FFMpegVideoApi.concat(segmentedAddresses.get(i), segmentedAddresses.get(i + 1), outputConcatAddress + (i + 1) + ".mp4");
                     commandLineApi.callCommand("rm " + segmentedAddresses.get(i));
+                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i + 1));
                 } else {
-                    FFMpegVideoApi.concat(outputConcatAddress + (i - 1) + ".mp4", segmentedAddresses.get(i), outputConcatAddress + i + ".mp4");
-                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i));
-                    commandLineApi.callCommand("rm " + outputConcatAddress + (i - 1) + ".mp4");
+                    FFMpegVideoApi.concat(outputConcatAddress + i + ".mp4", segmentedAddresses.get(i + 1), outputConcatAddress + (i + 1) + ".mp4");
+                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i + 1));
+                    commandLineApi.callCommand("rm " + outputConcatAddress + i + ".mp4");
                 }
             }
         } catch (InterruptedException | IOException e) {

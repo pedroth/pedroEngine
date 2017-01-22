@@ -26,6 +26,9 @@ public class SpectralClustering {
     private Matrix eigenCoeff;
     private boolean isNormalized = false;
     private boolean isAdrewEtAL = true;
+    private int maxEigenValue;
+    private SymmetricEigen symmetricEigen;
+    private EigenvalueDecomposition eigenvalueDecomposition;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -58,59 +61,57 @@ public class SpectralClustering {
      * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
      */
     public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        k = Integer.max(k, 1);
-        //compute laplacian matrix
-        Matrix W = getWeightMatrix(similarityMeasure);
-        Diagonal D = getDegreeMatrix(W);
-        Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        return clustering(k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
+            @Override
+            public Matrix getV(Matrix laplacian) {
+                symmetricEigen = new SymmetricEigen(laplacian);
+                symmetricEigen.computeEigen(epsilon, maxEigenValue, new HyperEigenAlgo());
+                return new Matrix(symmetricEigen.getEigenVectors());
+            }
 
-        //compute eigenVectors
-        int maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
-
-        SymmetricEigen symmetricEigen = new SymmetricEigen(laplacianMatrix);
-        symmetricEigen.computeEigen(epsilon, maxEigenValue, new HyperEigenAlgo());
-
-        Matrix U = new Matrix(symmetricEigen.getEigenVectors());
-        this.eigenCoeff = U;
-        Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
-
-        if (isNormalized && isAdrewEtAL) {
-            subMatrix = normalizeRows(subMatrix);
-        } else if (isNormalized) {
-            subMatrix = sqrt.prod(subMatrix);
-        }
-
-        //kmeans
-        Kmeans kmeans = new Kmeans(subMatrix.transpose());
-        kmeans.runKmeans(k, epsilon, repetitions);
-
-        //fix index to graph index
-        this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
-        this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
-        return inverseClassification;
+            @Override
+            public double[] getEigenValues() {
+                Double[] eigenValues = symmetricEigen.getEigenValues();
+                double[] ans = new double[eigenValues.length];
+                for (int i = 0; i < ans.length; i++) {
+                    ans[i] = eigenValues[i];
+                }
+                return ans;
+            }
+        });
     }
 
     public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        // TODO: need to abstract the way eigenvector are calculated, check diffusion clustering
+        return clustering(k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
+            @Override
+            public Matrix getV(Matrix laplacian) {
+                eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
+                return new Matrix(eigenvalueDecomposition.getV().getArray());
+            }
 
+            @Override
+            public double[] getEigenValues() {
+                return eigenvalueDecomposition.getRealEigenvalues();
+            }
+        });
+    }
+
+    private Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions, SpectralMethod spectralMethod) {
         k = Integer.max(k, 1);
         //compute laplacian matrix
         Matrix W = getWeightMatrix(similarityMeasure);
         Diagonal D = getDegreeMatrix(W);
         Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = isNormalized ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Matrix laplacianMatrix = (isNormalized || isAdrewEtAL) ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
-        int rows = laplacianMatrix.getRows();
-        int maxEigenValue = Integer.min(k + 1, rows);
-        EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacianMatrix.getMatrix()));
+        maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
 
-        Matrix U = new Matrix(eigenvalueDecomposition.getV().getArray());
+        Matrix U = spectralMethod.getV(laplacianMatrix);
         this.eigenCoeff = U;
         Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
-        if (isNormalized && isAdrewEtAL) {
+        if (isAdrewEtAL) {
             subMatrix = normalizeRows(subMatrix);
         } else if (isNormalized) {
             subMatrix = sqrt.prod(subMatrix);
@@ -125,6 +126,7 @@ public class SpectralClustering {
         this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
         return inverseClassification;
     }
+
 
     private Matrix normalizeRows(Matrix subMatrix) {
         Vector[] rowsVectors = subMatrix.getRowsVectors();
@@ -277,5 +279,22 @@ public class SpectralClustering {
 
     public void setAdrewEtAL(boolean adrewEtAL) {
         isAdrewEtAL = adrewEtAL;
+    }
+
+    private interface SpectralMethod {
+        /**
+         * Gets v.
+         *
+         * @param laplacian the laplacian
+         * @return the v
+         */
+        Matrix getV(Matrix laplacian);
+
+        /**
+         * Get eigen values.
+         *
+         * @return the double [ ]
+         */
+        double[] getEigenValues();
     }
 }
