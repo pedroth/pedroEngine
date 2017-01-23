@@ -82,11 +82,7 @@ public class EigenSimulation extends MyFrame {
         super(title, width, height);
 
         //init matrix
-        this.symMatrix = symMatrix.getSubMatrix(1, 3, 1, 3);
-        SymmetricEigen symmetricEigen = new SymmetricEigen(this.symMatrix);
-        symmetricEigen.orderEigenValuesAndVector();
-        eigenValues = symmetricEigen.getEigenValues();
-        eigenVector = symmetricEigen.getEigenVectors();
+        this.setSymMatrix(symMatrix);
 
 
         this.isSmoothAnimation = isSmoothAnimation;
@@ -131,8 +127,18 @@ public class EigenSimulation extends MyFrame {
         EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
         Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
         Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
+        Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.9, 0.1, 0.1)), eigenSimulation.new HyperMethod());
         eigenSimulation.addSphereEigenUpdate(sphere1);
         eigenSimulation.addSphereEigenUpdate(sphere2);
+        eigenSimulation.addSphereEigenUpdate(sphere3);
+    }
+
+    public void setSymMatrix(Matrix symMatrix) {
+        this.symMatrix = symMatrix.getSubMatrix(1, 3, 1, 3);
+        SymmetricEigen symmetricEigen = new SymmetricEigen(this.symMatrix);
+        symmetricEigen.orderEigenValuesAndVector();
+        eigenValues = symmetricEigen.getEigenValues();
+        eigenVector = symmetricEigen.getEigenVectors();
     }
 
     public void addSphereEigenUpdate(Sphere s) {
@@ -164,11 +170,22 @@ public class EigenSimulation extends MyFrame {
 
     private double getSphereIntersection(Vector eye, Vector dir, Sphere sphere) {
         Vector p = sphere.getPos();
+        double[] pos = p.getArray();
+        double[] eyeArray = eye.getArray();
+        double[] dirArray = dir.getArray();
         double r = sphere.getRadius();
-        Vector diff = Vector.diff(eye, p);
-        double c = diff.squareNorm() - r * r;
-        double b = 2 * Vector.innerProd(dir, diff);
-        double a = dir.squareNorm();
+
+        double[] diff = new double[3];
+        diff[0] = eyeArray[0] - pos[0];
+        diff[1] = eyeArray[1] - pos[1];
+        diff[2] = eyeArray[2] - pos[2];
+        double squareNorm = diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2];
+        double innerProd = dirArray[0] * diff[0] + dirArray[1] * diff[1] + dirArray[2] * diff[2];
+        double dirSquareNorm = dirArray[0] * dirArray[0] + dirArray[1] * dirArray[1] + dirArray[2] * dirArray[2];
+
+        double c = squareNorm - r * r;
+        double b = 2 * innerProd;
+        double a = dirSquareNorm;
         double discr = b * b - 4 * a * c;
 
         if (discr < 0) {
@@ -209,8 +226,8 @@ public class EigenSimulation extends MyFrame {
         double tRight = t;
 
         double root = 0;
-        double fRoot = 1;
-        Vector l = new Vector(3);
+        double fRoot;
+        Vector l;
         for (int i = 0; i < 10; i++) {
             root = 0.5 * (tLeft + tRight);
             l = line(eye, dir, root);
@@ -277,6 +294,7 @@ public class EigenSimulation extends MyFrame {
 
     private void raytrace() {
         int n = sqrtSamples;
+        double[][] camBasis = camera.getCamBasis().getMatrix();
         double xmin = engine.getXmin(), xmax = engine.getXmax();
         double ymin = engine.getYmin(), ymax = engine.getYmax();
         double dx = (xmax - xmin) / n;
@@ -286,15 +304,20 @@ public class EigenSimulation extends MyFrame {
         int lowerBound = n - upperBound;
 
         double[] dir = new double[3];
+        double[] aux = new double[3];
         for (int i = lowerBound; i < upperBound; i++) {
             for (int j = lowerBound; j < upperBound; j++) {
                 dir[0] = xmin + dx * i;
                 dir[1] = ymin + dy * j;
                 dir[2] = 1;
-                Vector direction = new Vector(dir);
-                direction = camera.getCamBasis().prodVector(direction);
-                direction = Vector.normalize(direction);
-                Vec3 color = trace(direction);
+                aux[0] = camBasis[0][0] * dir[0] + camBasis[0][1] * dir[1] + camBasis[0][2] * dir[2];
+                aux[1] = camBasis[1][0] * dir[0] + camBasis[1][1] * dir[1] + camBasis[1][2] * dir[2];
+                aux[2] = camBasis[2][0] * dir[0] + camBasis[2][1] * dir[1] + camBasis[2][2] * dir[2];
+                double norm = 1.0 / Math.sqrt(aux[0] * aux[0] + aux[1] * aux[1] + aux[2] * aux[2]);
+                aux[0] *= norm;
+                aux[1] *= norm;
+                aux[2] *= norm;
+                Vec3 color = trace(new Vector(aux));
                 int index = 3 * j + 3 * n * i;
                 colorBuffer[index] = (int) (color.getX() * 255);
                 colorBuffer[index + 1] = (int) (color.getY() * 255);
@@ -305,7 +328,6 @@ public class EigenSimulation extends MyFrame {
 
     @Override
     public void updateDraw() {
-        engine.clearImageWithBackground();
         initColorBuffer(sqrtSamples);
         /**
          * render image
@@ -754,6 +776,42 @@ public class EigenSimulation extends MyFrame {
 
 
     // Eigen Updaters
+    private class HyperMethod implements EigenUpdate {
+
+        @Override
+        public Vector update(Matrix symMatrix, Vector init) {
+            Vector eigenV = init;
+             /*
+             * grad is the direction that maximizes quadratic form
+             */
+            Vector grad = symMatrix.prodVector(eigenV);
+            /*
+             * make grad orthogonal to eigenVectors
+             */
+            Vector v = grad;
+
+            double dotvEigenV = Vector.innerProd(v, eigenV);
+            /*
+             * compute speed vector tangent to n-1 sphere
+             */
+            Vector dx = Vector.scalarProd(1, Vector.diff(v, Vector.scalarProd(dotvEigenV, eigenV)));
+            /*
+             * compute acceleration vector
+             */
+            Vector dxx = Vector.scalarProd(-1, Vector.add(Vector.scalarProd(dotvEigenV, dx), Vector.scalarProd(Vector.innerProd(v, dx), eigenV)));
+
+            double quadraticForm = Vector.innerProd(dx, symMatrix.prodVector(dx));// + Vector.innerProd(grad, dxx);
+            double residual = Vector.innerProd(grad, dx);
+            double alpha = -(residual / (quadraticForm == 0.0 ? 1E-3 * Math.random() : quadraticForm));
+            /*
+             * update eigenV
+             */
+            eigenV = Vector.add(Vector.add(eigenV, Vector.scalarProd(alpha, dx)), Vector.scalarProd(0.5 * alpha * alpha, dxx));
+
+            return Vector.normalize(eigenV);
+        }
+    }
+
 
     private class PowerMethod implements EigenUpdate {
 

@@ -34,16 +34,16 @@ public class Matrix {
     /**
      * Instantiates a new Matrix.
      *
-     * @param rows    number of rows of the matrix. Must be a positive integer
+     * @param rows number of rows of the matrix. Must be a positive integer
      *                bigger than zero,
-     *                {
+     *{
      *                1,2, ...
-     *                }
+     *}
      * @param columns number of columns of the matrix. Must be a positive integer
      *                bigger than zero,
-     *                {
+     *{
      *                1,2, ...
-     *                }
+     *}
      */
     public Matrix(int rows, int columns) {
         if (rows < 1 || columns < 1) {
@@ -189,8 +189,8 @@ public class Matrix {
      * this solves the following equation m * x = y, where m is a n*n matrix, x
      * and y are n * 1 matrices or vectors of n dimension, using a least square approach
      *
-     * @param m       the m
-     * @param y       the y
+     * @param m the m
+     * @param y the y
      * @param epsilon convergence error
      * @return vector with solution to equation m * x = y.
      */
@@ -212,8 +212,8 @@ public class Matrix {
      * this solves the following equation m * x = y, where m is a n*n positive definite matrix, x
      * and y are n * 1 matrices or vectors of n dimension
      *
-     * @param m       the m
-     * @param y       the y
+     * @param m the m
+     * @param y the y
      * @param epsilon convergence error
      * @return vector with solution to equation m * x = y.
      */
@@ -285,6 +285,12 @@ public class Matrix {
     }
 
 
+    /**
+     * Gets identity.
+     *
+     * @param n the n
+     * @return the identity
+     */
     public static Matrix getIdentity(int n) {
         Vector v = new Vector(n);
         v.fill(1.0);
@@ -320,15 +326,15 @@ public class Matrix {
      * Gets xY.
      *
      * @param x index for the rows where its domain is
-     *          {
+     *{
      *          1,2, ... , number of
      *          rows
-     *          }
+     *}
      * @param y index for the columns where its domain is
-     *          {
+     *{
      *          1,2, ... , number
      *          of columns
-     *          }
+     *}
      * @return value of the matrix at x and y.
      */
     public double getXY(int x, int y) {
@@ -344,15 +350,15 @@ public class Matrix {
      * Sets xY.
      *
      * @param x index for the rows where its domain is
-     *          {
+     *{
      *          1,2, ... , number of
      *          rows
-     *          }
+     *}
      * @param y index for the columns where its domain is
-     *          {
+     *{
      *          1,2, ... , number
      *          of columns
-     *          }
+     *}
      * @param n value to store at x and y.
      */
     public void setXY(int x, int y, double n) {
@@ -507,6 +513,13 @@ public class Matrix {
         return c;
     }
 
+    /**
+     * Binary operation.
+     *
+     * @param b        the b
+     * @param operator the operator
+     * @return the matrix
+     */
     public Matrix binaryOperation(Matrix b, BinaryOperator<Double> operator) {
         Matrix c = null;
         double r;
@@ -522,14 +535,32 @@ public class Matrix {
         return c;
     }
 
+    /**
+     * Add matrix.
+     *
+     * @param b the b
+     * @return the matrix
+     */
     public Matrix add(Matrix b) {
         return binaryOperation(b, (x, y) -> x + y);
     }
 
+    /**
+     * Diff matrix.
+     *
+     * @param b the b
+     * @return the matrix
+     */
     public Matrix diff(Matrix b) {
         return binaryOperation(b, (x, y) -> x - y);
     }
 
+    /**
+     * Scalar prod.
+     *
+     * @param r the r
+     * @return the matrix
+     */
     public Matrix scalarProd(double r) {
         Matrix ans = new Matrix(this);
         return ans.applyFunction((x) -> r * x);
@@ -675,7 +706,7 @@ public class Matrix {
      * @param xmax upper bound row coordinate
      * @param ymin lower bound column coordinate
      * @param ymax upper bound column coordinate
-     * @param m    the m
+     * @param m the m
      * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ...
      * ymax]
      */
@@ -739,7 +770,7 @@ public class Matrix {
     /**
      * Reshape void.
      *
-     * @param rows    the rows
+     * @param rows the rows
      * @param columns the columns
      */
     public void reshape(int rows, int columns) {
@@ -780,6 +811,12 @@ public class Matrix {
         return ans;
     }
 
+    /**
+     * Forbenius dist square.
+     *
+     * @param b the b
+     * @return the double
+     */
     public double forbeniusDistSquare(Matrix b) {
         if (this.getColumns() != b.getColumns() && this.getRows() != b.getRows()) {
             throw new AlgebraException("b rows and columns must be of the same size as this matrix");
@@ -824,6 +861,23 @@ public class Matrix {
         return vectors;
     }
 
+    /**
+     * Get matrix data.
+     *
+     * @return the double [ ]
+     */
+    public double[] getData() {
+        return matrix;
+    }
+
+
+    /**
+     * Check input index.
+     *
+     * @param x the x
+     * @param y the y
+     * @return the boolean
+     */
     protected boolean checkInputIndex(int x, int y) {
         return x <= this.getRows() && x > 0 && y <= this.getColumns() && y > 0;
     }
@@ -843,10 +897,10 @@ public class Matrix {
         /**
          * Instantiates a new Matrix parallel prod.
          *
-         * @param up     the up
-         * @param down   the down
-         * @param a      the a
-         * @param b      the b
+         * @param up the up
+         * @param down the down
+         * @param a the a
+         * @param b the b
          * @param output the output
          */
         public MatrixParallelProd(int up, int down, Matrix a, Matrix b, Matrix output) {
