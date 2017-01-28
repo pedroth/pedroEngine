@@ -37,7 +37,7 @@ public class ArcSummaryTest {
 
         Stack<BaseArcSummarizer> stack = new Stack<>();
 
-
+        // spectral clustering andrew et al
         BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
@@ -45,19 +45,31 @@ public class ArcSummaryTest {
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         stack.add(baseArcSummarizer);
 
+        // spectral clustering Shi and Malik
+        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setCutVideo(cutVideo);
+        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setAdrewEtAl(false);
+        stack.add(baseArcSummarizer);
+
+        // spectral clustering Latent Dirichlet Allocation
         baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         stack.add(baseArcSummarizer);
 
+        // spectral clustering not normalized
         baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
         stack.add(baseArcSummarizer);
-//
+
+        // diffusion clustering
         baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
@@ -70,6 +82,7 @@ public class ArcSummaryTest {
         int i = 0;
         while (!stack.isEmpty()) {
             BaseArcSummarizer baseArcSummarizer1 = stack.pop();
+            System.out.println(baseArcSummarizer1.getClass());
             String outputAddress = output + i;
             baseArcSummarizer1.buildSummary(outputAddress, timeArc);
 //            TextIO textIO = new TextIO();

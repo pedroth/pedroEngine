@@ -55,12 +55,12 @@ public class TextIO {
         }
     }
 
-    public void write(String adress, String text) {
-        if (isUrl(adress))
+    public void write(String address, String text) {
+        if (isUrl(address))
             return;
 
         try {
-            File file = new File(adress);
+            File file = new File(address);
 
             // if file doesnt exists, then create it
             if (!file.exists()) {

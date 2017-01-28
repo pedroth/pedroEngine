@@ -20,6 +20,8 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
 
     private SpectralClustering spectralClustering;
 
+    private boolean isAdrewEtAl = true;
+
     /**
      * Instantiates a new Arc summarizer.
      *
@@ -58,6 +60,7 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
         }
         this.spectralClustering = new SpectralClustering(knnGraph);
         this.spectralClustering.setNormalized(isNormalized);
+        this.spectralClustering.setAdrewEtAL(false);
         return this.spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
     }
 
@@ -96,5 +99,13 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
 
     public void setNormalized(boolean normalized) {
         isNormalized = normalized;
+    }
+
+    public boolean isAdrewEtAl() {
+        return isAdrewEtAl;
+    }
+
+    public void setAdrewEtAl(boolean adrewEtAl) {
+        isAdrewEtAl = adrewEtAl;
     }
 }

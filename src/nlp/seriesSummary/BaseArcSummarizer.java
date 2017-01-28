@@ -21,6 +21,7 @@ import nlp.symbolSampler.TopKSymbolWithProb;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Distance;
+import tokenizer.NumbersTokenizer;
 import utils.CommandLineApi;
 import utils.FFMpegVideoApi;
 import utils.FilesCrawler;
@@ -30,6 +31,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The type Base arc summarizer.
@@ -39,7 +43,6 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The constant distanceByNameMap.
      */
     public static Map<String, Distance<Vector>> distanceByNameMap = new HashMap<>(3);
-
     /**
      * The constant simplexDist.
      */
@@ -50,14 +53,12 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
         return Math.acos(acc);
     };
-
     /**
      * The constant cosineDist.
      */
     public static Distance<Vector> cosineDist = (x, y) -> {
         return 1 - Vector.innerProd(x, y) / (x.norm() * y.norm());
     };
-
     /**
      * The constant euclideanDist.
      */
@@ -75,106 +76,120 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The Log.
      */
     protected List<String> log = new ArrayList<>();
-
     /**
      * The Heat: percentage of eigenvalues that are preserved after heat
      */
     protected double heat;
-
     /**
      * The Entropy: (1 - percentage) of max entropy, cut words with high and low entropy in documents
      */
     protected double entropy;
-
     /**
      * The Knn: number of neighbours in knn-graph
      */
     protected int knn;
-
     /**
      * The Kcluster: number of cluster (number of arcs)
      */
     protected int kcluster;
-
     /**
      * The Histogram distance: distance of histograms
      */
     protected Distance<Vector> histogramDistance;
-
     /**
      * The Segmented bows.
      */
     protected List<BaseSegmentedBow> segmentedBows;
-
     /**
      * The Graph by cluster id map.
      */
     protected Map<Integer, Graph> graphByClusterIdMap;
-
     /**
      * The Random walk distribution by cluster id map.
      */
     protected Map<Integer, Vector> randomWalkDistributionByClusterIdMap;
-
     /**
      * The Low bow manager.
      */
     protected SummaryGenLowBowManager<LowBowSubtitles> lowBowManager;
-
     /**
      * The Segment index by cluster id.
      */
     protected Map<Integer, List<Integer>> segmentIndexByClusterId;
-
     /**
      * The Knn graph.
      */
     protected KnnGraph knnGraph;
-
     /**
      * The Output address.
      */
     protected String outputAddress;
-
     /**
      * The Necessary word predicate.
      */
-    protected NecessaryWordPredicate necessaryWordPredicate;
-
+    protected Predicate<String> necessaryWordPredicate;
+    /**
+     * Entropy predicate
+     */
+    protected NecessaryWordPredicate entropyPredicate;
     /**
      * The Cut video.
      */
     protected boolean cutVideo = true;
-
     /**
      * The Graph centroid by cluster id.
      */
     protected Map<Integer, Vector> graphCentroidByClusterId;
-
     /**
      * The Average segmentlength.
      */
     protected double averageSegmentlength;
-
     /**
      * The Standard deviation segment length.
      */
     protected double standardDeviationSegmentLength;
-
     /**
      * The Segment length data.
      */
     protected List<Double> segmentLengthData;
-
     /**
      * The Is video concat.
      */
     protected boolean isVideoConcat = false;
-
     /**
      * The Low bow segmentator.
      */
     protected LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+    Comparator<String> stringComparator = (o1, o2) -> {
+        final String regex = "[Ss][0-9]+[Ee][0-9]+";
+        String[] split1 = o1.split(regex);
+        String[] split2 = o2.split(regex);
+        if (split1.length <= 1 || split2.length <= 1) {
+            return o1.compareTo(o2);
+        }
+        if (split1[0].equals(split2[0])) {
+            final Pattern pattern = Pattern.compile(regex);
+            final Matcher matcher1 = pattern.matcher(o1);
+            final Matcher matcher2 = pattern.matcher(o2);
+            matcher1.find();
+            matcher2.find();
+            String group1 = matcher1.group(0);
+            String group2 = matcher2.group(0);
+            NumbersTokenizer number = new NumbersTokenizer(null);
+            String[] token1 = number.tokenize(group1 + split1[split1.length - 1]);
+            String[] token2 = number.tokenize(group2 + split2[split2.length - 1]);
+            //warning assumes equal size on tokens variables (time is precious - lame excuse)
+            for (int i = 0; i < token1.length; i++) {
+                Integer integer1 = Integer.valueOf(token1[i]);
+                Integer integer2 = Integer.valueOf(token2[i]);
+                if (integer1 != integer2) {
+                    return integer1 - integer2;
+                }
+            }
+            return 0;
+        }
+        return split1[0].compareTo(split2[0]);
+    };
 
     /**
      * Instantiates a new Arc summarizer.
@@ -250,13 +265,15 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
             bowManager.build();
 
-            if (entropy == 0.0) {
+            if (entropy > 0.0) {
                 //build predicate
-                this.necessaryWordPredicate = new NecessaryWordPredicate(bowManager, entropy);
+                NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+                this.necessaryWordPredicate = predicate;
+                this.entropyPredicate = predicate;
                 log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
                 System.out.println("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
                 stopWatch.resetTime();
-                textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+                textIO.write(this.outputAddress + "removedWords.txt", predicate.getNotNecessaryWordString());
             }
 
             if (videos.size() == 0 || subtitles.size() == 0) {
@@ -467,7 +484,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
         StringBuilder stringBuilder = new StringBuilder();
         TopKSymbol topKSymbol = new TopKSymbol(30);
-        while (acc < timeLengthMinutes && k > 0) {
+        while (acc < timeLengthMinutes && k >= 0) {
             BaseSegmentedBow segmentedBow = segmentedBows.get(vertexIdByIndex[permutation[k--]] - 1);
             double timeIntervalMinutes = segmentedBow.getTimeIntervalMinutes();
             if (acc + timeIntervalMinutes < timeLengthMinutes) {
@@ -481,7 +498,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
         }
 
-        if (isVideoConcat && segmentedAddresses.size() > 0) {
+        if (isVideoConcat && segmentedAddresses.size() > 0 && cutVideo) {
             concatVideos(segmentedAddresses, auxAddress, String.valueOf(clusterId));
         }
 
@@ -498,23 +515,16 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     }
 
     private void concatVideos(List<String> segmentedAddresses, String auxAddress, String clusterId) {
-        Collections.sort(segmentedAddresses);
-        CommandLineApi commandLineApi = new CommandLineApi();
+        Collections.sort(segmentedAddresses, stringComparator);
         String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
-        try {
-            for (int i = 0; i < segmentedAddresses.size() - 1; i++) {
-                if (i == 0) {
-                    FFMpegVideoApi.concat(segmentedAddresses.get(i), segmentedAddresses.get(i + 1), outputConcatAddress + (i + 1) + ".mp4");
-                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i));
-                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i + 1));
-                } else {
-                    FFMpegVideoApi.concat(outputConcatAddress + i + ".mp4", segmentedAddresses.get(i + 1), outputConcatAddress + (i + 1) + ".mp4");
-                    commandLineApi.callCommand("rm " + segmentedAddresses.get(i + 1));
-                    commandLineApi.callCommand("rm " + outputConcatAddress + i + ".mp4");
-                }
+        FFMpegVideoApi.concat(segmentedAddresses, outputConcatAddress + ".mp4");
+        CommandLineApi commandLineApi = new CommandLineApi();
+        for (String segmentedAddress : segmentedAddresses) {
+            try {
+                commandLineApi.callCommand("rm " + segmentedAddress);
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -613,7 +623,10 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      */
     public Distance<Vector> getTfIdfDistance() {
         return (x, y) -> {
-            Vector wordEntropy = this.necessaryWordPredicate.getWordProbForSimplex(lowBowManager.getSimplex());
+            if (entropyPredicate == null) {
+                return 0;
+            }
+            Vector wordEntropy = this.entropyPredicate.getWordProbForSimplex(lowBowManager.getSimplex());
             wordEntropy = new Vector(wordEntropy.applyFunction((z) -> -Math.log(z)));
             Vector xbow = Vector.pointMult(x, wordEntropy);
             Vector ybow = Vector.pointMult(y, wordEntropy);
@@ -720,7 +733,11 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         this.lowBowSegmentator = lowBowSegmentator;
     }
 
-    public NecessaryWordPredicate getNecessaryWordPredicate() {
+    public Predicate<String> getNecessaryWordPredicate() {
         return necessaryWordPredicate;
+    }
+
+    public void setNecessaryWordPredicate(Predicate<String> necessaryWordPredicate) {
+        this.necessaryWordPredicate = necessaryWordPredicate;
     }
 }

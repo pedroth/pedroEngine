@@ -1,8 +1,12 @@
 package utils;
 
+import inputOutput.TextIO;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,18 +87,44 @@ public class FFMpegVideoApi {
         }
     }
 
+    public static void concat(List<String> videosAddress, String outputAddress) {
+        TextIO textIO = new TextIO();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String videoAddress : videosAddress) {
+            stringBuilder.append("file " + "'" + videoAddress + "'\n");
+        }
+        textIO.write("list.txt", stringBuilder.toString());
+        CommandLineApi commandLineApi = new CommandLineApi();
+        String command = addQuotingToString(ffmpegAddress + "/ffmpeg") + " -f concat -safe 0 -i list.txt -c copy " + outputAddress;
+        try {
+            StopWatch stopWatch = new StopWatch();
+            int state = commandLineApi.callCommand(command);
+            commandLineApi.callCommand("rm list.txt");
+            System.out.println(state + ", time : " + stopWatch.getEleapsedTime());
+        } catch (IOException e) {
+            System.err.println("Error calling ffmpeg -ss -i -c copy -copyts");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static String addQuotingToString(String s) {
         return '"' + s + '"';
     }
 
     public static void main(String[] args) {
-        String videoAddress = "C:/Dados/CIA/CIA-SharedDocuments/Other/ciaMovie.mp4";
+        String videoAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWallS1E1.mkv";
         File desktop = new File(System.getProperty("user.home"), "Desktop");
-        String desktopPath = desktop.toString().replace("\\","/");
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 0, 0, 0), LocalTime.of(0, 1, 0, 0), desktopPath + "/cut0.mp4");
-        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 1, 0, 1), LocalTime.of(0, 1, 30, 0), desktopPath + "/cut1.mp4");
-        //System.out.println("Duration: " + FFMpegVideoApi.getVideoDuration(videoAddress));
-        FFMpegVideoApi.concat(desktopPath + "/cut0.mp4", desktopPath + "/cut1.mp4", desktopPath + "/cut0+1.mp4");
+        ArrayList<String> videosAddress = new ArrayList<>(3);
+        videosAddress.add(desktop + "/cut0.mp4");
+        videosAddress.add(desktop + "/cut1.mp4");
+        videosAddress.add(desktop + "/cut2.mp4");
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 0, 22), LocalTime.of(0, 7, 39, 477), videosAddress.get(0));
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 7, 39, 477), LocalTime.of(0, 8, 26, 358), videosAddress.get(1));
+        FFMpegVideoApi.cutVideo(videoAddress, LocalTime.of(0, 8, 26, 358), LocalTime.of(0, 9, 23, 144), videosAddress.get(2));
+        System.out.println("Duration: " + FFMpegVideoApi.getVideoDuration(videoAddress));
+        FFMpegVideoApi.concat(videosAddress.get(1), videosAddress.get(2), desktop + "/cut1+2.mp4");
+        FFMpegVideoApi.concat(videosAddress, desktop + "/cut0+1+2.mp4");
     }
-
 }
