@@ -24,7 +24,8 @@ function getChat() {
                     $("#userNames").append("<li>" + chat.users[i] + "</li>");
                 }
                 for(var i = 0; i < chat.log.length; i++) {
-                    var text = decodeURIComponent(chat.log[i].text);
+                    // replace new line in http (%0A) by new line in HTML (<br />) then  decode http and replace spaces in http(+) by a space char
+                    var text = decodeURIComponent(chat.log[i].text.replace(new RegExp("%0A", "g"),"<br />")).replace(/\+/g,  " ");
                     var id = decodeURIComponent(chat.log[i].id);
                     if(pattern.test(text)) {
                         $("#chat").append("<p>" + id + " > <a target='_blank' href='" + text +  "'>" + text + "</a></p>");
@@ -42,6 +43,7 @@ function getChat() {
 
 function sendText() {
     var text = $("#input").val();
+    //send request to server
     $.ajax({
             method:"POST",
             url:"/putText",

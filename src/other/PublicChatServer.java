@@ -105,7 +105,7 @@ public class PublicChatServer {
                 }
                 String id = stringMap.get("id");
                 putClientInMap(id);
-                String jsonAns = getLogInfo(Integer.valueOf(stringMap.get("index")));
+                String jsonAns = getLogInfo(Integer.valueOf(stringMap.get("index").replaceAll("\n", "")));
                 System.out.println(jsonAns);
                 serverUtils.respondWithText(httpExchange, jsonAns);
             } catch (Exception e) {
@@ -119,7 +119,7 @@ public class PublicChatServer {
 
                 TextIO textIO = new TextIO();
                 textIO.read(httpExchange.getRequestBody());
-                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                Map<String, String> stringMap = parsePostInputUnformatted(textIO.getText());
                 for (Map.Entry<String, String> entry : stringMap.entrySet()) {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
@@ -184,11 +184,23 @@ public class PublicChatServer {
 
     private Map<String, String> parsePostInput(String request) {
         Map<String, String> ans = new HashMap<>();
-        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("\n", "").replace("+", " ").split("&");
+        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("+", " ").split("&");
         for (int i = 0; i < split.length; i++) {
             String[] split1 = split[i].split("=");
             String key = split1[0];
+            String value = split1[1];
+            ans.put(key, value);
+        }
+        return ans;
+    }
 
+    private Map<String, String> parsePostInputUnformatted(String request) {
+        request = request.substring(0, request.length() - 1);
+        Map<String, String> ans = new HashMap<>();
+        String[] split = request.split("&");
+        for (int i = 0; i < split.length; i++) {
+            String[] split1 = split[i].split("=");
+            String key = split1[0];
             String value = split1[1];
             ans.put(key, value);
         }
