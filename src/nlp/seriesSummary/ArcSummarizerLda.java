@@ -139,4 +139,13 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
     public void setNumberIterations(int numberIterations) {
         this.numberIterations = numberIterations;
     }
+
+    @Override
+    public String toString() {
+        return "ArcSummarizerLda{" +
+                "alpha=" + alpha +
+                ", beta=" + beta +
+                ", numberIterations=" + numberIterations +
+                '}';
+    }
 }

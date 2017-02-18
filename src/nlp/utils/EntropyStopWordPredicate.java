@@ -8,9 +8,8 @@ import nlp.simpleDocModel.Bow;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.function.Predicate;
 
-public class NecessaryWordPredicate implements Predicate<String> {
+public class EntropyStopWordPredicate implements RemoveWordsPredicate {
     private BaseDocModelManager<Bow> bowManager;
     // vector of dimension |W| (vocabulary size), representing the entropy of p(d|W=w), where w is a coordinate of wordEntropy;
     private Vector wordEntropy;
@@ -19,7 +18,7 @@ public class NecessaryWordPredicate implements Predicate<String> {
     private HashSet<String> notNecessaryWords;
     private Vector wordProb;
 
-    public NecessaryWordPredicate(BaseDocModelManager<Bow> bowManager, double cutOffPercentage) {
+    public EntropyStopWordPredicate(BaseDocModelManager<Bow> bowManager, double cutOffPercentage) {
         this.bowManager = bowManager;
         this.wordEntropy = computeWordEntropyPerDoc();
         this.cutOffPercentage = cutOffPercentage;

@@ -108,4 +108,14 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
     public void setAdrewEtAl(boolean adrewEtAl) {
         isAdrewEtAl = adrewEtAl;
     }
+
+    @Override
+    public String toString() {
+        return "ArcSummarizerSpectral{" +
+                "sigma=" + sigma +
+                ", isNormalized=" + isNormalized +
+                ", spectralClustering=" + spectralClustering +
+                ", isAdrewEtAl=" + isAdrewEtAl +
+                '}';
+    }
 }

@@ -1,9 +1,6 @@
 package apps.src;
 
-import algebra.src.Matrix;
-import algebra.src.Vec2;
-import algebra.src.Vec3;
-import algebra.src.Vector;
+import algebra.src.*;
 import apps.utils.MyFrame;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
@@ -123,8 +120,9 @@ public class EigenSimulation extends MyFrame {
         symMatrix.fillRandom(-10, 10);
         symMatrix = Matrix.add(symMatrix, Matrix.transpose(symMatrix));
         Matrix diagonal = Matrix.diag(new Vec3(0, 0.5, 4));
+        LineLaplacian lineLaplacian = new LineLaplacian(3);
         Matrix symMatrix1 = new Matrix(new double[][]{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
-        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
+        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, lineLaplacian, true);
         Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
         Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
         Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.9, 0.1, 0.1)), eigenSimulation.new HyperMethod());
@@ -638,11 +636,11 @@ public class EigenSimulation extends MyFrame {
         int kernelSize = 15;
 
         public Lic() {
+            Camera3D cam = new Camera3D();
             for (int i = 0; i < nn; i++) {
                 texOrig[i] = Math.random();
                 double x = -Math.PI + ((i % n) * (2 * Math.PI)) / (n - 1);
                 double y = Math.PI - ((i / n) * (2 * Math.PI)) / (n - 1);
-                Camera3D cam = new Camera3D();
                 cam.setRaw(new Vec3(1.0, x, y));
                 cam.update(0);
                 Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(symMatrix.prodVector(cam.getEye())));

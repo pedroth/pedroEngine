@@ -19,7 +19,8 @@ import nlp.simpleDocModel.Bow;
 import nlp.symbolSampler.TopKSymbol;
 import nlp.symbolSampler.TopKSymbolWithProb;
 import nlp.textSplitter.SubsSplitter;
-import nlp.utils.NecessaryWordPredicate;
+import nlp.utils.EntropyStopWordPredicate;
+import nlp.utils.RemoveWordsPredicate;
 import numeric.src.Distance;
 import tokenizer.NumbersTokenizer;
 import utils.CommandLineApi;
@@ -127,11 +128,11 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * The Necessary word predicate.
      */
-    protected Predicate<String> necessaryWordPredicate;
+    protected RemoveWordsPredicate necessaryWordPredicate;
     /**
      * Entropy predicate
      */
-    protected NecessaryWordPredicate entropyPredicate;
+    protected EntropyStopWordPredicate entropyPredicate;
     /**
      * The Cut video.
      */
@@ -251,6 +252,10 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             System.out.println("Read files : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
+            if (videos.size() == 0 || subtitles.size() == 0) {
+                throw new RuntimeException("no video or subtitle files");
+            }
+
             //construct managers
             this.lowBowManager = new SummaryGenLowBowManager<>();
             BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
@@ -265,20 +270,18 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             }
             bowManager.build();
 
+            //build entropy predicate
             if (entropy > 0.0) {
                 //build predicate
-                NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+                EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
                 this.necessaryWordPredicate = predicate;
                 this.entropyPredicate = predicate;
-                log.add("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
-                System.out.println("NecessaryWordPredicate built: " + stopWatch.getEleapsedTime());
+                log.add("EntropyStopWordPredicate built: " + stopWatch.getEleapsedTime());
+                System.out.println("EntropyStopWordPredicate built: " + stopWatch.getEleapsedTime());
                 stopWatch.resetTime();
-                textIO.write(this.outputAddress + "removedWords.txt", predicate.getNotNecessaryWordString());
             }
 
-            if (videos.size() == 0 || subtitles.size() == 0) {
-                throw new RuntimeException("no video or subtitle files");
-            }
+            textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
 
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {
@@ -348,6 +351,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             log.add("Summary done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Summary done!! : " + stopWatch.getEleapsedTime());
             log.add("FINISH");
+
+            textIO.write(this.outputAddress + "Param.txt", this.toString());
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -737,7 +742,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return necessaryWordPredicate;
     }
 
-    public void setNecessaryWordPredicate(Predicate<String> necessaryWordPredicate) {
+    public void setNecessaryWordPredicate(RemoveWordsPredicate necessaryWordPredicate) {
         this.necessaryWordPredicate = necessaryWordPredicate;
     }
 }

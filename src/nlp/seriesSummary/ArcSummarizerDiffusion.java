@@ -91,4 +91,14 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     public void setNormalized(boolean normalized) {
         isNormalized = normalized;
     }
+
+    @Override
+    public String toString() {
+        return "ArcSummarizerDiffusion{" +
+                "diffusionClustering=" + diffusionClustering +
+                ", sigma=" + sigma +
+                ", heatTime=" + heatTime +
+                ", isNormalized=" + isNormalized +
+                '}';
+    }
 }

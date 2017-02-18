@@ -28,8 +28,8 @@ import nlp.symbolSampler.SymbolSampler;
 import nlp.symbolSampler.TopKSymbol;
 import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SubsSplitter;
+import nlp.utils.EntropyStopWordPredicate;
 import nlp.utils.LowBowPrinter;
-import nlp.utils.NecessaryWordPredicate;
 import numeric.src.Distance;
 import numeric.src.MySet;
 import org.junit.Assert;
@@ -217,7 +217,7 @@ public class LowBowTests {
         bowManager.build();
 
         //build predicate
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.25);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.25);
 
         //lowbow representation
         for (int i = 0; i < subtitles.size(); i++) {
@@ -332,7 +332,7 @@ public class LowBowTests {
         }
         bowManager.build();
 
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.08);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.08);
 
         //lowbow representation
         for (int i = 0; i < 1; i++) {
@@ -400,7 +400,7 @@ public class LowBowTests {
             bowManager.build();
 
             //build predicate
-            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+            EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
 
             //lowbow representation
             SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
@@ -475,7 +475,7 @@ public class LowBowTests {
         }
         bowManager.build();
 
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.1);
 
         //lowbow representation
         int i = 0;
@@ -516,7 +516,7 @@ public class LowBowTests {
         }
         bowManager.build();
 
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.1);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.1);
 
         //lowbow representation
         int i = 0;
@@ -557,7 +557,7 @@ public class LowBowTests {
         bowManager.build();
 
         //build predicate
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.25);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.25);
 
         //lowbow representation
         for (int i = 0; i < subtitles.size(); i++) {
@@ -640,7 +640,7 @@ public class LowBowTests {
             bowManager.build();
             int simplexSize = bowManager.getSimplex().size();
             for (double entropy = beginEntropy; entropy <= 1.0; entropy += stepEntropy) {
-                NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+                EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
                 int size = predicate.getNotNecessaryWords().size();
                 double ratio = 1.0 * size / simplexSize;
                 System.out.println(entropy + "\t" + ratio);
@@ -705,7 +705,7 @@ public class LowBowTests {
             bowManager.build();
 
             //build predicate
-            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+            EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
 
             //lowbow representation
             SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
@@ -797,7 +797,7 @@ public class LowBowTests {
             bowManager.build();
 
             //build predicate
-            NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, entropy);
+            EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
 
             //lowbow representation
             SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();

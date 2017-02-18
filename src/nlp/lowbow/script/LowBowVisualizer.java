@@ -12,7 +12,7 @@ import nlp.lowbow.simpleLowBow.BaseLowBowManager;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
-import nlp.utils.NecessaryWordPredicate;
+import nlp.utils.EntropyStopWordPredicate;
 import numeric.src.Camera3D;
 import twoDimEngine.TwoDimEngine;
 import twoDimEngine.elements.Line2D;
@@ -88,7 +88,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
         }
         bowManager.build();
         //build predicate
-        NecessaryWordPredicate predicate = new NecessaryWordPredicate(bowManager, 0.2);
+        EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, 0.2);
 
         //delete
         predicate.setBowManager(null);

@@ -308,7 +308,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             this.setTitle(" FPS: " + format.format(aux));
         }
         this.engine.drawElements();
-//        this.engine.drawTree();
+        this.engine.drawTree();
         this.engine.paintImage(this.getGraphics());
     }
 
