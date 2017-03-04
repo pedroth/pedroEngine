@@ -6,8 +6,6 @@ import inputOutput.TextIO;
 import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
 import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.seriesSummary.ArcSummarizerDiffusion;
-import nlp.seriesSummary.ArcSummarizerLda;
 import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.symbolSampler.TopKSymbol;
@@ -25,17 +23,18 @@ public class ArcSummaryTest {
 
     @Test
     public void lowbowLdaStatistics() {
-        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/MrRobot/";
-        String fileExtension = "mkv";
+        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/BreakingBad/";
+        String fileExtension = "mp4";
         String output = seriesAddress + "summary";
         int numberOfCluster = 6;
-        double heat = 0.06;
-        double entropy = 0.00;
+        double heat = 0.04;
+        double entropy = 0.01;
         int knn = 5;
-        double timeArc = 15;
-        boolean cutVideo = true;
-        boolean concatVideo = true;
+        double timeArc = 10;
+        boolean cutVideo = false;
+        boolean concatVideo = false;
         LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+
         StopWordPredicate stopWordPredicate = StopWordPredicate.getInstance();
         RemoveWordsPredicate necessaryWordPredicate = new RemoveWordsPredicate() {
             @Override
@@ -70,32 +69,32 @@ public class ArcSummaryTest {
         ((ArcSummarizerSpectral) baseArcSummarizer).setAdrewEtAl(false);
         stack.add(baseArcSummarizer);
 
-        // spectral clustering Latent Dirichlet Allocation
-        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        stack.add(baseArcSummarizer);
+        //  Latent Dirichlet Allocation
+//        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+//        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+//        baseArcSummarizer.setCutVideo(cutVideo);
+//        baseArcSummarizer.setVideoConcat(concatVideo);
+//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+//        stack.add(baseArcSummarizer);
 
         // spectral clustering not normalized
-        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        stack.add(baseArcSummarizer);
+//        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+//        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+//        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
+//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+//        baseArcSummarizer.setCutVideo(cutVideo);
+//        baseArcSummarizer.setVideoConcat(concatVideo);
+//        stack.add(baseArcSummarizer);
 
         // diffusion clustering
-        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
-        ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        stack.add(baseArcSummarizer);
+//        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
+//        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+//        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
+//        ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
+//        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+//        baseArcSummarizer.setCutVideo(cutVideo);
+//        baseArcSummarizer.setVideoConcat(concatVideo);
+//        stack.add(baseArcSummarizer);
 
         // summary
         int i = 0;
@@ -104,37 +103,13 @@ public class ArcSummaryTest {
             System.out.println(baseArcSummarizer1.getClass());
             String outputAddress = output + Math.random();
             baseArcSummarizer1.buildSummary(outputAddress, timeArc);
-//            TextIO textIO = new TextIO();
-//            String intraDistanceHist = computeIntraDistanceHist(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, ArcSummarizerSpectral.cosineDist, 30);
-//            textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
-//            String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
-//            textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
+            TextIO textIO = new TextIO();
+            String intraDistanceHist = computeIntraDistanceHist(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, ArcSummarizerSpectral.cosineDist, 30);
+            textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
+            String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
+            textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
             i++;
         }
-
-
-//        Map<Integer, Vector> phis = stack.get(1).getGraphCentroidByClusterId();
-//
-//        StringBuilder stringBuilder = new StringBuilder();
-//        for (int i = 0; i < phis.size(); i++) {
-//            int size = stack.size();
-//            int[] indexCorr = new int[size];
-//            double[] distanceCorr = new double[size];
-//            for (int j = 0; j < size; j++) {
-//                Vec2 ans = findMaxJaccardIndex2Phi(phis.get(i), stack.get(j).getGraphCentroidByClusterId(), baseArcSummarizer.getLowBowManager().getSimplex());
-//                indexCorr[j] = (int) ans.getX();
-//                distanceCorr[j] = ans.getY();
-//            }
-//            for (int j = 0; j < size; j++) {
-//                stringBuilder.append("Topic " + i + ": " + indexCorr[j] + ", " + distanceCorr[j] + " ");
-//            }
-//            stringBuilder.append("\n");
-//        }
-//
-//        TextIO textIO = new TextIO();
-//        textIO.write(seriesAddress + "ldaTopicAssignment", stringBuilder.toString());
-
-
     }
 
     @Test

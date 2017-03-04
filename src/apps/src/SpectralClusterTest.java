@@ -74,10 +74,11 @@ public class SpectralClusterTest extends MyFrame {
         Map<Integer, java.util.List<Integer>> integerListMap;
         if (isDiffusion) {
             DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
-            integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-5, 50) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-5, 50);
+            integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 50) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 50);
         } else {
             SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
             spectralClustering.setNormalized(isNormalized);
+            spectralClustering.setAdrewEtAL(true);
             integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 50) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 50);
         }
         drawKnnGraph(knnGraph);

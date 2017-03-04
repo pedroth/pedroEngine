@@ -142,9 +142,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      */
     protected Map<Integer, Vector> graphCentroidByClusterId;
     /**
-     * The Average segmentlength.
+     * The Average segment length.
      */
-    protected double averageSegmentlength;
+    protected double averageSegmentLength;
     /**
      * The Standard deviation segment length.
      */
@@ -311,7 +311,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
             //segment statistics
             this.segmentLengthData = getSegmentLengthData();
-            this.averageSegmentlength = computeAverageSegmentLength();
+            this.averageSegmentLength = computeAverageSegmentLength();
             this.standardDeviationSegmentLength = computeStandardDeviationLength();
             rejectSegmentOutliers();
 
@@ -375,7 +375,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     //Not useful
     private void rejectSegmentOutliers() {
-        double mu = this.averageSegmentlength;
+        double mu = this.averageSegmentLength;
         double sigma = this.standardDeviationSegmentLength;
         for (int i = 0; i < segmentedBows.size(); i++) {
             double t = segmentedBows.get(i).getTimeIntervalMinutes();
@@ -391,7 +391,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         int size = segmentedBows.size();
         for (int i = 0; i < size; i++) {
             double t = segmentedBows.get(i).getTimeIntervalMinutes();
-            mu += (t - averageSegmentlength) * (t - averageSegmentlength);
+            mu += (t - averageSegmentLength) * (t - averageSegmentLength);
         }
         return Math.sqrt(mu / size);
     }
@@ -698,8 +698,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      *
      * @return the average segmentlength
      */
-    public double getAverageSegmentlength() {
-        return averageSegmentlength;
+    public double getAverageSegmentLength() {
+        return averageSegmentLength;
     }
 
     /**

@@ -96,7 +96,7 @@ public class DiffusionClustering {
 
         this.eigenValues = new Vector(spectralMethod.getEigenValues());
         Vector eigenValueCopy = new Vector(this.eigenValues);
-        eigenValueCopy.applyFunction((x) -> Math.exp(-x * heatTime));
+        eigenValueCopy.applyFunction(x -> Math.exp(-x * heatTime));
 
         int compressDim = eigenValues.size();
 

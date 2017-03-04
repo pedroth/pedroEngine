@@ -102,7 +102,7 @@ public class SpectralClustering {
         Matrix W = getWeightMatrix(similarityMeasure);
         Diagonal D = getDegreeMatrix(W);
         Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = (isNormalized || isAdrewEtAL) ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Matrix laplacianMatrix = (isNormalized && isAdrewEtAL) ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
 
         //compute eigenVectors
         maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
@@ -111,7 +111,7 @@ public class SpectralClustering {
         this.eigenCoeff = U;
         Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
-        if (isAdrewEtAL) {
+        if (isAdrewEtAL && isNormalized) {
             subMatrix = normalizeRows(subMatrix);
         } else if (isNormalized) {
             subMatrix = sqrt.prod(subMatrix);

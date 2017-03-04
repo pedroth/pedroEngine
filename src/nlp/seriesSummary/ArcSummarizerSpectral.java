@@ -60,7 +60,7 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
         }
         this.spectralClustering = new SpectralClustering(knnGraph);
         this.spectralClustering.setNormalized(isNormalized);
-        this.spectralClustering.setAdrewEtAL(false);
+        this.spectralClustering.setAdrewEtAL(isAdrewEtAl);
         return this.spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
     }
 
