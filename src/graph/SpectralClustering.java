@@ -4,25 +4,18 @@ import Jama.EigenvalueDecomposition;
 import algebra.src.Diagonal;
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import javafx.util.Pair;
 import numeric.src.HyperEigenAlgo;
 import numeric.src.Kmeans;
 import numeric.src.SymmetricEigen;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.function.Function;
 
 /**
  * The type Spectral clustering.
  */
-public class SpectralClustering {
-    private final static String CLASS_VERTEX_PROPERTY = "class";
-    private final KnnGraph graph;
-    private Map<Integer, List<Integer>> inverseClassification;
-    private Map<Integer, Integer> classification;
+public class SpectralClustering extends AbstractGraphClustering {
     private Matrix eigenCoeff;
     private boolean isNormalized = false;
     private boolean isAdrewEtAL = true;
@@ -36,7 +29,7 @@ public class SpectralClustering {
      * @param graph the graph
      */
     public SpectralClustering(KnnGraph graph) {
-        this.graph = new KnnGraph(graph);
+        super(graph);
     }
 
 
@@ -122,11 +115,10 @@ public class SpectralClustering {
         kmeans.runKmeans(k, epsilon, repetitions);
 
         //fix index to graph index
-        this.classification = fixIndexOfClassificationMap(kmeans.getClassification());
-        this.inverseClassification = fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
+        this.classification = super.fixIndexOfClassificationMap(kmeans.getClassification());
+        this.inverseClassification = super.fixIndexOfInverseClassificationMap(kmeans.getInverseClassification());
         return inverseClassification;
     }
-
 
     private Matrix normalizeRows(Matrix subMatrix) {
         Vector[] rowsVectors = subMatrix.getRowsVectors();
@@ -135,49 +127,6 @@ public class SpectralClustering {
         }
         return new Matrix(rowsVectors).transpose();
     }
-
-    /**
-     * returns a map where key is the number of the class a the value is the segmented graph with similarity function on the  edges
-     *
-     * @return the graph
-     */
-    public Map<Integer, Graph> getClusteredGraph() {
-        if (inverseClassification == null) {
-            return null;
-        }
-        Map<Integer, Graph> map = new HashMap<>(inverseClassification.size());
-        for (Map.Entry<Integer, List<Integer>> entry : inverseClassification.entrySet()) {
-            Integer kclass = entry.getKey();
-            Graph kgraph = segmentGraph(kclass);
-            map.put(kclass, kgraph);
-        }
-        return map;
-    }
-
-    private Graph segmentGraph(Integer kclass) {
-        Graph kgraph = new Graph();
-        Stack<Integer> stack = new Stack<>();
-
-        for (Integer index : inverseClassification.get(kclass)) {
-            stack.push(index);
-        }
-
-        while (!stack.empty()) {
-            Integer u = stack.pop();
-            kgraph.addVertex(u);
-            kgraph.putVertexProperty(u, CLASS_VERTEX_PROPERTY, kclass);
-            for (Integer v : graph.getAdjVertex(u)) {
-                if (graph.getVertexProperty(v, CLASS_VERTEX_PROPERTY) != kclass) {
-                    continue;
-                }
-                kgraph.addEdge(u, v);
-                Pair<Integer, Integer> pair = new Pair<>(u, v);
-                kgraph.putEdgeProperty(pair, Graph.EDGE_WEIGHT_KEY, graph.getEdgeProperty(pair, Graph.EDGE_WEIGHT_KEY));
-            }
-        }
-        return kgraph;
-    }
-
 
     private Matrix getWeightMatrix(Function<Double, Double> similarityMeasure) {
         Matrix adjacencyMatrix = this.graph.getAdjacencyMatrix();
@@ -207,62 +156,12 @@ public class SpectralClustering {
     }
 
     /**
-     * Gets inverse classification.
-     *
-     * @return the inverse classification
-     */
-    public Map<Integer, List<Integer>> getInverseClassification() {
-        return inverseClassification;
-    }
-
-    /**
-     * Gets graph.
-     *
-     * @return the graph
-     */
-    public KnnGraph getGraph() {
-        return graph;
-    }
-
-    /**
      * Gets eigen coeff.
      *
      * @return the eigen coeff
      */
     public Matrix getEigenCoeff() {
         return eigenCoeff;
-    }
-
-    public Map<Integer, Integer> getClassification() {
-        return classification;
-    }
-
-
-    private Map<Integer, List<Integer>> fixIndexOfInverseClassificationMap(Map<Integer, List<Integer>> map) {
-        Integer[] keyIndex = this.graph.getKeyIndex();
-        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
-            List<Integer> value = entry.getValue();
-            for (int i = 0; i < value.size(); i++) {
-                value.set(i, keyIndex[value.get(i)]);
-            }
-        }
-        for (Map.Entry<Integer, List<Integer>> entry : map.entrySet()) {
-            Integer kclass = entry.getKey();
-            for (Integer index : entry.getValue()) {
-                graph.putVertexProperty(index, CLASS_VERTEX_PROPERTY, kclass);
-            }
-        }
-        return map;
-    }
-
-    private Map<Integer, Integer> fixIndexOfClassificationMap(Map<Integer, Integer> map) {
-        Integer[] keyIndex = this.graph.getKeyIndex();
-        Map<Integer, Integer> ansMap = new HashMap<>(map.size());
-        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
-            Integer key = entry.getKey();
-            ansMap.put(keyIndex[key], entry.getValue());
-        }
-        return ansMap;
     }
 
     public boolean isNormalized() {

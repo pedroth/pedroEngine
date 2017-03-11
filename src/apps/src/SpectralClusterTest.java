@@ -29,7 +29,7 @@ public class SpectralClusterTest extends MyFrame {
     private boolean mySpectral = false;
     private boolean isNormalized = false;
     private boolean isDiffusion = false;
-    private double heatTime = 50;
+    private double heatTime = 10;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
@@ -120,7 +120,7 @@ public class SpectralClusterTest extends MyFrame {
     @Override
     public void updateDraw() {
         engine.clearImageWithBackground();
-//        engine.drawTree();
+        //engine.drawTree();
         engine.drawElements();
         engine.paintImage(this.getGraphics());
     }
