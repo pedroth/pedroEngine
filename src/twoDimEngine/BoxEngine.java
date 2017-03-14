@@ -8,6 +8,7 @@ import twoDimEngine.shaders.PaintMethod2D;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class BoxEngine extends AbstractEngine2D {
     private static int nextID = 0;
@@ -30,7 +31,7 @@ public class BoxEngine extends AbstractEngine2D {
         }
     }
 
-    public void buildBoundigBoxTree() {
+    public void buildBoundingBoxTree() {
         tree = new Node();
         for (AbstractDrawAble2D th : things) {
             if (th.isDestroyed()) {
@@ -43,7 +44,7 @@ public class BoxEngine extends AbstractEngine2D {
         }
     }
 
-    public void addtoTree(AbstractDrawAble2D e) {
+    public void addToTree(AbstractDrawAble2D e) {
         things.add(e);
         Leaf node = new Leaf(e);
         leafByIdMap.put(node.getId(), node);
@@ -55,17 +56,17 @@ public class BoxEngine extends AbstractEngine2D {
         setCamera(alpha * rectangle.getXmin(), alpha * rectangle.getXmax(), alpha * rectangle.getYmin(), alpha * rectangle.getYmax());
     }
 
-    public void addtoList(AbstractDrawAble2D e) {
+    public void addToList(AbstractDrawAble2D e) {
         things.add(e);
     }
 
-    public void addtoList(AbstractDrawAble2D e, PaintMethod2D painter) {
+    public void addToList(AbstractDrawAble2D e, PaintMethod2D painter) {
         e.setMyPainter(painter);
         things.add(e);
     }
 
     public List<AbstractDrawAble2D> getThingsOnRectangle(BoundingBox rect) {
-        List<AbstractDrawAble2D> list = new ArrayList<AbstractDrawAble2D>();
+        List<AbstractDrawAble2D> list = new ArrayList<>();
         tree.retrieve(rect, list);
         return list;
     }
@@ -89,17 +90,17 @@ public class BoxEngine extends AbstractEngine2D {
         Graph graph = new Graph();
 
         for (Integer id : leafByIdMap.keySet()) {
-            unvisitNode(tree);
+            unvisitedNode(tree);
             visitLeaf(id, k, graph);
         }
         return graph;
     }
 
-    private void unvisitNode(Node node) {
+    private void unvisitedNode(Node node) {
         node.setVisited(false);
         for (Node child : node.children) {
             if (child != null) {
-                unvisitNode(child);
+                unvisitedNode(child);
             }
         }
     }
@@ -150,6 +151,10 @@ public class BoxEngine extends AbstractEngine2D {
 
     public void removeAllElements() {
         things.removeAll(things);
+    }
+
+    public void removeAllElements(Predicate<AbstractDrawAble2D> predicate) {
+        things.removeIf(predicate);
     }
 
 

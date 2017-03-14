@@ -13,8 +13,8 @@ import java.util.Set;
 
 public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     private DiffusionClustering diffusionClustering;
-    private double sigma = 0.0;
-    private double heatTime = 1.0;
+    private double sigma;
+    private double heatTime;
     private boolean isNormalized = false;
 
     /**
@@ -42,10 +42,18 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
         if (sigma == 0.0) {
             computeSigma();
         }
+        if (heatTime == 0.0) {
+            computeHeatTime();
+        }
         this.diffusionClustering = new DiffusionClustering(knnGraph);
         this.diffusionClustering.setNormalized(isNormalized);
         return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
     }
+
+    private void computeHeatTime() {
+
+    }
+
 
     private void computeSigma() {
         DistanceMatrix distanceMatrix = knnGraph.getDistanceMatrix();

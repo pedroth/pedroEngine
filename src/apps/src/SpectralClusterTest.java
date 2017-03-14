@@ -2,10 +2,7 @@ package apps.src;
 
 import algebra.src.Vec2;
 import apps.utils.MyFrame;
-import graph.DiffusionClustering;
-import graph.Graph;
-import graph.KnnGraph;
-import graph.SpectralClustering;
+import graph.*;
 import twoDimEngine.BoxEngine;
 import twoDimEngine.elements.Line2D;
 import twoDimEngine.elements.Point2D;
@@ -29,11 +26,13 @@ public class SpectralClusterTest extends MyFrame {
     private boolean mySpectral = false;
     private boolean isNormalized = false;
     private boolean isDiffusion = false;
-    private double heatTime = 10;
+    private double heatTime = 1;
+    private boolean cutSegment = false;
     private KnnGraph<Vec2> knnGraph;
     private BoxEngine engine;
     private PaintMethod2D shader;
     private ArrayList<Vec2> points;
+    private AbstractGraphClustering graphClustering;
 
     public SpectralClusterTest(String title, int width, int height) {
         super(title, width, height);
@@ -59,7 +58,7 @@ public class SpectralClusterTest extends MyFrame {
             Point2D e = new Point2D(points.get(i));
             e.setColor(Color.black);
             e.setRadius(0.01);
-            engine.addtoList(e, shader);
+            engine.addToList(e, shader);
         }
     }
 
@@ -75,15 +74,17 @@ public class SpectralClusterTest extends MyFrame {
         if (isDiffusion) {
             DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
             integerListMap = mySpectral ? diffusionClustering.clustering(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 50) : diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-x), 1E-10, 50);
+            graphClustering = diffusionClustering;
         } else {
             SpectralClustering spectralClustering = new SpectralClustering(knnGraph);
             spectralClustering.setNormalized(isNormalized);
             spectralClustering.setAdrewEtAL(true);
             integerListMap = mySpectral ? spectralClustering.clustering(kcluster, (x) -> Math.exp(-x), 1E-10, 50) : spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-x), 1E-10, 50);
+            graphClustering = spectralClustering;
         }
         drawKnnGraph(knnGraph);
         drawClassification(integerListMap);
-        engine.buildBoundigBoxTree();
+        engine.buildBoundingBoxTree();
         engine.setCameraAuto(1.25);
     }
 
@@ -100,13 +101,13 @@ public class SpectralClusterTest extends MyFrame {
                 Point2D e = new Point2D(points.get(index - 1));
                 e.setRadius(0.1);
                 e.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));
-                engine.addtoList(e, shader);
+                engine.addToList(e, shader);
                 double var = 0.25;
                 Vec2 rand = new Vec2(var * Math.random(), var * Math.random());
                 String2D kclass = new String2D(Vec2.add(points.get(index - 1), rand), "" + i);
                 kclass.setColor(Color.getHSBColor(colorsHSv[i], 1.0f, 1.0f));
                 kclass.setFontSize(10);
-                engine.addtoList(kclass);
+                engine.addToList(kclass);
             }
             i++;
         }
@@ -120,9 +121,32 @@ public class SpectralClusterTest extends MyFrame {
     @Override
     public void updateDraw() {
         engine.clearImageWithBackground();
+        if (cutSegment) {
+            cutSegmentDraw();
+        }
         //engine.drawTree();
         engine.drawElements();
         engine.paintImage(this.getGraphics());
+    }
+
+    private void cutSegmentDraw() {
+        engine.removeAllElements(z -> z.getClass() == Line2D.class);
+        if (graphClustering != null) {
+            if (time % 3 < 1) {
+                drawKnnGraph(knnGraph);
+            } else {
+                Map<Integer, Graph> clusteredGraph = graphClustering.getClusteredGraph();
+                for (Map.Entry<Integer, Graph> entry : clusteredGraph.entrySet()) {
+                    Graph graph = entry.getValue();
+                    for (Integer v : graph.getVertexSet()) {
+                        graph.putVertexProperty(v, "pos", knnGraph.getVertexProperty(v, "pos"));
+                    }
+                }
+                clusteredGraph.forEach((x, y) -> drawKnnGraph(y));
+            }
+            engine.buildBoundingBoxTree();
+            engine.setCameraAuto(1.25);
+        }
     }
 
     private void drawKnnGraph(Graph knnGraph) {
@@ -130,7 +154,7 @@ public class SpectralClusterTest extends MyFrame {
             for (Integer v : knnGraph.getAdjVertex(u)) {
                 Line2D line = new Line2D(knnGraph.getVertexProperty(u, "pos"), knnGraph.getVertexProperty(v, "pos"));
                 line.setColor(Color.black);
-                engine.addtoList(line, shader);
+                engine.addToList(line, shader);
             }
         }
     }
@@ -138,6 +162,13 @@ public class SpectralClusterTest extends MyFrame {
     @Override
     public void keyPressed(KeyEvent arg0) {
         switch (arg0.getKeyCode()) {
+            case KeyEvent.VK_P:
+                graphClustering.getClusteredGraph().forEach((x, y) -> System.out.println(y.toStringGephi()));
+                break;
+            case KeyEvent.VK_C:
+                cutSegment = !cutSegment;
+                System.out.println(cutSegment);
+                break;
             case KeyEvent.VK_M:
                 mySpectral = !mySpectral;
                 System.out.println("mySpectral: " + mySpectral);
@@ -258,27 +289,27 @@ public class SpectralClusterTest extends MyFrame {
         Point2D e = new Point2D(points.get(0));
         e.setColor(Color.black);
         e.setRadius(0.01);
-        engine.addtoList(e, shader);
+        engine.addToList(e, shader);
         points.add(new Vec2(0.5, -0.5));
         e = new Point2D(points.get(1));
         e.setColor(Color.black);
         e.setRadius(0.01);
-        engine.addtoList(e, shader);
+        engine.addToList(e, shader);
         points.add(new Vec2(0.5, 0.5));
         e = new Point2D(points.get(2));
         e.setColor(Color.black);
         e.setRadius(0.01);
-        engine.addtoList(e, shader);
+        engine.addToList(e, shader);
         points.add(new Vec2(-0.5, 0.5));
         e = new Point2D(points.get(3));
         e.setColor(Color.black);
         e.setRadius(0.01);
-        engine.addtoList(e, shader);
+        engine.addToList(e, shader);
         points.add(new Vec2(3, 0));
         e = new Point2D(points.get(4));
         e.setColor(Color.black);
         e.setRadius(0.01);
-        engine.addtoList(e, shader);
+        engine.addToList(e, shader);
     }
 
 }

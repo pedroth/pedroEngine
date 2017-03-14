@@ -27,7 +27,11 @@ public class Line2D extends Element2D {
 
 	@Override
 	public BoundingBox getBoundingBox() {
-		return new BoundingBox(Math.min(vertices[0].getX(), vertices[1].getX()), Math.min(vertices[0].getY(), vertices[1].getY()), Math.max(vertices[0].getX(), vertices[1].getX()), Math.max(vertices[0].getY(), vertices[1].getY()));
+		double x = vertices[0].getX();
+		double x1 = vertices[1].getX();
+		double y = vertices[0].getY();
+		double y1 = vertices[1].getY();
+		return new BoundingBox(Math.min(x, x1), Math.min(y, y1), Math.max(x, x1), Math.max(y, y1));
 	}
 
 }

@@ -122,7 +122,7 @@ public class EigenSimulation extends MyFrame {
         Matrix diagonal = Matrix.diag(new Vec3(0, 0.5, 4));
         LineLaplacian lineLaplacian = new LineLaplacian(3);
         Matrix symMatrix1 = new Matrix(new double[][]{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
-        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, lineLaplacian, true);
+        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
         Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
         Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
         Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.9, 0.1, 0.1)), eigenSimulation.new HyperMethod());
@@ -631,127 +631,120 @@ public class EigenSimulation extends MyFrame {
         int nn = n * n;
         double[] texOrig = new double[nn];
         Vec2[] vecField = new Vec2[nn];
-        Vec2[] intDirField = new Vec2[nn];
+        int[][] intDirField = new int[nn][2];
         double[] tex = new double[nn];
         int kernelSize = 15;
 
         public Lic() {
             Camera3D cam = new Camera3D();
+            int[] zeroInt = sphereCoordinate2Int(new Vec2(0, 0));
+
             for (int i = 0; i < nn; i++) {
                 texOrig[i] = Math.random();
                 double x = -Math.PI + ((i % n) * (2 * Math.PI)) / (n - 1);
-                double y = Math.PI - ((i / n) * (2 * Math.PI)) / (n - 1);
+                double y = -Math.PI + ((i / n) * (2 * Math.PI)) / (n - 1);
                 cam.setRaw(new Vec3(1.0, x, y));
                 cam.update(0);
                 Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(symMatrix.prodVector(cam.getEye())));
                 vecField[i] = new Vec2(grad.getX(), grad.getY());
-                int[] v1 = sphereCoor2Int(new Vec2(grad.getX(), grad.getY()));
-                int[] v2 = sphereCoor2Int(new Vec2(0, 0));
-                int[] adjV = getAdjTex(new int[]{0, 0}, new int[]{v1[0] - v2[0], v1[1] - v2[0]});
-                intDirField[i] = new Vec2(adjV[0], adjV[1]);
+                int[] v1 = sphereCoordinate2Int(vecField[i]);
+                int[] adjV = new int[]{v1[0] - zeroInt[0], v1[1] - zeroInt[0]};
+                intDirField[i] = adjV;
             }
-
             for (int i = 0; i < nn; i++) {
-                double x = -Math.PI + ((i % n) * (2 * Math.PI)) / (n - 1);
-                double y = Math.PI - ((i / n) * (2 * Math.PI)) / (n - 1);
-                tex[i] = getTexOrig(new Vec2(x, y), kernelSize);
+                tex[i] = getTexOrig(i, kernelSize);
             }
         }
 
         @Override
         public Vec3 getColor(Vec3 inter, Sphere sphere) {
             inter = Vec3.diff(inter, sphere.getPos());
-            Vec2 interSphereCoord = new Vec2(Math.atan2(inter.getY(), inter.getX()), Math.asin(inter.getZ()));
-            Vec2 x = sphereCoor2IntDouble(interSphereCoord);
-            int[] xfloor = sphereCoor2Int(interSphereCoord);
-            double f11 = getTex(xfloor);
-            double f21 = getTex(new int[]{(xfloor[0] + 1) % n, xfloor[1]});
-            double f12 = getTex(new int[]{xfloor[0], (xfloor[1] + 1) % n});
-            double f22 = getTex(new int[]{(xfloor[0] + 1) % n, (xfloor[1] + 1) % n});
-            double f1 = f11 + (f21 - f11) * (x.getX() - xfloor[0]);
-            double f2 = f12 + (f22 - f12) * (x.getX() - xfloor[0]);
-            double f = f1 + (f2 - f1) * (x.getY() - xfloor[1]);
+            Vec2 interSphereCoordinate = new Vec2(Math.atan2(inter.getY(), inter.getX()), Math.asin(inter.getZ()));
+            double[] x = sphereCoordinate2Grid(interSphereCoordinate);
+            int[] xFloor = sphereCoordinate2Int(interSphereCoordinate);
+            double f11 = getTex(xFloor);
+            double f21 = getTex(new int[]{(xFloor[0] + 1) % n, xFloor[1]});
+            double f12 = getTex(new int[]{xFloor[0], (xFloor[1] + 1) % n});
+            double f22 = getTex(new int[]{(xFloor[0] + 1) % n, (xFloor[1] + 1) % n});
+            double f1 = f11 + (f21 - f11) * (x[0] - xFloor[0]);
+            double f2 = f12 + (f22 - f12) * (x[0] - xFloor[0]);
+            double f = f1 + (f2 - f1) * (x[1] - xFloor[1]);
             return new Vec3(f, f, f);
         }
 
-        private double getTexOrig(Vec2 interSphereCoord, int steps) {
+        private double getTexOrig(int xy, int steps) {
+            int[] p = new int[]{xy % n, xy / n};
             double acc = 0;
-            int[] i = sphereCoor2Int(interSphereCoord);
-            int[] copyI = {i[0], i[1]};
-            acc += getTexOrig(i);
-            for (int j = 0; j < steps / 2; j++) {
-                i = getNextTex(i, 1);
-                acc += getTexOrig(i);
-            }
-            i[0] = copyI[0];
-            i[1] = copyI[1];
-            for (int j = 0; j < steps / 2; j++) {
-                i = getNextTex(i, -1);
-                acc += getTexOrig(i);
-            }
-            acc /= steps;
-            return acc;
+            int[] v = intDirField[xy];
+            acc += averageColorInDir(p, v, steps / 2);
+            acc += averageColorInDir(p, new int[]{-v[0], -v[1]}, steps / 2);
+            return acc / 2;
         }
 
-        private int[] getNextTex(int[] i, int dir) {
-            Vec2 v = getVecTex(i);
-            Vec2 p = Vec2.add(new Vec2(i[0], i[1]), Vec2.scalarProd(dir, v));
-            return new int[]{MyMath.positiveMod((int) p.getX(), n), MyMath.positiveMod((int) p.getY(), n)};
-        }
+        private double averageColorInDir(int[] p, int[] v, int steps) {
+            int[] index = new int[]{-1, 0, 1};
 
-        private int[] getAdjTex(int[] init, int[] next) {
-            int[] k = {-1, 0, 1};
-            int length = k.length;
-            int lenlen = length * length;
+            int m = index.length;
+            int mm = m * m;
 
-            int[] diffVec = new int[]{next[0] - init[0], next[1] - init[1]};
+            int[] x = new int[2];
+            x[0] = p[0];
+            x[1] = p[1];
 
-            Vec2 diffAux = new Vec2(diffVec[0], diffVec[1]);
-            diffAux = Vec2.normalize(diffAux);
+            int[] normal = new int[2];
+            normal[0] = -v[1];
+            normal[1] = v[0];
 
-            double max = Double.MIN_VALUE;
-            int maxIndex = -1;
+            double acc = getTexOrig(x);
+            int iter = 0;
+            int[] nextX = new int[2];
 
-            for (int index = 0; index < lenlen; index++) {
-                Vec2 dir = new Vec2(k[index % length], k[index / length]);
-                dir = Vec2.normalize(dir);
-                double dot = Vec2.innerProd(diffAux, dir);
-                if (max < dot) {
-                    max = dot;
-                    maxIndex = index;
+            while (iter < steps) {
+                double fmin = Double.MAX_VALUE;
+                int[] minDir = new int[2];
+                for (int k = 0; k < mm; k++) {
+                    int i = index[k % m];
+                    int j = index[((int) Math.floor(k % mm / m))];
+
+                    nextX[0] = x[0] + i;
+                    nextX[1] = x[1] + j;
+
+                    double f = Math.abs(v[0] * normal[0] + v[1] * normal[1]) - ((nextX[0] - p[0]) * v[0] + (nextX[1] - p[1]) * v[1]);
+                    if (fmin > f) {
+                        fmin = f;
+                        minDir[0] = i;
+                        minDir[1] = j;
+                    }
                 }
-            }
 
-            if (maxIndex == -1) {
-                return init;
+                x[0] += minDir[0];
+                x[1] += minDir[1];
+
+                acc += getTexOrig(x);
+                iter++;
             }
-            return new int[]{init[0] + k[maxIndex % length], init[1] + k[maxIndex / length]};
+            return acc / steps;
         }
 
         double getTex(int[] i) {
-            i[0] = MyMath.positiveMod(i[0], n);
-            i[1] = MyMath.positiveMod(i[1], n);
-            return tex[i[0] + n * i[1]];
+            int x = (int) MyMath.clamp(i[0], 0, n - 1);
+            int y = MyMath.positiveMod(i[1], n);
+            return tex[y + n * x];
         }
 
         double getTexOrig(int[] i) {
-            i[0] = MyMath.positiveMod(i[0], n);
-            i[1] = MyMath.positiveMod(i[1], n);
-            return texOrig[i[0] + n * i[1]];
+            int x = (int) MyMath.clamp(i[0], 0, n - 1);
+            int y = MyMath.positiveMod(i[1], n);
+            return texOrig[y + n * x];
         }
 
-        Vec2 getVecTex(int[] i) {
-            i[0] = MyMath.positiveMod(i[0], n);
-            i[1] = MyMath.positiveMod(i[1], n);
-            return intDirField[i[0] + n * i[1]];
+        int[] sphereCoordinate2Int(Vec2 x) {
+            double[] doubles = sphereCoordinate2Grid(x);
+            return new int[]{(int) Math.floor(doubles[0]), (int) Math.floor(doubles[1])};
         }
 
-        int[] sphereCoor2Int(Vec2 coord) {
-            return new int[]{(int) Math.floor(getIntCoordinate(coord.getX(), -Math.PI, Math.PI, n)), (int) Math.floor(getIntCoordinate(coord.getY(), Math.PI, -Math.PI, n))};
-        }
-
-        Vec2 sphereCoor2IntDouble(Vec2 coord) {
-            return new Vec2(getIntCoordinate(coord.getX(), -Math.PI, Math.PI, n), getIntCoordinate(coord.getY(), Math.PI, -Math.PI, n));
+        double[] sphereCoordinate2Grid(Vec2 x) {
+            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), Math.PI, -Math.PI, n)};
         }
 
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {

@@ -76,12 +76,11 @@ public class Camera3D {
 	}
 
 	/**
-	 * Update void.
+	 * Update camera position.
 	 *
 	 * @param dt the dt
 	 */
 	public void update(double dt) {
-		dt = Math.min(dt, 0.05);
 		double accX = (thrust.getX() - velRaw.getX());
 		double accY = (thrust.getY() - velRaw.getY());
 		double accZ = (thrust.getZ() - velRaw.getZ());

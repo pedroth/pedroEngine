@@ -64,7 +64,7 @@ public class DiffusionDistanceTest extends MyFrame {
             Point2D e = new Point2D(points.get(i));
             e.setColor(Color.black);
             e.setRadius(0.01);
-            engine.addtoList(e, shader);
+            engine.addToList(e, shader);
         }
     }
 
@@ -84,7 +84,7 @@ public class DiffusionDistanceTest extends MyFrame {
         eigenValues = new Vector(eigenvalueDecomposition.getRealEigenvalues());
         eigenValues.applyFunction((x) -> -x);
         drawHeatKernel();
-        engine.buildBoundigBoxTree();
+        engine.buildBoundingBoxTree();
         engine.setCameraAuto(1.25);
     }
 
@@ -103,7 +103,7 @@ public class DiffusionDistanceTest extends MyFrame {
             double intensity = (f.getX(i + 1) - min) / (max - min);
             float[] heatColor = getHeatColor(intensity);
             e.setColor(new Color(heatColor[0], heatColor[1], heatColor[2]));
-            engine.addtoList(e, shader);
+            engine.addToList(e, shader);
         }
     }
 
@@ -133,7 +133,7 @@ public class DiffusionDistanceTest extends MyFrame {
             for (Integer v : knnGraph.getAdjVertex(u)) {
                 Line2D line = new Line2D(knnGraph.getVertexProperty(u, "pos"), knnGraph.getVertexProperty(v, "pos"));
                 line.setColor(Color.black);
-                engine.addtoList(line, shader);
+                engine.addToList(line, shader);
             }
         }
     }

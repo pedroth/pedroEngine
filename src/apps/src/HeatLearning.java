@@ -362,7 +362,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         this.points.removeAll(this.points);
         this.output.removeAll(this.output);
         this.engine.removeAllElements();
-        this.engine.buildBoundigBoxTree();
+        this.engine.buildBoundingBoxTree();
     }
 
     @Override
@@ -495,7 +495,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Point2D e = new Point2D(mouse);
         e.setRadius(dataRadius);
         e.setColor(out ? Color.green : Color.red);
-        this.engine.addtoTree(e);
+        this.engine.addToTree(e);
 
     }
 
