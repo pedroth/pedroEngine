@@ -119,10 +119,10 @@ public class EigenSimulation extends MyFrame {
         Matrix symMatrix = new Matrix(3, 3);
         symMatrix.fillRandom(-10, 10);
         symMatrix = Matrix.add(symMatrix, Matrix.transpose(symMatrix));
-        Matrix diagonal = Matrix.diag(new Vec3(0, 0.5, 4));
+        Matrix diagonal = Matrix.diag(new Vec3(1, 0.5, 0.25));
         LineLaplacian lineLaplacian = new LineLaplacian(3);
         Matrix symMatrix1 = new Matrix(new double[][]{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
-        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
+        EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, diagonal, true);
         Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
         Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
         Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.9, 0.1, 0.1)), eigenSimulation.new HyperMethod());
@@ -645,10 +645,11 @@ public class EigenSimulation extends MyFrame {
                 double y = -Math.PI + ((i / n) * (2 * Math.PI)) / (n - 1);
                 cam.setRaw(new Vec3(1.0, x, y));
                 cam.update(0);
-                Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(symMatrix.prodVector(cam.getEye())));
+                Matrix matrix = new Matrix(new double[][]{{0, -1, 0}, {1, 0, 0}, {0, 0, 0}});
+                Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(matrix.prodVector(cam.getEye())));
                 vecField[i] = new Vec2(grad.getX(), grad.getY());
                 int[] v1 = sphereCoordinate2Int(vecField[i]);
-                int[] adjV = new int[]{v1[0] - zeroInt[0], v1[1] - zeroInt[0]};
+                int[] adjV = new int[]{0, 10};
                 intDirField[i] = adjV;
             }
             for (int i = 0; i < nn; i++) {
@@ -659,7 +660,8 @@ public class EigenSimulation extends MyFrame {
         @Override
         public Vec3 getColor(Vec3 inter, Sphere sphere) {
             inter = Vec3.diff(inter, sphere.getPos());
-            Vec2 interSphereCoordinate = new Vec2(Math.atan2(inter.getY(), inter.getX()), Math.asin(inter.getZ()));
+            double phi = Math.asin(inter.getZ());
+            Vec2 interSphereCoordinate = new Vec2(Math.atan2(inter.getY(), inter.getX()), phi);
             double[] x = sphereCoordinate2Grid(interSphereCoordinate);
             int[] xFloor = sphereCoordinate2Int(interSphereCoordinate);
             double f11 = getTex(xFloor);
@@ -681,7 +683,7 @@ public class EigenSimulation extends MyFrame {
             return acc / 2;
         }
 
-        private double averageColorInDir(int[] p, int[] v, int steps) {
+        private double averageColorInDir(final int[] p, final int[] v, int steps) {
             int[] index = new int[]{-1, 0, 1};
 
             int m = index.length;
@@ -697,11 +699,11 @@ public class EigenSimulation extends MyFrame {
 
             double acc = getTexOrig(x);
             int iter = 0;
-            int[] nextX = new int[2];
 
             while (iter < steps) {
                 double fmin = Double.MAX_VALUE;
                 int[] minDir = new int[2];
+                int[] nextX = new int[2];
                 for (int k = 0; k < mm; k++) {
                     int i = index[k % m];
                     int j = index[((int) Math.floor(k % mm / m))];
@@ -709,7 +711,7 @@ public class EigenSimulation extends MyFrame {
                     nextX[0] = x[0] + i;
                     nextX[1] = x[1] + j;
 
-                    double f = Math.abs(v[0] * normal[0] + v[1] * normal[1]) - ((nextX[0] - p[0]) * v[0] + (nextX[1] - p[1]) * v[1]);
+                    double f = Math.abs((nextX[0] - p[0]) * normal[0] + (nextX[1] - p[1]) * normal[1]) - ((nextX[0] - p[0]) * v[0] + (nextX[1] - p[1]) * v[1]);
                     if (fmin > f) {
                         fmin = f;
                         minDir[0] = i;
@@ -744,7 +746,7 @@ public class EigenSimulation extends MyFrame {
         }
 
         double[] sphereCoordinate2Grid(Vec2 x) {
-            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), Math.PI, -Math.PI, n)};
+            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n)};
         }
 
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {

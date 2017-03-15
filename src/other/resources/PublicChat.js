@@ -3,6 +3,10 @@ var index = -1;
 var timeOutTime = 100;
 
 
+function generateNotification(title, text) {
+    var notification = new Notification(title, { body: text});
+}
+
 function getChat() {
     $.ajax({
         method:"POST",
@@ -31,6 +35,9 @@ function getChat() {
                         $("#chat").append("<p>" + id + " > <a target='_blank' href='" + text +  "'>" + text + "</a></p>");
                     } else {
                         $("#chat").append("<p>" + id + " > " + text + "</p>");
+                    }
+                    if(id !== uID) {
+                        generateNotification("PublicChat", id + " > " + text);
                     }
                 }
                 index += chat.log.length;
@@ -96,3 +103,8 @@ $("#myIdIn").val(uID);
 
 hideIfMobile();
 getChat();
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (Notification.permission !== "granted")
+    Notification.requestPermission();
+});
