@@ -1,6 +1,10 @@
 package apps.src;
 
-import algebra.src.*;
+import algebra.src.LineLaplacian;
+import algebra.src.Matrix;
+import algebra.src.Vec2;
+import algebra.src.Vec3;
+import algebra.src.Vector;
 import apps.utils.MyFrame;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
@@ -26,10 +30,12 @@ public class EigenSimulation extends MyFrame {
      * Ray trace Image parameters
      */
     private static final int MIN_SAMPLES = 200;
+
     /*
      * max ray trace vision
      */
     private static final int MAX_SAMPLES = 400;
+
     /**
      * The Max vision.
      */
@@ -37,28 +43,39 @@ public class EigenSimulation extends MyFrame {
      * The Max vision.
      */
     double maxVision = 10.0;
+
     private int sqrtSamples;
+
     private int samples;
+
     private int[] colorBuffer;
+
     /*
      * Engine
      */
     private TwoDimEngine engine;
+
     private String2D fps;
+
     /*
      * Symmetric Matrix
      */
     private Matrix symMatrix;
+
     private Double[] eigenValues;
+
     private Vector[] eigenVector;
+
     /*
      * Camera
      */
     private Camera3D camera;
+
     /*
      * Spheres array
      */
     private List<Sphere> spheres = new ArrayList<>(1);
+
     /*
      * mouse coordinates
      */
@@ -71,8 +88,8 @@ public class EigenSimulation extends MyFrame {
     /**
      * Instantiates a new My frame.
      *
-     * @param title  the title
-     * @param width  the width
+     * @param title the title
+     * @param width the width
      * @param height the height
      */
     public EigenSimulation(String title, int width, int height, Matrix symMatrix, boolean isSmoothAnimation) {
@@ -80,7 +97,6 @@ public class EigenSimulation extends MyFrame {
 
         //init matrix
         this.setSymMatrix(symMatrix);
-
 
         this.isSmoothAnimation = isSmoothAnimation;
 
@@ -103,7 +119,6 @@ public class EigenSimulation extends MyFrame {
         principalSphere = new Sphere(new Vec3(0, 0, 0), 1.0, new HeatShader(), null);
         spheres.add(principalSphere);
 
-
         //init camera
         this.camera = new Camera3D();
         this.camera.setRaw(new Vec3(3, 0, 0));
@@ -121,11 +136,11 @@ public class EigenSimulation extends MyFrame {
         symMatrix = Matrix.add(symMatrix, Matrix.transpose(symMatrix));
         Matrix diagonal = Matrix.diag(new Vec3(0, 0.5, 4));
         LineLaplacian lineLaplacian = new LineLaplacian(3);
-        Matrix symMatrix1 = new Matrix(new double[][]{{1, 1, 1}, {1, 1, 1}, {1, 1, 1}});
+        Matrix symMatrix1 = new Matrix(new double[][] { { 1, 1, 1 }, { 1, 1, 1 }, { 1, 1, 1 } });
         EigenSimulation eigenSimulation = new EigenSimulation("Eigen Simulation", 500, 500, symMatrix, true);
-        Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.1, 0.9)), eigenSimulation.new Instrisic());
-        Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.1, 0.9, 0.1)), eigenSimulation.new PowerMethod());
-        Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, eigenSimulation.new SimpleShader(new Vec3(0.9, 0.1, 0.1)), eigenSimulation.new HyperMethod());
+        Sphere sphere1 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, new SimpleShader(new Vec3(0.1, 0.1, 0.9)), new Intrinsic());
+        Sphere sphere2 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, new SimpleShader(new Vec3(0.1, 0.9, 0.1)), new PowerMethod());
+        Sphere sphere3 = eigenSimulation.new Sphere(new Vec3(1, 0, 0), 0.1, new SimpleShader(new Vec3(0.9, 0.1, 0.1)), new HyperMethod());
         eigenSimulation.addSphereEigenUpdate(sphere1);
         eigenSimulation.addSphereEigenUpdate(sphere2);
         eigenSimulation.addSphereEigenUpdate(sphere3);
@@ -247,7 +262,7 @@ public class EigenSimulation extends MyFrame {
     /**
      * Shade vec 3.
      *
-     * @param inter  the inter
+     * @param inter the inter
      * @param sphere the sphere
      * @return the vec 3
      */
@@ -263,8 +278,8 @@ public class EigenSimulation extends MyFrame {
      * Return a point p where p = init + dir * t
      *
      * @param init the init
-     * @param dir  the dir
-     * @param t    the t
+     * @param dir the dir
+     * @param t the t
      * @return init + dir * t
      */
     Vector line(Vector init, Vector dir, double t) {
@@ -297,7 +312,7 @@ public class EigenSimulation extends MyFrame {
         double ymin = engine.getYmin(), ymax = engine.getYmax();
         double dx = (xmax - xmin) / n;
         double dy = (ymax - ymin) / n;
-        int upperBound = (int) ((1.0 / dx) * ((1.5 / camera.getRaw().getX()) - xmin));
+        int upperBound = (int) (1.0 / dx * (1.5 / camera.getRaw().getX() - xmin));
         upperBound = Math.min(upperBound, n);
         int lowerBound = n - upperBound;
 
@@ -380,7 +395,6 @@ public class EigenSimulation extends MyFrame {
     @Override
     public void keyPressed(KeyEvent e) {
 
-
     }
 
     @Override
@@ -449,8 +463,8 @@ public class EigenSimulation extends MyFrame {
             thrust.setY(2 * Math.PI * (dx / widthChanged));
             thrust.setZ(2 * Math.PI * (dy / heightChanged));
         } else {
-            raw.setX(raw.getX() + (dx / widthChanged) + (dy / heightChanged));
-            thrust.setX(((dx / widthChanged) + (dy / heightChanged)));
+            raw.setX(raw.getX() + dx / widthChanged + dy / heightChanged);
+            thrust.setX(dx / widthChanged + dy / heightChanged);
         }
         mx = newMx;
         my = newMy;
@@ -465,7 +479,7 @@ public class EigenSimulation extends MyFrame {
         /**
          * Get color.
          *
-         * @param inter  the inter
+         * @param inter the inter
          * @param sphere the sphere
          * @return the double [ ]
          */
@@ -476,15 +490,17 @@ public class EigenSimulation extends MyFrame {
         Vector update(Matrix symMatrix, Vector init);
     }
 
-
     /**
      * The type Sphere.
      */
     private class Sphere {
 
         private Vec3 pos;
+
         private double radius;
+
         private SphereShader sphereShader;
+
         private EigenUpdate algo;
 
         public Sphere(Vec3 pos, double radius, SphereShader sphereShader, EigenUpdate algo) {
@@ -529,7 +545,6 @@ public class EigenSimulation extends MyFrame {
         public void setRadius(double radius) {
             this.radius = radius;
         }
-
 
         /**
          * Gets sphere shader.
@@ -591,13 +606,12 @@ public class EigenSimulation extends MyFrame {
 
         @Override
         public Vec3 getRgbFromIntensity(double intensity) {
-            double red = MyMath.clamp((10.0 / 4.0) * intensity, 0, 1);
-            double green = MyMath.clamp((10.0 / 4.0) * (intensity - 0.4), 0, 1);
+            double red = MyMath.clamp(10.0 / 4.0 * intensity, 0, 1);
+            double green = MyMath.clamp(10.0 / 4.0 * (intensity - 0.4), 0, 1);
             double blue = MyMath.clamp(5 * (intensity - 0.8), 0, 1);
             return new Vec3(red, green, blue);
         }
     }
-
 
     private class DirectionShader implements SphereShader {
 
@@ -618,7 +632,7 @@ public class EigenSimulation extends MyFrame {
             Vec2 gradSphere2 = new Vec2(gradSphereCoord.getX(1), gradSphereCoord.getX(2));
 
             //function computation
-            double alpha = Math.sin(omega * gradSphere2.getAngle()) * Math.sin((omega / eigenValues[2]) * gradSphere2.norm());
+            double alpha = Math.sin(omega * gradSphere2.getAngle()) * Math.sin(omega / eigenValues[2] * gradSphere2.norm());
             alpha = MyMath.clamp(alpha, -1, 1);
             alpha = (alpha + 1) / (2.0);
             HeatShader heatShader = new HeatShader();
@@ -628,11 +642,17 @@ public class EigenSimulation extends MyFrame {
 
     private class Lic implements SphereShader {
         int n = 200;
+
         int nn = n * n;
+
         double[] texOrig = new double[nn];
+
         Vec2[] vecField = new Vec2[nn];
+
         int[][] intDirField = new int[nn][2];
+
         double[] tex = new double[nn];
+
         int kernelSize = 15;
 
         public Lic() {
@@ -645,10 +665,11 @@ public class EigenSimulation extends MyFrame {
                 double y = -Math.PI + ((i / n) * (2 * Math.PI)) / (n - 1);
                 cam.setRaw(new Vec3(1.0, x, y));
                 cam.update(0);
-                Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(symMatrix.prodVector(cam.getEye())));
+                Matrix matrix = new Matrix(new double[][] { { 0, -1, 0 }, { 1, 0, 0 }, { 0, 0, 0 } });
+                Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(matrix.prodVector(cam.getEye())));
                 vecField[i] = new Vec2(grad.getX(), grad.getY());
                 int[] v1 = sphereCoordinate2Int(vecField[i]);
-                int[] adjV = new int[]{v1[0] - zeroInt[0], v1[1] - zeroInt[0]};
+                int[] adjV = new int[] { v1[0] - zeroInt[0], v1[1] - zeroInt[0] };
                 intDirField[i] = adjV;
             }
             for (int i = 0; i < nn; i++) {
@@ -663,9 +684,9 @@ public class EigenSimulation extends MyFrame {
             double[] x = sphereCoordinate2Grid(interSphereCoordinate);
             int[] xFloor = sphereCoordinate2Int(interSphereCoordinate);
             double f11 = getTex(xFloor);
-            double f21 = getTex(new int[]{(xFloor[0] + 1) % n, xFloor[1]});
-            double f12 = getTex(new int[]{xFloor[0], (xFloor[1] + 1) % n});
-            double f22 = getTex(new int[]{(xFloor[0] + 1) % n, (xFloor[1] + 1) % n});
+            double f21 = getTex(new int[] { (xFloor[0] + 1) % n, xFloor[1] });
+            double f12 = getTex(new int[] { xFloor[0], (xFloor[1] + 1) % n });
+            double f22 = getTex(new int[] { (xFloor[0] + 1) % n, (xFloor[1] + 1) % n });
             double f1 = f11 + (f21 - f11) * (x[0] - xFloor[0]);
             double f2 = f12 + (f22 - f12) * (x[0] - xFloor[0]);
             double f = f1 + (f2 - f1) * (x[1] - xFloor[1]);
@@ -673,16 +694,16 @@ public class EigenSimulation extends MyFrame {
         }
 
         private double getTexOrig(int xy, int steps) {
-            int[] p = new int[]{xy % n, xy / n};
+            int[] p = new int[] { xy % n, xy / n };
             double acc = 0;
             int[] v = intDirField[xy];
             acc += averageColorInDir(p, v, steps / 2);
-            acc += averageColorInDir(p, new int[]{-v[0], -v[1]}, steps / 2);
+            acc += averageColorInDir(p, new int[] { -v[0], -v[1] }, steps / 2);
             return acc / 2;
         }
 
         private double averageColorInDir(int[] p, int[] v, int steps) {
-            int[] index = new int[]{-1, 0, 1};
+            int[] index = new int[] { -1, 0, 1 };
 
             int m = index.length;
             int mm = m * m;
@@ -704,12 +725,12 @@ public class EigenSimulation extends MyFrame {
                 int[] minDir = new int[2];
                 for (int k = 0; k < mm; k++) {
                     int i = index[k % m];
-                    int j = index[((int) Math.floor(k % mm / m))];
+                    int j = index[(int) Math.floor(k % mm / m)];
 
                     nextX[0] = x[0] + i;
                     nextX[1] = x[1] + j;
 
-                    double f = Math.abs(v[0] * normal[0] + v[1] * normal[1]) - ((nextX[0] - p[0]) * v[0] + (nextX[1] - p[1]) * v[1]);
+                    double f = Math.abs((nextX[0] - p[0]) * normal[0] + (nextX[1] - p[1]) * normal[1]) - ((nextX[0] - p[0]) * v[0] + (nextX[1] - p[1]) * v[1]);
                     if (fmin > f) {
                         fmin = f;
                         minDir[0] = i;
@@ -740,22 +761,22 @@ public class EigenSimulation extends MyFrame {
 
         int[] sphereCoordinate2Int(Vec2 x) {
             double[] doubles = sphereCoordinate2Grid(x);
-            return new int[]{(int) Math.floor(doubles[0]), (int) Math.floor(doubles[1])};
+            return new int[] { (int) Math.floor(doubles[0]), (int) Math.floor(doubles[1]) };
         }
 
         double[] sphereCoordinate2Grid(Vec2 x) {
-            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), Math.PI, -Math.PI, n)};
+            return new double[] { n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n) };
         }
 
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {
-            return ((x - xmin) * ((samples - 1) / (xmax - xmin)));
+            return (x - xmin) * (samples - 1) / (xmax - xmin);
         }
     }
 
-    private class SimpleShader implements SphereShader {
+    private static class SimpleShader implements SphereShader {
         private Vec3 rgb;
 
-        public SimpleShader(Vec3 rgb) {
+        SimpleShader(Vec3 rgb) {
             this.rgb = rgb;
         }
 
@@ -765,9 +786,8 @@ public class EigenSimulation extends MyFrame {
         }
     }
 
-
     // Eigen Updaters
-    private class HyperMethod implements EigenUpdate {
+    private static class HyperMethod implements EigenUpdate {
 
         @Override
         public Vector update(Matrix symMatrix, Vector init) {
@@ -803,8 +823,7 @@ public class EigenSimulation extends MyFrame {
         }
     }
 
-
-    private class PowerMethod implements EigenUpdate {
+    private static class PowerMethod implements EigenUpdate {
 
         @Override
         public Vector update(Matrix symMatrix, Vector init) {
@@ -814,35 +833,35 @@ public class EigenSimulation extends MyFrame {
         }
     }
 
-    private class Instrisic implements EigenUpdate {
+    private static class Intrinsic implements EigenUpdate {
 
-        private Vector computeV(Vector u) {
+        private Vector computeV(Matrix symMatrix, Vector u) {
             Vector ans = symMatrix.prodVector(u);
             ans = Vector.orthoProjection(ans, u);
             return Vector.normalize(ans);
         }
 
-        private Matrix computeS(Vector u, Vector v) {
+        private Matrix computeS(Matrix symMatrix,Vector u, Vector v) {
             double uSu = Vector.innerProd(u, symMatrix.prodVector(u));
             double uSv = Vector.innerProd(u, symMatrix.prodVector(v));
             double vSv = Vector.innerProd(v, symMatrix.prodVector(v));
-            return new Matrix(new double[][]{{uSu, uSv}, {uSv, vSv}});
+            return new Matrix(new double[][] { { uSu, uSv }, { uSv, vSv } });
         }
 
-        private double f(Matrix S, double t) {
+        private double f(Matrix symMatrix, double t) {
             Vec2 alpha = new Vec2(Math.cos(t), Math.sin(t));
             return Vector.innerProd(alpha, symMatrix.prodVector(alpha));
         }
 
         private double df(Matrix S, double t) {
             Vec2 alpha = new Vec2(Math.cos(t), Math.sin(t));
-            Matrix R = new Matrix(new double[][]{{0, -1}, {1, 0}});
+            Matrix R = new Matrix(new double[][] { { 0, -1 }, { 1, 0 } });
             return 2 * Vector.innerProd(S.prodVector(alpha), R.prodVector(alpha));
         }
 
         private double d2f(Matrix S, double t) {
             Vec2 alpha = new Vec2(Math.cos(t), Math.sin(t));
-            Matrix R = new Matrix(new double[][]{{0, -1}, {1, 0}});
+            Matrix R = new Matrix(new double[][] { { 0, -1 }, { 1, 0 } });
             R = Matrix.prod(R, R);
             return 4 * Vector.innerProd(S.prodVector(alpha), R.prodVector(alpha));
         }
@@ -854,8 +873,8 @@ public class EigenSimulation extends MyFrame {
         @Override
         public Vector update(Matrix symMatrix, Vector init) {
             Vector u = Vector.normalize(init);
-            Vector v = computeV(u);
-            Matrix S = computeS(u, v);
+            Vector v = computeV(symMatrix, u);
+            Matrix S = computeS(symMatrix, u, v);
             double df;
             double t = 0;
             do {
