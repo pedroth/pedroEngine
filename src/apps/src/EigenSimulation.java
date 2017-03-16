@@ -586,7 +586,9 @@ public class EigenSimulation extends MyFrame {
         }
     }
 
-    //Shaders
+    /**
+     * Shaders
+     */
 
     private abstract class QuadraticFormShader implements SphereShader {
 
@@ -661,9 +663,10 @@ public class EigenSimulation extends MyFrame {
 
             for (int i = 0; i < nn; i++) {
                 texOrig[i] = Math.random();
-                double x = -Math.PI + ((i % n) * (2 * Math.PI)) / (n - 1);
-                double y = -Math.PI + ((i / n) * (2 * Math.PI)) / (n - 1);
-                cam.setRaw(new Vec3(1.0, x, y));
+                int y = i % n;
+                int x = i / n;
+                double[] theta = intCoordinate2Sphere(new int[] { x, y });
+                cam.setRaw(new Vec3(1.0, theta[0], theta[1]));
                 cam.update(0);
                 Matrix matrix = new Matrix(new double[][] { { 0, -1, 0 }, { 1, 0, 0 }, { 0, 0, 0 } });
                 Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(matrix.prodVector(cam.getEye())));
@@ -768,6 +771,10 @@ public class EigenSimulation extends MyFrame {
             return new double[] { n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n) };
         }
 
+        double[] intCoordinate2Sphere(int[] x) {
+            return new double[] { x[1] * 2 * Math.PI / n - Math.PI, (n - x[0]) * (2 * Math.PI / n) - Math.PI };
+        }
+
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {
             return (x - xmin) * (samples - 1) / (xmax - xmin);
         }
@@ -841,7 +848,7 @@ public class EigenSimulation extends MyFrame {
             return Vector.normalize(ans);
         }
 
-        private Matrix computeS(Matrix symMatrix,Vector u, Vector v) {
+        private Matrix computeS(Matrix symMatrix, Vector u, Vector v) {
             double uSu = Vector.innerProd(u, symMatrix.prodVector(u));
             double uSv = Vector.innerProd(u, symMatrix.prodVector(v));
             double vSv = Vector.innerProd(v, symMatrix.prodVector(v));
