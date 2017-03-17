@@ -4,6 +4,8 @@ import algebra.utils.AlgebraException;
 import numeric.src.SVD;
 import realFunction.src.UniVarFunction;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Random;
 import java.util.function.BinaryOperator;
@@ -577,9 +579,12 @@ public class Matrix {
 
     public String toString() {
         StringBuilder s = new StringBuilder(this.rows * this.columns * 2);
+        DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
+        otherSymbols.setDecimalSeparator('.');
+        DecimalFormat df = new DecimalFormat("0.00#####", otherSymbols);
         for (int i = 1; i <= this.getRows(); i++) {
             for (int j = 1; j <= this.getColumns(); j++) {
-                s.append(String.format("%.10f", this.getXY(i, j))).append(j == columns ? "" : "\t");
+                s.append(df.format(this.getXY(i, j))).append(j == columns ? "" : "\t");
             }
             s.append("\n");
         }
