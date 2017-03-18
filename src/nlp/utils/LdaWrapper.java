@@ -7,7 +7,7 @@ import utils.StreamGobbler;
 import java.io.IOException;
 
 public class LdaWrapper {
-    public static String jLDADMMAddress = "C:/pedro/escolas/ist/Tese/jLDADMM_v1.0.1/jar";
+    public static String jLDADMMAddress = "lib/";
 
     public static void computeLda(String corpusAddress, int numberOfTopics, double alpha, double beta, int iterations, String modelName) {
         String command = "java -jar " + jLDADMMAddress + "/jLDADMM.jar -model LDA" +
