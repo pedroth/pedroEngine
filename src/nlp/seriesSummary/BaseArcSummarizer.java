@@ -160,7 +160,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * The Low bow segmentator.
      */
-    protected LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+    protected LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
     Comparator<String> stringComparator = (o1, o2) -> {
         final String regex = "[Ss][0-9]+[Ee][0-9]+";
         String[] split1 = o1.split(regex);
@@ -263,15 +263,15 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             TextIO text = new TextIO();
             SubsSplitter textSplitter = new SubsSplitter();
 
-            //bow representation
-            for (String subtitle : subtitles) {
-                text.read(subtitle);
-                bowManager.add(new Bow(text.getText(), textSplitter));
-            }
-            bowManager.build();
-
             //build entropy predicate
             if (entropy > 0.0) {
+                //bow representation
+                for (String subtitle : subtitles) {
+                    text.read(subtitle);
+                    bowManager.add(new Bow(text.getText(), textSplitter));
+                }
+                bowManager.build();
+
                 //build predicate
                 EntropyStopWordPredicate predicate = new EntropyStopWordPredicate(bowManager, entropy);
                 this.necessaryWordPredicate = predicate;

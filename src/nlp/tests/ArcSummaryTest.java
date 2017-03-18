@@ -96,6 +96,7 @@ public class ArcSummaryTest {
     }
 
     private void summaryBaseExp(TestParameters testParameters) {
+        System.out.println(testParameters);
         Stack<BaseArcSummarizer> stack = new Stack<>();
 
         // spectral clustering andrew et al

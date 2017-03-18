@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
     private String videoAddress;
-    private LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+    private LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
 
     /**
      * Instantiates a new Low bow subtitles.

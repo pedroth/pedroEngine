@@ -670,7 +670,7 @@ public class LowBowTests {
         int samplesK = 50;
         int samples = 100;
         boolean isNeigh = true;
-        LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+        LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
         List<String> extension = new ArrayList<>();
@@ -762,7 +762,7 @@ public class LowBowTests {
         int samplesEpisodes = 8;
         int samples = 100;
         boolean isNeigh = true;
-        LowBowSegmentator lowBowSegmentator = new SubtitleSegmentator();
+        LowBowSegmentator lowBowSegmentator = SubtitleSegmentator.getInstance();
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
         List<String> extension = new ArrayList<>();

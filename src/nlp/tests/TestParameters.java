@@ -9,7 +9,7 @@ import java.util.Optional;
 class TestParameters {
     String seriesAddress;
     String fileExtension;
-    String output = seriesAddress + "summary";
+    String output;
     int numberOfCluster;
     double heat;
     double entropy;
@@ -32,6 +32,25 @@ class TestParameters {
         this.necessaryWordPredicate = necessaryWordPredicate;
         this.seriesAddress = seriesAddress;
         this.fileExtension = fileExtension;
+        this.output = seriesAddress + "summary";
+    }
+
+    @Override
+    public String toString() {
+        return "TestParameters{" +
+                "seriesAddress='" + seriesAddress + '\'' +
+                ", fileExtension='" + fileExtension + '\'' +
+                ", output='" + output + '\'' +
+                ", numberOfCluster=" + numberOfCluster +
+                ", heat=" + heat +
+                ", entropy=" + entropy +
+                ", knn=" + knn +
+                ", timeArc=" + timeArc +
+                ", cutVideo=" + cutVideo +
+                ", concatVideo=" + concatVideo +
+                ", lowBowSegmentator=" + lowBowSegmentator +
+                ", necessaryWordPredicate=" + necessaryWordPredicate +
+                '}';
     }
 
     static class TestParametersBuilder {
