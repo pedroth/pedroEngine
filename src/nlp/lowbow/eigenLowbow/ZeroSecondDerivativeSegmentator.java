@@ -11,6 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ZeroSecondDerivativeSegmentator implements LowBowSegmentator {
+    private static ZeroSecondDerivativeSegmentator instance = new ZeroSecondDerivativeSegmentator();
+
+    private ZeroSecondDerivativeSegmentator() {
+        //black constructor prevents instance creation
+    }
+
+    public static ZeroSecondDerivativeSegmentator getInstance() {
+        return instance;
+    }
     @Override
     public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory, LowBowSubtitles lowBowSubtitles) {
         List<BaseSegmentedBow> segmentedBows = new ArrayList<>();

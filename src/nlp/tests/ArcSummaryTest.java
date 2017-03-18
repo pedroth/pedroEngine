@@ -1,6 +1,5 @@
 package nlp.tests;
 
-import algebra.src.Vec2;
 import algebra.src.Vector;
 import inputOutput.TextIO;
 import nlp.lowbow.eigenLowbow.LowBowSegmentator;
@@ -10,12 +9,9 @@ import nlp.seriesSummary.ArcSummarizerDiffusion;
 import nlp.seriesSummary.ArcSummarizerLda;
 import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
-import nlp.symbolSampler.TopKSymbol;
 import nlp.utils.RemoveWordsPredicate;
-import nlp.utils.Simplex;
 import nlp.utils.StopWordPredicate;
 import numeric.src.Distance;
-import numeric.src.MySet;
 import org.junit.Test;
 import utils.Histogram;
 
@@ -24,19 +20,8 @@ import java.util.*;
 public class ArcSummaryTest {
 
     @Test
-    public void lowbowLdaStatistics() {
-        String seriesAddress = "C:/pedro/escolas/ist/Tese/Series/BattleStarGalactica/";
-        String fileExtension = "avi";
-        String output = seriesAddress + "summary";
-        int numberOfCluster = 6;
-        double heat = 0.04;
-        double entropy = 0.00;
-        int knn = 5;
-        double timeArc = 10;
-        boolean cutVideo = true;
-        boolean concatVideo = true;
-        LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
-
+    public void arcSummaryExperiment() {
+        final String baseVideoAddress = "C:/pedro/escolas/ist/Tese/Series/";
         StopWordPredicate stopWordPredicate = StopWordPredicate.getInstance();
         RemoveWordsPredicate necessaryWordPredicate = new RemoveWordsPredicate() {
             @Override
@@ -50,52 +35,113 @@ public class ArcSummaryTest {
             }
         };
 
+        List<TestParameters> testParametersList = new ArrayList<>(4);
+        testParametersList.add(new TestParameters.TestParametersBuilder()
+                .seriesAddress(baseVideoAddress + "BattleStarGalactica/")
+                .fileExtension("avi")
+                .numberOfCluster(6)
+                .heat(0.04)
+                .entropy(0)
+                .knn(5)
+                .timeArc(10)
+                .cutVideo(true)
+                .concatVideo(true)
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .necessaryWordPredicate(necessaryWordPredicate)
+                .build()
+                .get());
+        testParametersList.add(new TestParameters.TestParametersBuilder()
+                .seriesAddress(baseVideoAddress + "BreakingBad/")
+                .fileExtension("mp4")
+                .numberOfCluster(6)
+                .heat(0.04)
+                .entropy(0)
+                .knn(5)
+                .timeArc(10)
+                .cutVideo(true)
+                .concatVideo(true)
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .necessaryWordPredicate(necessaryWordPredicate)
+                .build()
+                .get());
+        testParametersList.add(new TestParameters.TestParametersBuilder()
+                .seriesAddress(baseVideoAddress + "MrRobot/")
+                .fileExtension("mkv")
+                .numberOfCluster(6)
+                .heat(0.04)
+                .entropy(0)
+                .knn(5)
+                .timeArc(10)
+                .cutVideo(true)
+                .concatVideo(true)
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .necessaryWordPredicate(necessaryWordPredicate)
+                .build()
+                .get());
+        testParametersList.add(new TestParameters.TestParametersBuilder()
+                .seriesAddress(baseVideoAddress + "OverTheGardenWall/")
+                .fileExtension("mkv")
+                .numberOfCluster(6)
+                .heat(0.04)
+                .entropy(0)
+                .knn(5)
+                .timeArc(10)
+                .cutVideo(true)
+                .concatVideo(true)
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .necessaryWordPredicate(necessaryWordPredicate)
+                .build()
+                .get());
+        testParametersList.forEach(this::summaryBaseExp);
+    }
+
+    private void summaryBaseExp(TestParameters testParameters) {
         Stack<BaseArcSummarizer> stack = new Stack<>();
 
         // spectral clustering andrew et al
-        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
+        baseArcSummarizer.setCutVideo(testParameters.cutVideo);
+        baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         stack.add(baseArcSummarizer);
 
         // spectral clustering Shi and Malik
-        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
+        baseArcSummarizer.setCutVideo(testParameters.cutVideo);
+        baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         ((ArcSummarizerSpectral) baseArcSummarizer).setAdrewEtAl(false);
         stack.add(baseArcSummarizer);
 
         //  Latent Dirichlet Allocation
-        baseArcSummarizer = new ArcSummarizerLda(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
+        baseArcSummarizer = new ArcSummarizerLda(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
+        baseArcSummarizer.setCutVideo(testParameters.cutVideo);
+        baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         stack.add(baseArcSummarizer);
 
         // spectral clustering not normalized
-        baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
+        baseArcSummarizer.setCutVideo(testParameters.cutVideo);
+        baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         stack.add(baseArcSummarizer);
 
         // diffusion clustering
-        baseArcSummarizer = new ArcSummarizerDiffusion(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.simplexDist);
-        baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+        baseArcSummarizer = new ArcSummarizerDiffusion(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        baseArcSummarizer.setCutVideo(cutVideo);
-        baseArcSummarizer.setVideoConcat(concatVideo);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
+        baseArcSummarizer.setCutVideo(testParameters.cutVideo);
+        baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         stack.add(baseArcSummarizer);
 
         // summary
@@ -103,8 +149,8 @@ public class ArcSummaryTest {
         while (!stack.isEmpty()) {
             BaseArcSummarizer baseArcSummarizer1 = stack.pop();
             System.out.println(baseArcSummarizer1.toString());
-            String outputAddress = output + Math.random();
-            baseArcSummarizer1.buildSummary(outputAddress, timeArc);
+            String outputAddress = testParameters.output + Math.random();
+            baseArcSummarizer1.buildSummary(outputAddress, testParameters.timeArc);
             TextIO textIO = new TextIO();
             String intraDistanceHist = computeIntraDistanceHist(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
@@ -126,7 +172,7 @@ public class ArcSummaryTest {
         double timeArc = 100000;
         boolean cutVideo = false;
         boolean concatVideo = true;
-        LowBowSegmentator lowBowSegmentator = new MaxDerivativeSegmentator();
+        LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
 
         BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.euclideanDist);
         baseArcSummarizer.setCutVideo(cutVideo);
@@ -137,38 +183,6 @@ public class ArcSummaryTest {
         baseArcSummarizer.buildSummary(output, timeArc);
         baseArcSummarizer.getSegmentLengthData().forEach(System.out::println);
 
-    }
-
-    private Vec2 findMinDistance2Phi(Vector phi, Map<Integer, Vector> graphCentroidByClusterId, Distance<Vector> distance) {
-        Set<Integer> keySet = graphCentroidByClusterId.keySet();
-        Integer[] clusterIds = keySet.toArray(new Integer[keySet.size()]);
-        int minIndex = -1;
-        double minDist = Double.MAX_VALUE;
-        for (int i = 0; i < clusterIds.length; i++) {
-            double norm = distance.dist(phi, graphCentroidByClusterId.get(clusterIds[i]));
-            if (norm < minDist) {
-                minDist = norm;
-                minIndex = i;
-            }
-        }
-        return new Vec2(minIndex, minDist);
-    }
-
-    private Vec2 findMaxJaccardIndex2Phi(Vector phi, Map<Integer, Vector> graphCentroidByClusterId, Simplex simplex) {
-        TopKSymbol topKSymbol = new TopKSymbol(20);
-        MySet phiTopKWords = new MySet(topKSymbol.nextSymbol(phi, simplex).split(" "));
-        Set<Integer> keySet = graphCentroidByClusterId.keySet();
-        Integer[] clusterIds = keySet.toArray(new Integer[keySet.size()]);
-        int maxIndex = -1;
-        double maxValueDist = Double.MIN_VALUE;
-        for (int i = 0; i < clusterIds.length; i++) {
-            double jaccard = MySet.jaccardIndex(phiTopKWords, new MySet(topKSymbol.nextSymbol(graphCentroidByClusterId.get(clusterIds[i]), simplex).split(" ")));
-            if (maxValueDist < jaccard) {
-                maxValueDist = jaccard;
-                maxIndex = i;
-            }
-        }
-        return new Vec2(maxIndex, maxValueDist);
     }
 
     private String computeIntraDistanceHist(List<BaseSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, Distance<Vector> distance, int bins) {
@@ -220,21 +234,4 @@ public class ArcSummaryTest {
         }
         return buildHist(data, bins);
     }
-
-    private List<Vector> readMatrix(String address) {
-        List<Vector> ans = new ArrayList<>();
-        TextIO textIO = new TextIO();
-        textIO.read(address);
-        String[] split = textIO.getText().split("\n");
-        for (int i = 0; i < split.length; i++) {
-            String[] split1 = split[i].split(" ");
-            double[] splitdouble = new double[split1.length];
-            for (int j = 0; j < split1.length; j++) {
-                splitdouble[j] = Double.valueOf(split1[j]);
-            }
-            ans.add(new Vector(splitdouble));
-        }
-        return ans;
-    }
-
 }

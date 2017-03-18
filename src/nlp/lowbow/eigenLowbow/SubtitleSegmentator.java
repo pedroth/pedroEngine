@@ -11,6 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SubtitleSegmentator implements LowBowSegmentator {
+    private static SubtitleSegmentator instance = new SubtitleSegmentator();
+
+    private SubtitleSegmentator() {
+        //black constructor prevents instance creation
+    }
+
+    public static SubtitleSegmentator getInstance() {
+        return instance;
+    }
+
     @Override
     public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory, LowBowSubtitles lowBowSubtitles) {
         List<BaseSegmentedBow> segmentedBows = new ArrayList<>();

@@ -9,7 +9,17 @@ import utils.Interval;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MaxDerivativeSegmentator implements LowBowSegmentator {
+public final class MaxDerivativeSegmentator implements LowBowSegmentator {
+    private static MaxDerivativeSegmentator instance = new MaxDerivativeSegmentator();
+
+    private MaxDerivativeSegmentator() {
+        //black constructor prevents instance creation
+    }
+
+    public static MaxDerivativeSegmentator getInstance() {
+        return instance;
+    }
+
     @Override
     public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory, LowBowSubtitles lowBowSubtitles) {
         List<BaseSegmentedBow> segmentedBows = new ArrayList<>();
