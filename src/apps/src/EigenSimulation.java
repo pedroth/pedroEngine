@@ -144,6 +144,14 @@ public class EigenSimulation extends MyFrame {
         eigenSimulation.addSphereEigenUpdate(sphere3);
     }
 
+    private static Matrix getRandomMatrix() {
+        Matrix matrix = new Matrix(3, 3);
+        matrix.fillRandom(-10, 10);
+        matrix.applyFunction(Math::floor);
+        Matrix transpose = Matrix.transpose(matrix);
+        return transpose.add(matrix).scalarProd(0.5);
+    }
+
     private void createUI() {
         // create frame
         JFrame frame = new JFrame("EigenSimulation");
@@ -166,11 +174,8 @@ public class EigenSimulation extends MyFrame {
         importButton.addActionListener(e -> setSymMatrix(readMatrixFromTextArea(textArea.getText())));
         JButton randomButton = new JButton("Random");
         randomButton.addActionListener(e -> {
-            Matrix matrix = new Matrix(3, 3);
-            matrix.fillRandom(-10, 10);
-            matrix.applyFunction(Math::floor);
-            Matrix transpose = Matrix.transpose(matrix);
-            textArea.setText(transpose.add(matrix).scalarProd(0.5).toString());
+            Matrix matrix = getRandomMatrix();
+            textArea.setText(matrix.toString());
         });
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
         buttonPanel.add(importButton);
@@ -183,19 +188,36 @@ public class EigenSimulation extends MyFrame {
 
     private Matrix readMatrixFromTextArea(String s) {
         Matrix matrix = new Matrix(3, 3);
-        String[] split = s.split("\n");
-        for (int i = 0; i < 3; i++) {
-            String[] numbers = split[i].split("\\s+");
-            for (int j = 0; j < 3; j++) {
-                matrix.setXY(i + 1, j + 1, Double.valueOf(numbers[j]));
+        try {
+            String[] split = s.split("\n");
+            for (int i = 0; i < 3; i++) {
+                String[] numbers = split[i].split("\\s+");
+                for (int j = 0; j < 3; j++) {
+                    matrix.setXY(i + 1, j + 1, Double.valueOf(numbers[j]));
+                }
             }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            JOptionPane.showMessageDialog(null, "Matrix must be a 3 by 3 matrix");
+            matrix = getRandomMatrix();
+            textArea.setText(matrix.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            matrix = getRandomMatrix();
+            textArea.setText(matrix.toString());
         }
         return matrix;
     }
 
     public void setSymMatrix(Matrix symMatrix) {
-        this.symMatrix = symMatrix.getSubMatrix(1, 3, 1, 3);
-        SymmetricEigen symmetricEigen = new SymmetricEigen(this.symMatrix);
+        Matrix subMatrix = symMatrix.getSubMatrix(1, 3, 1, 3);
+        SymmetricEigen symmetricEigen;
+        try {
+            symmetricEigen = new SymmetricEigen(subMatrix);
+            this.symMatrix = symMatrix;
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(null, "Matrix must be symmetric");
+            symmetricEigen = new SymmetricEigen(this.symMatrix);
+        }
         symmetricEigen.orderEigenValuesAndVector();
         eigenValues = symmetricEigen.getEigenValues();
         eigenVector = symmetricEigen.getEigenVectors();
