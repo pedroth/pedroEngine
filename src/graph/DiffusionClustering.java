@@ -3,6 +3,7 @@ package graph;
 
 import Jama.EigenvalueDecomposition;
 import algebra.src.Diagonal;
+import algebra.src.DistanceMatrix;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import numeric.src.HyperEigenAlgo;
@@ -11,6 +12,7 @@ import numeric.src.SymmetricEigen;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -70,6 +72,59 @@ public class DiffusionClustering extends AbstractGraphClustering {
         });
     }
 
+    /**
+     * Spectral clustering.
+     *
+     * @param k                 the k number of clusters
+     * @param similarityMeasure the similarity measure
+     * @param epsilon           the epsilon
+     * @param repetitions       the repetitions
+     * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
+     */
+    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        return clustering(getAutoHeatTime(), k, similarityMeasure, epsilon, repetitions);
+    }
+
+
+    /**
+     * Clustering jama.
+     *
+     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param k                 the k
+     * @param similarityMeasure the similarity measure
+     * @param epsilon           the epsilon
+     * @param repetitions       the repetitions
+     * @return the map
+     */
+    public Map<Integer, List<Integer>> clusteringJama(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        return clustering(heatTime, k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
+            private EigenvalueDecomposition symmetricEigen;
+
+            @Override
+            public Matrix getV(Matrix laplacian) {
+                symmetricEigen = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
+                return new Matrix(symmetricEigen.getV().getArray());
+            }
+
+            @Override
+            public double[] getEigenValues() {
+                return symmetricEigen.getRealEigenvalues();
+            }
+        });
+    }
+
+    /**
+     * Clustering jama.
+     *
+     * @param k                 the k
+     * @param similarityMeasure the similarity measure
+     * @param epsilon           the epsilon
+     * @param repetitions       the repetitions
+     * @return the map
+     */
+    public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
+        return clusteringJama(getAutoHeatTime(), k, similarityMeasure, epsilon, repetitions);
+    }
 
     private Map<Integer, List<Integer>> clustering(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions, SpectralMethod spectralMethod) {
         k = Integer.max(k, 1);
@@ -119,33 +174,6 @@ public class DiffusionClustering extends AbstractGraphClustering {
         return inverseClassification;
     }
 
-    /**
-     * Clustering jama.
-     *
-     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
-     * @param k                 the k
-     * @param similarityMeasure the similarity measure
-     * @param epsilon           the epsilon
-     * @param repetitions       the repetitions
-     * @return the map
-     */
-    public Map<Integer, List<Integer>> clusteringJama(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        return clustering(heatTime, k, similarityMeasure, epsilon, repetitions, new SpectralMethod() {
-            private EigenvalueDecomposition symmetricEigen;
-
-            @Override
-            public Matrix getV(Matrix laplacian) {
-                symmetricEigen = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
-                return new Matrix(symmetricEigen.getV().getArray());
-            }
-
-            @Override
-            public double[] getEigenValues() {
-                return symmetricEigen.getRealEigenvalues();
-            }
-        });
-    }
-
     private Matrix getWeightMatrix(Function<Double, Double> similarityMeasure) {
         Matrix adjacencyMatrix = this.graph.getAdjacencyMatrix();
         Matrix weightMatrix = this.graph.getWeightMatrix(0);
@@ -171,6 +199,27 @@ public class DiffusionClustering extends AbstractGraphClustering {
             degrees.setX(i, acc);
         }
         return (Diagonal) Matrix.diag(degrees);
+    }
+
+    public double getAutoHeatTime() {
+        DistanceMatrix distanceMatrix = graph.getDistanceMatrix();
+        Integer[] keyIndex = graph.getKeyIndex();
+        Map<Integer, Integer> inverseKeyIndex = graph.getInverseKeyIndex();
+        int rows = distanceMatrix.getRows();
+        int samples = Integer.max(1, rows / 2);
+        double acc = 0;
+        for (int i = 0; i < samples; i++) {
+            int randomIndex = (int) (Math.random() * rows);
+            Set<Integer> adjVertex = graph.getAdjVertex(keyIndex[randomIndex]);
+            double acc2 = 0;
+            for (Integer vertex : adjVertex) {
+                acc2 += distanceMatrix.getXY(randomIndex + 1, inverseKeyIndex.get(vertex));
+            }
+            acc2 /= adjVertex.size();
+            acc += acc2;
+        }
+        acc /= samples;
+        return 5 * acc * acc;
     }
 
 

@@ -51,7 +51,7 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     }
 
     private void computeHeatTime() {
-
+        this.heatTime = 5 * sigma * sigma;
     }
 
 

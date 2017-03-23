@@ -5,6 +5,7 @@ import algebra.src.Matrix;
 import algebra.src.Vec2;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
+import graph.DiffusionClustering;
 import graph.Graph;
 import graph.GraphLaplacian;
 import graph.KnnGraph;
@@ -52,6 +53,8 @@ public class DiffusionDistanceTest extends MyFrame {
             points.add(new Vec2(2 * length * r.nextDouble() - length, 2 * length * r.nextDouble() - length));
         }
         drawData();
+        DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
+        heatTime = diffusionClustering.getAutoHeatTime();
         init();
     }
 
