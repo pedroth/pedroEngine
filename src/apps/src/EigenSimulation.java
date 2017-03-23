@@ -1,6 +1,10 @@
 package apps.src;
 
-import algebra.src.*;
+import algebra.src.LineLaplacian;
+import algebra.src.Matrix;
+import algebra.src.Vec2;
+import algebra.src.Vec3;
+import algebra.src.Vector;
 import apps.utils.MyFrame;
 import apps.utils.TextFrame;
 import numeric.src.Camera3D;
@@ -18,13 +22,15 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The type Eigen simulation.
  */
 public class EigenSimulation extends MyFrame {
-    private static final String HELP_STRING_TEXT = " <1> : heat map\n" + " <2> : directional heat map\n" + " <3> : gradient field visualization\n" + " <4> : chess pattern\n" + " drag mouse to change camera\n" + "\n" + "right mouse click to scale";
-
+    private static final String HELP_STRING_TEXT =
+            " <1> : heat map\n" + " <2> : directional heat map\n" + " <3> : gradient field visualization\n" + " <4> : chess pattern\n" + " drag mouse to change camera\n" + "\n"
+                    + "right mouse click to scale";
 
     /*
      * Ray trace Image parameters
@@ -90,8 +96,8 @@ public class EigenSimulation extends MyFrame {
     /**
      * Instantiates a new My frame.
      *
-     * @param title  the title
-     * @param width  the width
+     * @param title the title
+     * @param width the width
      * @param height the height
      */
     public EigenSimulation(String title, int width, int height, Matrix symMatrix, boolean isSmoothAnimation) {
@@ -224,7 +230,7 @@ public class EigenSimulation extends MyFrame {
 
         //BOGUS : lazy solution
         if (principalSphere != null && principalSphere.getSphereShader().getClass() == Lic.class) {
-            setSphereShader(new Lic());
+            setSphereShader(new Lic(x -> Math.random()));
         }
     }
 
@@ -336,7 +342,7 @@ public class EigenSimulation extends MyFrame {
     /**
      * Shade vec 3.
      *
-     * @param inter  the inter
+     * @param inter the inter
      * @param sphere the sphere
      * @return the vec 3
      */
@@ -352,8 +358,8 @@ public class EigenSimulation extends MyFrame {
      * Return a point p where p = init + dir * t
      *
      * @param init the init
-     * @param dir  the dir
-     * @param t    the t
+     * @param dir the dir
+     * @param t the t
      * @return init + dir * t
      */
     Vector line(Vector init, Vector dir, double t) {
@@ -481,7 +487,7 @@ public class EigenSimulation extends MyFrame {
                 this.setSphereShader(new DirectionShader());
                 break;
             case KeyEvent.VK_3:
-                this.setSphereShader(new Lic());
+                this.setSphereShader(new Lic(x -> Math.random()));
                 break;
             case KeyEvent.VK_4:
                 this.setSphereShader(new ChessPattern());
@@ -559,7 +565,7 @@ public class EigenSimulation extends MyFrame {
         /**
          * Get color.
          *
-         * @param inter  the inter
+         * @param inter the inter
          * @param sphere the sphere
          * @return the double [ ]
          */
@@ -642,7 +648,7 @@ public class EigenSimulation extends MyFrame {
             double uSu = Vector.innerProd(u, symMatrix.prodVector(u));
             double uSv = Vector.innerProd(u, symMatrix.prodVector(v));
             double vSv = Vector.innerProd(v, symMatrix.prodVector(v));
-            return new Matrix(new double[][]{{uSu, uSv}, {uSv, vSv}});
+            return new Matrix(new double[][] { { uSu, uSv }, { uSv, vSv } });
         }
 
         private double f(Matrix symMatrix, double t) {
@@ -652,13 +658,13 @@ public class EigenSimulation extends MyFrame {
 
         private double df(Matrix S, double t) {
             Vec2 alpha = new Vec2(Math.cos(t), Math.sin(t));
-            Matrix R = new Matrix(new double[][]{{0, -1}, {1, 0}});
+            Matrix R = new Matrix(new double[][] { { 0, -1 }, { 1, 0 } });
             return 2 * Vector.innerProd(S.prodVector(alpha), R.prodVector(alpha));
         }
 
         private double d2f(Matrix S, double t) {
             Vec2 alpha = new Vec2(Math.cos(t), Math.sin(t));
-            Matrix R = new Matrix(new double[][]{{0, -1}, {1, 0}});
+            Matrix R = new Matrix(new double[][] { { 0, -1 }, { 1, 0 } });
             R = Matrix.prod(R, R);
             return 4 * Vector.innerProd(S.prodVector(alpha), R.prodVector(alpha));
         }
@@ -851,21 +857,21 @@ public class EigenSimulation extends MyFrame {
 
         int kernelSize = 15;
 
-        public Lic() {
+        public Lic(Function<Integer[], Double> texFunc) {
             Camera3D cam = new Camera3D();
             int[] zeroInt = sphereCoordinate2Int(new Vec2(0, 0));
 
             for (int i = 0; i < nn; i++) {
                 int y = i % n;
                 int x = i / n;
-                texOrig[i] = Math.random();
-                double[] theta = intCoordinate2Sphere(new int[]{x, y});
+                texOrig[i] = MyMath.clamp(texFunc.apply(new Integer[] { x, y }), 0, 1);
+                double[] theta = intCoordinate2Sphere(new int[] { x, y });
                 cam.setRaw(new Vec3(1.0, theta[0], theta[1]));
                 cam.update(0);
                 Vec3 grad = new Vec3(cam.getInverseCamBasis().prodVector(symMatrix.prodVector(cam.getEye())));
                 vecField[i] = new Vec2(grad.getX(), grad.getY());
                 int[] v1 = sphereCoordinate2Int(vecField[i]);
-                int[] adjV = new int[]{v1[0] - zeroInt[0], v1[1] - zeroInt[0]};
+                int[] adjV = new int[] { v1[0] - zeroInt[0], v1[1] - zeroInt[0] };
                 intDirField[i] = adjV;
             }
             for (int i = 0; i < nn; i++) {
@@ -881,9 +887,9 @@ public class EigenSimulation extends MyFrame {
             double[] x = sphereCoordinate2Grid(interSphereCoordinate);
             int[] xFloor = sphereCoordinate2Int(interSphereCoordinate);
             double f11 = getTex(xFloor);
-            double f21 = getTex(new int[]{(xFloor[0] + 1) % n, xFloor[1]});
-            double f12 = getTex(new int[]{xFloor[0], (xFloor[1] + 1) % n});
-            double f22 = getTex(new int[]{(xFloor[0] + 1) % n, (xFloor[1] + 1) % n});
+            double f21 = getTex(new int[] { (xFloor[0] + 1) % n, xFloor[1] });
+            double f12 = getTex(new int[] { xFloor[0], (xFloor[1] + 1) % n });
+            double f22 = getTex(new int[] { (xFloor[0] + 1) % n, (xFloor[1] + 1) % n });
             double f1 = f11 + (f21 - f11) * (x[0] - xFloor[0]);
             double f2 = f12 + (f22 - f12) * (x[0] - xFloor[0]);
             double f = f1 + (f2 - f1) * (x[1] - xFloor[1]);
@@ -891,16 +897,16 @@ public class EigenSimulation extends MyFrame {
         }
 
         private double getTexOrig(int xy, int steps) {
-            int[] p = new int[]{xy / n, xy % n};
+            int[] p = new int[] { xy / n, xy % n };
             double acc = 0;
             int[] v = intDirField[xy];
             acc += averageColorInDir(p, v, steps / 2);
-            acc += averageColorInDir(p, new int[]{-v[0], -v[1]}, steps / 2);
+            acc += averageColorInDir(p, new int[] { -v[0], -v[1] }, steps / 2);
             return acc / 2;
         }
 
         private double averageColorInDir(int[] p, int[] v, int steps) {
-            int[] index = new int[]{-1, 0, 1};
+            int[] index = new int[] { -1, 0, 1 };
 
             int m = index.length;
             int mm = m * m;
@@ -958,15 +964,15 @@ public class EigenSimulation extends MyFrame {
 
         int[] sphereCoordinate2Int(Vec2 x) {
             double[] doubles = sphereCoordinate2Grid(x);
-            return new int[]{(int) Math.floor(doubles[0]), (int) Math.floor(doubles[1])};
+            return new int[] { (int) Math.floor(doubles[0]), (int) Math.floor(doubles[1]) };
         }
 
         double[] sphereCoordinate2Grid(Vec2 x) {
-            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n)};
+            return new double[] { n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n) };
         }
 
         double[] intCoordinate2Sphere(int[] x) {
-            return new double[]{x[1] * 2 * Math.PI / n - Math.PI, (n - x[0]) * (2 * Math.PI / n) - Math.PI};
+            return new double[] { x[1] * 2 * Math.PI / n - Math.PI, (n - x[0]) * (2 * Math.PI / n) - Math.PI };
         }
 
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {
@@ -978,6 +984,7 @@ public class EigenSimulation extends MyFrame {
         int n = 250;
 
         int nn = n * n;
+
         double[] tex = new double[nn];
 
         public ChessPattern() {
@@ -996,9 +1003,9 @@ public class EigenSimulation extends MyFrame {
             double[] x = sphereCoordinate2Grid(interSphereCoordinate);
             int[] xFloor = sphereCoordinate2Int(interSphereCoordinate);
             double f11 = getTex(xFloor);
-            double f21 = getTex(new int[]{(xFloor[0] + 1) % n, xFloor[1]});
-            double f12 = getTex(new int[]{xFloor[0], (xFloor[1] + 1) % n});
-            double f22 = getTex(new int[]{(xFloor[0] + 1) % n, (xFloor[1] + 1) % n});
+            double f21 = getTex(new int[] { (xFloor[0] + 1) % n, xFloor[1] });
+            double f12 = getTex(new int[] { xFloor[0], (xFloor[1] + 1) % n });
+            double f22 = getTex(new int[] { (xFloor[0] + 1) % n, (xFloor[1] + 1) % n });
             double f1 = f11 + (f21 - f11) * (x[0] - xFloor[0]);
             double f2 = f12 + (f22 - f12) * (x[0] - xFloor[0]);
             double f = f1 + (f2 - f1) * (x[1] - xFloor[1]);
@@ -1007,11 +1014,11 @@ public class EigenSimulation extends MyFrame {
 
         int[] sphereCoordinate2Int(Vec2 x) {
             double[] doubles = sphereCoordinate2Grid(x);
-            return new int[]{(int) Math.floor(doubles[0]), (int) Math.floor(doubles[1])};
+            return new int[] { (int) Math.floor(doubles[0]), (int) Math.floor(doubles[1]) };
         }
 
         double[] sphereCoordinate2Grid(Vec2 x) {
-            return new double[]{n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n)};
+            return new double[] { n - getIntCoordinate(x.getY(), -Math.PI, Math.PI, n), getIntCoordinate(x.getX(), -Math.PI, Math.PI, n) };
         }
 
         double getIntCoordinate(double x, double xmin, double xmax, int samples) {

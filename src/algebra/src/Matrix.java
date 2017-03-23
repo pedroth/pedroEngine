@@ -16,10 +16,11 @@ import java.util.function.Function;
  */
 public class Matrix {
     static final DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
-    static final DecimalFormat df = new DecimalFormat("0.00#####", otherSymbols);
+    static final DecimalFormat df;
 
     static {
         otherSymbols.setDecimalSeparator('.');
+        df = new DecimalFormat("0.00#####", otherSymbols);
     }
 
     /**
