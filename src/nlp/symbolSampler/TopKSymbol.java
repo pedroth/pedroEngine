@@ -7,10 +7,17 @@ import numeric.src.MyMath;
 
 
 public class TopKSymbol implements SymbolSampler {
+    private final String separator;
     private int k;
 
     public TopKSymbol(int k) {
         this.k = k;
+        this.separator = " ";
+    }
+
+    public TopKSymbol(int k, String separator) {
+        this.k = k;
+        this.separator = separator;
     }
 
     @Override
@@ -26,7 +33,7 @@ public class TopKSymbol implements SymbolSampler {
         quickSortWithPermutation.sort(v);
         int[] permutation = quickSortWithPermutation.getPermutation();
         for (int i = 0; i < k; i++) {
-            stringBuilder.append(symTable.get(permutation[((int) MyMath.clamp(n - 1 - i, 0, n - 1))] + 1)).append(" ");
+            stringBuilder.append(symTable.get(permutation[((int) MyMath.clamp(n - 1 - i, 0, n - 1))] + 1)).append(i < k - 1 ? separator : "");
         }
         return stringBuilder.toString();
     }

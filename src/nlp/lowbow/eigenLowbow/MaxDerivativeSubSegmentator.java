@@ -9,14 +9,14 @@ import utils.Interval;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class MaxDerivativeSegmentator implements LowBowSegmentator {
-    private static MaxDerivativeSegmentator instance = new MaxDerivativeSegmentator();
+public final class MaxDerivativeSubSegmentator implements LowBowSubSegmentator {
+    private static MaxDerivativeSubSegmentator instance = new MaxDerivativeSubSegmentator();
 
-    private MaxDerivativeSegmentator() {
+    private MaxDerivativeSubSegmentator() {
         //black constructor prevents instance creation
     }
 
-    public static MaxDerivativeSegmentator getInstance() {
+    public static MaxDerivativeSubSegmentator getInstance() {
         return instance;
     }
 

@@ -339,9 +339,9 @@ public class LowBowTests {
             text.read(subtitles.get(i));
             textSplitter = new SubsSplitter(predicate);
             LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
-            EqualSpaceSegmentator lowBowSegmentator = new EqualSpaceSegmentator();
-            lowBowSegmentator.setSpacePercent(0.90);
-            low.setLowBowSegmentator(lowBowSegmentator);
+            LowBowSubSegmentator lowBowSubSegmentator = new EqualSpaceSubSegmentator();
+            ((EqualSpaceSubSegmentator) lowBowSubSegmentator).setSpacePercent(0.90);
+            low.setLowBowSubSegmentator(lowBowSubSegmentator);
             lowBowManager.add(low);
         }
         lowBowManager.buildModel(0.04);
@@ -432,9 +432,9 @@ public class LowBowTests {
                     StopWatch stopWatch2 = new StopWatch();
 //                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
 
-                    EqualSpaceSegmentator lowbowSeg = new EqualSpaceSegmentator();
+                    EqualSpaceSubSegmentator lowbowSeg = new EqualSpaceSubSegmentator();
                     lowbowSeg.setSpacePercent(1.0 * k / textLength);
-                    low.setLowBowSegmentator(lowbowSeg);
+                    low.setLowBowSubSegmentator(lowbowSeg);
 
                     kData.setXY(s + 1, index + j + 1, 1.0 * k / textLength);
                     countDataPerc.setXY(s + 1, index + j + 1, 1.0 * low.getSegmentation(SegmentedBowCool::new).size() / textLength);
@@ -670,7 +670,7 @@ public class LowBowTests {
         int samplesK = 50;
         int samples = 100;
         boolean isNeigh = true;
-        LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
+        LowBowSubSegmentator lowBowSubSegmentator = MaxDerivativeSubSegmentator.getInstance();
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
         List<String> extension = new ArrayList<>();
@@ -714,7 +714,7 @@ public class LowBowTests {
                 textIO.read(subtitles.get(episodeIndex.get(j)));
                 SubsSplitter textSplitterLowBow = new SubsSplitter(predicate);
                 LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitterLowBow, videos.get(j));
-                low.setLowBowSegmentator(lowBowSegmentator);
+                low.setLowBowSubSegmentator(lowBowSubSegmentator);
                 lowBowManager.add(low);
             }
 
@@ -731,9 +731,9 @@ public class LowBowTests {
                 for (int s = 0; s < samplesK; s++) {
 //                    low.buildHeatRepresentation(eigenBasis, eigenValues, k);
 
-                    EqualSpaceSegmentator lowBowSegmentatorEqual = new EqualSpaceSegmentator();
+                    EqualSpaceSubSegmentator lowBowSegmentatorEqual = new EqualSpaceSubSegmentator();
                     lowBowSegmentatorEqual.setSpacePercent(1.0 * k / textLength);
-                    low.setLowBowSegmentator(lowBowSegmentatorEqual);
+                    low.setLowBowSubSegmentator(lowBowSegmentatorEqual);
 
                     List<BaseSegmentedBow> segmentation = low.getSegmentation(SegmentedBowCool::new);
                     if (isNeigh) {
@@ -762,7 +762,7 @@ public class LowBowTests {
         int samplesEpisodes = 8;
         int samples = 100;
         boolean isNeigh = true;
-        LowBowSegmentator lowBowSegmentator = SubtitleSegmentator.getInstance();
+        LowBowSubSegmentator lowBowSubSegmentator = SubtitleSubSegmentator.getInstance();
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
         List<String> extension = new ArrayList<>();
@@ -806,7 +806,7 @@ public class LowBowTests {
                 textIO.read(subtitles.get(episodeIndex.get(j)));
                 SubsSplitter textSplitterLowBow = new SubsSplitter(predicate);
                 LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitterLowBow, videos.get(j));
-                low.setLowBowSegmentator(lowBowSegmentator);
+                low.setLowBowSubSegmentator(lowBowSubSegmentator);
                 lowBowManager.add(low);
             }
 

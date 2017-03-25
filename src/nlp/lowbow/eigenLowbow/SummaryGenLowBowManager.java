@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * The type Summary gen low bow manager.
  *
- * @param <L>  the type parameter
+ * @param <L> the type parameter
  */
 public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowBowManager<L> {
     // Eigen vectors of the LineLaplacian matrix
@@ -107,11 +107,12 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
      */
     public void buildSegmentations(SegmentedBowFactory<BaseSegmentedBow> factory) {
         segmentedBows = new ArrayList<>();
+        StopWatch stopWatch = new StopWatch();
         for (L docModel : docModels) {
-            StopWatch stopWatch = new StopWatch();
             List<BaseSegmentedBow> segmentation = docModel.getSegmentation(factory);
             System.out.println("segmentation computation time : " + stopWatch.getEleapsedTime());
             segmentedBows.addAll(segmentation);
+            stopWatch.resetTime();
         }
     }
 

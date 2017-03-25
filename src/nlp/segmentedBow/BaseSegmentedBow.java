@@ -12,6 +12,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.function.Function;
 
 public abstract class BaseSegmentedBow implements Comparable<BaseSegmentedBow> {
+    /**
+     * intervals \in \mathbb{N}_{+}^{2}.
+     */
     protected Interval<Integer> interval;
     protected LowBowSubtitles lowBowSubtitles;
     protected Vector segmentBow;

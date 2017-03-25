@@ -5,6 +5,6 @@ import nlp.segmentedBow.SegmentedBowFactory;
 
 import java.util.List;
 
-public interface LowBowSegmentator {
+public interface LowBowSubSegmentator {
     List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory, LowBowSubtitles lowBowSubtitles);
 }

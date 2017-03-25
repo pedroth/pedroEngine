@@ -1,7 +1,7 @@
 package tensor;
 
 public class Real implements AlgebraField<Real> {
-    protected double x;
+    protected final double x;
 
     public Real(double x) {
         this.x = x;

@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
     private String videoAddress;
-    private LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
+    private LowBowSubSegmentator lowBowSubSegmentator = MaxDerivativeSubSegmentator.getInstance();
 
     /**
      * Instantiates a new Low bow subtitles.
@@ -63,7 +63,7 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
      * @return the segmentation
      */
     public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory) {
-        return lowBowSegmentator.getSegmentation(factory, this);
+        return lowBowSubSegmentator.getSegmentation(factory, this);
     }
 
     /**
@@ -106,17 +106,17 @@ public class LowBowSubtitles<T extends SubsSplitter> extends EigenLowBow {
      *
      * @return the low bow segmentator
      */
-    public LowBowSegmentator getLowBowSegmentator() {
-        return lowBowSegmentator;
+    public LowBowSubSegmentator getLowBowSubSegmentator() {
+        return lowBowSubSegmentator;
     }
 
     /**
      * Sets low bow segmentator.
      *
-     * @param lowBowSegmentator the low bow segmentator
+     * @param lowBowSubSegmentator the low bow segmentator
      */
-    public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
-        this.lowBowSegmentator = lowBowSegmentator;
+    public void setLowBowSubSegmentator(LowBowSubSegmentator lowBowSubSegmentator) {
+        this.lowBowSubSegmentator = lowBowSubSegmentator;
     }
 
     /**

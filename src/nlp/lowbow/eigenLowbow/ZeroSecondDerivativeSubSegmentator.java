@@ -10,14 +10,14 @@ import utils.Interval;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ZeroSecondDerivativeSegmentator implements LowBowSegmentator {
-    private static ZeroSecondDerivativeSegmentator instance = new ZeroSecondDerivativeSegmentator();
+public class ZeroSecondDerivativeSubSegmentator implements LowBowSubSegmentator {
+    private static ZeroSecondDerivativeSubSegmentator instance = new ZeroSecondDerivativeSubSegmentator();
 
-    private ZeroSecondDerivativeSegmentator() {
+    private ZeroSecondDerivativeSubSegmentator() {
         //black constructor prevents instance creation
     }
 
-    public static ZeroSecondDerivativeSegmentator getInstance() {
+    public static ZeroSecondDerivativeSubSegmentator getInstance() {
         return instance;
     }
     @Override

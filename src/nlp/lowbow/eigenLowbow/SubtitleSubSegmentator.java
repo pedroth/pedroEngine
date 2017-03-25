@@ -10,14 +10,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubtitleSegmentator implements LowBowSegmentator {
-    private static SubtitleSegmentator instance = new SubtitleSegmentator();
+public class SubtitleSubSegmentator implements LowBowSubSegmentator {
+    private static SubtitleSubSegmentator instance = new SubtitleSubSegmentator();
 
-    private SubtitleSegmentator() {
+    private SubtitleSubSegmentator() {
         //black constructor prevents instance creation
     }
 
-    public static SubtitleSegmentator getInstance() {
+    public static SubtitleSubSegmentator getInstance() {
         return instance;
     }
 

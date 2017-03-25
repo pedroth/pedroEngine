@@ -8,7 +8,7 @@ import utils.Interval;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EqualSpaceSegmentator implements LowBowSegmentator {
+public class EqualSpaceSubSegmentator implements LowBowSubSegmentator {
     private double spacePercent = 0.1;
 
     @Override

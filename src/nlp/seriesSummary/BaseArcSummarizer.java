@@ -8,9 +8,9 @@ import graph.Graph;
 import graph.KnnGraph;
 import graph.RandomWalkGraph;
 import inputOutput.TextIO;
-import nlp.lowbow.eigenLowbow.LowBowSegmentator;
+import nlp.lowbow.eigenLowbow.LowBowSubSegmentator;
 import nlp.lowbow.eigenLowbow.LowBowSubtitles;
-import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
+import nlp.lowbow.eigenLowbow.MaxDerivativeSubSegmentator;
 import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
 import nlp.segmentedBow.BaseSegmentedBow;
 import nlp.segmentedBow.SegmentedBowCool;
@@ -160,7 +160,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     /**
      * The Low bow segmentator.
      */
-    protected LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
+    protected LowBowSubSegmentator lowBowSubSegmentator = MaxDerivativeSubSegmentator.getInstance();
     Comparator<String> stringComparator = (o1, o2) -> {
         final String regex = "[Ss][0-9]+[Ee][0-9]+";
         String[] split1 = o1.split(regex);
@@ -288,7 +288,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 text.read(subtitles.get(i));
                 textSplitter = this.necessaryWordPredicate == null ? new SubsSplitter() : new SubsSplitter(this.necessaryWordPredicate);
                 LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(text.getText(), textSplitter, videos.get(i));
-                low.setLowBowSegmentator(lowBowSegmentator);
+                low.setLowBowSubSegmentator(lowBowSubSegmentator);
                 this.lowBowManager.add(low);
             }
             log.add("Lowbow for each episode: " + stopWatch.getEleapsedTime());
@@ -725,17 +725,17 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      *
      * @return the low bow segmentator
      */
-    public LowBowSegmentator getLowBowSegmentator() {
-        return lowBowSegmentator;
+    public LowBowSubSegmentator getLowBowSubSegmentator() {
+        return lowBowSubSegmentator;
     }
 
     /**
      * Sets low bow segmentator.
      *
-     * @param lowBowSegmentator the low bow segmentator
+     * @param lowBowSubSegmentator the low bow segmentator
      */
-    public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
-        this.lowBowSegmentator = lowBowSegmentator;
+    public void setLowBowSubSegmentator(LowBowSubSegmentator lowBowSubSegmentator) {
+        this.lowBowSubSegmentator = lowBowSubSegmentator;
     }
 
     public Predicate<String> getNecessaryWordPredicate() {
