@@ -1,4 +1,4 @@
-package nlp.segmentedBow;
+package nlp.segmentedBow.sub;
 
 
 import algebra.src.Matrix;
@@ -6,14 +6,14 @@ import algebra.src.Vector;
 import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import utils.Interval;
 
-public class SegmentedBowHeat extends BaseSegmentedBow {
+public class SegmentedBowHeat extends SubSegmentedBow {
 
     public SegmentedBowHeat(Interval<Integer> interval, LowBowSubtitles lowBowSubtitles) {
         super(interval, lowBowSubtitles);
     }
 
     protected void buildSegmentBow() {
-        Matrix rawCurveSeg = lowBowSubtitles.getRawCurveFromHeatRepresentation(interval.getXmin(), interval.getXmax());
+        Matrix rawCurveSeg = lowBowOrig.getRawCurveFromHeatRepresentation(interval.getXmin(), interval.getXmax());
         Vector[] lowCurve = rawCurveSeg.getRowsVectors();
         segmentBow = new Vector(lowCurve[0].getDim());
         for (int i = 0; i < lowCurve.length; i++) {

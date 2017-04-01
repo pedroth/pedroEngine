@@ -2,9 +2,9 @@ package nlp.tests;
 
 import algebra.src.Vector;
 import inputOutput.TextIO;
-import nlp.lowbow.eigenLowbow.LowBowSubSegmentator;
-import nlp.lowbow.eigenLowbow.MaxDerivativeSubSegmentator;
-import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.lowbow.eigenLowbow.LowBowSegmentator;
+import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
+import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.seriesSummary.ArcSummarizerDiffusion;
 import nlp.seriesSummary.ArcSummarizerLda;
 import nlp.seriesSummary.ArcSummarizerSpectral;
@@ -35,7 +35,7 @@ public class ArcSummaryTest {
                 .timeArc(10)
                 .cutVideo(true)
                 .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSubSegmentator.getInstance())
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
@@ -49,7 +49,7 @@ public class ArcSummaryTest {
                 .timeArc(10)
                 .cutVideo(true)
                 .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSubSegmentator.getInstance())
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
@@ -63,7 +63,7 @@ public class ArcSummaryTest {
                 .timeArc(10)
                 .cutVideo(true)
                 .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSubSegmentator.getInstance())
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
@@ -77,7 +77,7 @@ public class ArcSummaryTest {
                 .timeArc(10)
                 .cutVideo(true)
                 .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSubSegmentator.getInstance())
+                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
@@ -93,7 +93,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
-        baseArcSummarizer.setLowBowSubSegmentator(testParameters.lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         stack.add(baseArcSummarizer);
 
@@ -102,7 +102,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
-        baseArcSummarizer.setLowBowSubSegmentator(testParameters.lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
         ((ArcSummarizerSpectral) baseArcSummarizer).setAdrewEtAl(false);
         stack.add(baseArcSummarizer);
@@ -112,14 +112,14 @@ public class ArcSummaryTest {
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
-        baseArcSummarizer.setLowBowSubSegmentator(testParameters.lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         stack.add(baseArcSummarizer);
 
         // spectral clustering not normalized
         baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSubSegmentator(testParameters.lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         stack.add(baseArcSummarizer);
@@ -129,7 +129,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
-        baseArcSummarizer.setLowBowSubSegmentator(testParameters.lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         stack.add(baseArcSummarizer);
@@ -162,12 +162,12 @@ public class ArcSummaryTest {
         double timeArc = 100000;
         boolean cutVideo = false;
         boolean concatVideo = true;
-        LowBowSubSegmentator lowBowSubSegmentator = MaxDerivativeSubSegmentator.getInstance();
+        LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
 
         BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, heat, entropy, knn, numberOfCluster, ArcSummarizerSpectral.euclideanDist);
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
-        baseArcSummarizer.setLowBowSubSegmentator(lowBowSubSegmentator);
+        baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
         ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
 
         baseArcSummarizer.buildSummary(output, timeArc);
@@ -175,7 +175,7 @@ public class ArcSummaryTest {
 
     }
 
-    private String computeIntraDistanceHist(List<BaseSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, Distance<Vector> distance, int bins) {
+    private String computeIntraDistanceHist(List<SubSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, Distance<Vector> distance, int bins) {
         List<Double> data = new ArrayList<>();
         for (Map.Entry<Integer, List<Integer>> integerListEntry : segmentIndexByClusterId.entrySet()) {
             List<Integer> valueList = integerListEntry.getValue();
@@ -204,7 +204,7 @@ public class ArcSummaryTest {
     }
 
 
-    private String computeInterDistanceHistRandomSample(List<BaseSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, int samples, Distance<Vector> distance, int bins) {
+    private String computeInterDistanceHistRandomSample(List<SubSegmentedBow> segmentedBows, Map<Integer, List<Integer>> segmentIndexByClusterId, boolean isNormalIndex, int samples, Distance<Vector> distance, int bins) {
         List<Double> data = new ArrayList<>();
         Random random = new Random();
         int n = segmentIndexByClusterId.size();

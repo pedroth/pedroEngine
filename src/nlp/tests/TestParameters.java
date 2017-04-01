@@ -1,6 +1,6 @@
 package nlp.tests;
 
-import nlp.lowbow.eigenLowbow.LowBowSubSegmentator;
+import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.utils.RemoveWordsPredicate;
 
 import java.lang.reflect.Field;
@@ -17,10 +17,10 @@ class TestParameters {
     double timeArc;
     boolean cutVideo;
     boolean concatVideo;
-    LowBowSubSegmentator lowBowSubSegmentator;
+    LowBowSegmentator lowBowSegmentator;
     RemoveWordsPredicate necessaryWordPredicate;
 
-    public TestParameters(int numberOfCluster, double heat, double entropy, int knn, double timeArc, boolean cutVideo, boolean concatVideo, LowBowSubSegmentator lowBowSubSegmentator, RemoveWordsPredicate necessaryWordPredicate, String seriesAddress, String fileExtension) {
+    public TestParameters(int numberOfCluster, double heat, double entropy, int knn, double timeArc, boolean cutVideo, boolean concatVideo, LowBowSegmentator lowBowSegmentator, RemoveWordsPredicate necessaryWordPredicate, String seriesAddress, String fileExtension) {
         this.numberOfCluster = numberOfCluster;
         this.heat = heat;
         this.entropy = entropy;
@@ -28,7 +28,7 @@ class TestParameters {
         this.timeArc = timeArc;
         this.cutVideo = cutVideo;
         this.concatVideo = concatVideo;
-        this.lowBowSubSegmentator = lowBowSubSegmentator;
+        this.lowBowSegmentator = lowBowSegmentator;
         this.necessaryWordPredicate = necessaryWordPredicate;
         this.seriesAddress = seriesAddress;
         this.fileExtension = fileExtension;
@@ -48,7 +48,7 @@ class TestParameters {
                 ", timeArc=" + timeArc +
                 ", cutVideo=" + cutVideo +
                 ", concatVideo=" + concatVideo +
-                ", lowBowSubSegmentator=" + lowBowSubSegmentator +
+                ", lowBowSegmentator=" + lowBowSegmentator +
                 ", necessaryWordPredicate=" + necessaryWordPredicate +
                 '}';
     }
@@ -64,7 +64,7 @@ class TestParameters {
         private Double timeArc;
         private Boolean cutVideo;
         private Boolean concatVideo;
-        private LowBowSubSegmentator lowBowSubSegmentator;
+        private LowBowSegmentator lowBowSegmentator;
         private RemoveWordsPredicate necessaryWordPredicate;
 
         public TestParametersBuilder() {
@@ -106,8 +106,8 @@ class TestParameters {
             return this;
         }
 
-        public TestParametersBuilder lowBowSegmentator(LowBowSubSegmentator lowBowSubSegmentator) {
-            this.lowBowSubSegmentator = lowBowSubSegmentator;
+        public TestParametersBuilder lowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
+            this.lowBowSegmentator = lowBowSegmentator;
             return this;
         }
 
@@ -132,7 +132,7 @@ class TestParameters {
                     return Optional.empty();
                 }
             }
-            return Optional.of(new TestParameters(this.numberOfCluster, this.heat, this.entropy, this.knn, this.timeArc, this.cutVideo, this.concatVideo, this.lowBowSubSegmentator, this.necessaryWordPredicate, this.seriesAddress, this.fileExtension));
+            return Optional.of(new TestParameters(this.numberOfCluster, this.heat, this.entropy, this.knn, this.timeArc, this.cutVideo, this.concatVideo, this.lowBowSegmentator, this.necessaryWordPredicate, this.seriesAddress, this.fileExtension));
         }
     }
 }

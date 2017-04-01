@@ -5,7 +5,7 @@ import algebra.src.Vector;
 import apps.utils.MyFrame;
 import graph.Graph;
 import javafx.util.Pair;
-import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
 import nlp.utils.Simplex;
@@ -69,7 +69,7 @@ public class DistributionVisualizer extends MyFrame implements MouseWheelListene
         BaseArcSummarizer arcSummarizer = new ArcSummarizerSpectral(seriesAddress, fileExtension, 0.04, 0.1, 3, numberOfCluster, BaseArcSummarizer.simplexDist);
 //        arcSummarizer.setHistogramDistance(arcSummarizer.getTfIdfDistance());
         arcSummarizer.buildSummary(output, 10);
-        List<BaseSegmentedBow> segmentedBows = arcSummarizer.getSegmentedBows();
+        List<SubSegmentedBow> segmentedBows = arcSummarizer.getSegmentedBows();
         Map<Integer, List<Integer>> segmentIndexByClusterId = arcSummarizer.getSegmentIndexByClusterId();
 
         int colorRange = segmentIndexByClusterId.size();

@@ -1,11 +1,13 @@
 package nlp.tests;
 
 import inputOutput.TextIO;
-import nlp.lowbow.eigenLowbow.*;
-import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.segmentedBow.SegmentedBowHeat;
+import nlp.lowbow.eigenLowbow.LowBowSegmentator;
+import nlp.lowbow.eigenLowbow.LowBowSubtitles;
+import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
+import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
+import nlp.segmentedBow.sub.SegmentedBowHeat;
+import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.symbolSampler.TopKSymbol;
-import nlp.textSplitter.StopWordsSplitter;
 import nlp.textSplitter.SubsSplitter;
 import nlp.utils.RemoveStopWordsPredicate;
 import org.junit.Test;
@@ -32,15 +34,15 @@ public class SegmentationTest {
 
         SubsSplitter textSplitter = null;
         TextIO textIO = new TextIO();
-        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        SummaryGenLowBowManager<LowBowSubtitles, SubSegmentedBow> lowBowManager = new SummaryGenLowBowManager<>();
 
         //lowbow representation
         for (int i = 0; i < 1; i++) {
             textIO.read(subtitles.get(i));
             textSplitter = new SubsSplitter(RemoveStopWordsPredicate.getInstance());
             LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitter, videos.get(i));
-            LowBowSubSegmentator lowBowSubSegmentator = MaxDerivativeSubSegmentator.getInstance();
-            low.setLowBowSubSegmentator(lowBowSubSegmentator);
+            LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
+            low.setLowBowSegmentator(lowBowSegmentator);
             lowBowManager.add(low);
         }
         lowBowManager.buildModel(heatTime);
@@ -48,9 +50,9 @@ public class SegmentationTest {
         final String text = lowBowSubtitles.generateText(new TopKSymbol(10, ","));
 
         lowBowManager.buildSegmentations(SegmentedBowHeat::new);
-        List<BaseSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
+        List<SubSegmentedBow> segmentedBows = lowBowManager.getSegmentedBows();
         Set<Integer> boundaryIndex = new HashSet<>();
-        for (BaseSegmentedBow segmentedBow : segmentedBows) {
+        for (SubSegmentedBow segmentedBow : segmentedBows) {
             segmentedBow.cutSegment(desktopAddress + segmentedBow.getInterval() + ".mp4");
             boundaryIndex.add(segmentedBow.getInterval().getXmax() - 1);
         }
@@ -64,21 +66,8 @@ public class SegmentationTest {
     }
 
     @Test
-    public void segmentTest() {
-        final String desktopAddress = System.getProperty("user.home") + "/Desktop/";
+    public void segmentC99() {
         final String baseAddress = "C:/pedro/escolas/ist/Tese/C99/";
-        final double heatTime = 0.04;
-
-        List<String> textAddresss = FilesCrawler.listFilesWithExtension(baseAddress, "srt");
-        Collections.sort(textAddresss);
-
-        StopWordsSplitter textSplitter = new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt");
-        TextIO textIO = new TextIO();
-
-        //lowbow representation
-        for (int i = 0; i < 1; i++) {
-            textIO.read(textAddresss.get(i));
-            EigenLowBow low = new EigenLowBow(textIO.getText(), textSplitter);
-        }
+        List<String> subtitles = FilesCrawler.listFilesWithExtension(baseAddress, "ref");
     }
 }

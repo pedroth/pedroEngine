@@ -226,7 +226,7 @@ public class LowBow extends BaseLowBow {
     }
 
     /**
-     * get sigma acoording to the folowing rule: 1.0 / (2 * textLength)
+     * get sigma according to the folowing rule: 1.0 / (2 * textLength)
      */
     public double getSigmaAuto() {
         return 1.0 / (2 * this.getTextLength());

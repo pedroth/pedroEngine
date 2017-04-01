@@ -1,19 +1,19 @@
 package nlp.lowbow.eigenLowbow;
 
 import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.segmentedBow.SegmentedBowFactory;
+import nlp.segmentedBow.sub.SegmentedBowFactory;
 import numeric.src.MyMath;
 import utils.Interval;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EqualSpaceSubSegmentator implements LowBowSubSegmentator {
+public class EqualSpaceSegmentator<L extends EigenLowBow, B extends BaseSegmentedBow<L>> implements LowBowSegmentator<L, B> {
     private double spacePercent = 0.1;
 
     @Override
-    public List<BaseSegmentedBow> getSegmentation(SegmentedBowFactory<BaseSegmentedBow> factory, LowBowSubtitles lowBowSubtitles) {
-        List<BaseSegmentedBow> segmentedBows = new ArrayList<>();
+    public List<B> getSegmentation(SegmentedBowFactory<L, B> factory, L lowBowSubtitles) {
+        List<B> segmentedBows = new ArrayList<>();
         int size = lowBowSubtitles.getTextLength();
         double rho = 1 - spacePercent;
         int ite = (int) Math.floor(1.0 / rho);
@@ -22,7 +22,7 @@ public class EqualSpaceSubSegmentator implements LowBowSubSegmentator {
         for (int i = 0; i < ite; i++) {
             int k = step * i;
             Interval interval = new Interval(k + 1, ((i == (ite - 1)) && (k + step != size)) ? size : k + step);
-            segmentedBows.add(factory.getInstance(interval, lowBowSubtitles));
+            segmentedBows.add((B) factory.getInstance(interval, lowBowSubtitles));
         }
         return segmentedBows;
     }

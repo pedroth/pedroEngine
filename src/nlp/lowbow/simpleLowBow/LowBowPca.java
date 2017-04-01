@@ -38,7 +38,6 @@ public class LowBowPca extends LowBow {
             Vector v = Vector.diff(curve[i], myu);
             pcaCurve[i] = new Vec3(Vector.innerProd(pc[0], v), Vector.innerProd(pc[1], v), Vector.innerProd(pc[2], v));
         }
-        // writeObjFile(false);
     }
 
     /**

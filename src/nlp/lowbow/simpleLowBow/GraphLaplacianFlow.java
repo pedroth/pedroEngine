@@ -4,8 +4,6 @@ import algebra.src.TridiagonalMatrix;
 import algebra.src.Vector;
 
 /**
- * Created by Pedroth on 12/20/2015.
- *
  * Solves the heat equation by using the graph laplacian (similar to Matrix Method)
  */
 public class GraphLaplacianFlow implements HeatMethod {

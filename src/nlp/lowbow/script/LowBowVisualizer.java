@@ -9,6 +9,7 @@ import nlp.lowbow.eigenLowbow.LowBowSubtitles;
 import nlp.lowbow.eigenLowbow.SummaryGenLowBowManager;
 import nlp.lowbow.simpleLowBow.BaseLowBow;
 import nlp.lowbow.simpleLowBow.BaseLowBowManager;
+import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.simpleDocModel.BaseDocModelManager;
 import nlp.simpleDocModel.Bow;
 import nlp.textSplitter.SubsSplitter;
@@ -75,7 +76,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
         Collections.sort(videos);
 
         //construct managers
-        SummaryGenLowBowManager<LowBowSubtitles> lowBowManager = new SummaryGenLowBowManager<>();
+        SummaryGenLowBowManager<LowBowSubtitles, SubSegmentedBow> lowBowManager = new SummaryGenLowBowManager<>();
         BaseDocModelManager<Bow> bowManager = new BaseDocModelManager<>();
 
         TextIO text = new TextIO();

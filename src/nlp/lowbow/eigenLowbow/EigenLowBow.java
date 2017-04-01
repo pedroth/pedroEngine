@@ -1,13 +1,18 @@
 package nlp.lowbow.eigenLowbow;
 
 
+import algebra.src.LineGradient;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.simpleLowBow.BaseLowBow;
+import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.sub.SegmentedBowFactory;
 import nlp.symbolSampler.SymbolSampler;
 import nlp.textSplitter.TextSplitter;
 import nlp.utils.Simplex;
 import numeric.src.MyMath;
+
+import java.util.List;
 
 /**
  * The type Eigen low bow.
@@ -22,6 +27,9 @@ public class EigenLowBow extends BaseLowBow {
     private Matrix eigenCoord;
     // number of coefficients that encode the low dimensional representation of lowbow
     private int numberOfLowDimCoeff;
+
+    private LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
+
 
     /**
      * Instantiates a new Eigen low bow.
@@ -38,7 +46,7 @@ public class EigenLowBow extends BaseLowBow {
      *
      * @param originalText the original text
      * @param textSplitter the text splitter
-     * @param simplex the simplex
+     * @param simplex      the simplex
      */
     public EigenLowBow(String originalText, TextSplitter textSplitter, Simplex simplex) {
         super(originalText, textSplitter, simplex);
@@ -113,9 +121,9 @@ public class EigenLowBow extends BaseLowBow {
     /**
      * Build heat representation.
      *
-     * @param eigenBasis the eigen basis
+     * @param eigenBasis  the eigen basis
      * @param eigenValues the eigen values
-     * @param k k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
+     * @param k           k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
      */
     public void buildHeatRepresentation(Matrix eigenBasis, Vector eigenValues, int k) {
         if (rawCurve == null) {
@@ -230,5 +238,69 @@ public class EigenLowBow extends BaseLowBow {
             return getRawCurveFromHeatRepresentation().getRowsVectors();
         }
         return super.getCurve();
+    }
+
+    /**
+     * Compute low bow 2 nd derivative.
+     *
+     * @return the matrix
+     */
+    public Matrix computeLowBow2ndDerivative() {
+        double heatTime = getHeatTime();
+        int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
+        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
+        diag = Matrix.diag(getEigenValues().getSubVector(1, numberOfLowDimCoeff)).prod(diag);
+        if (textLength > 50) {
+            return getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prodParallel(diag.prod(getEigenCoord()));
+        }
+        return getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
+    }
+
+    /**
+     * Compute low bow derivative.
+     *
+     * @return the matrix
+     */
+    public Matrix computeLowBowDerivative() {
+        double heatTime = getHeatTime();
+        LineGradient opD = new LineGradient(textLength);
+        int numberOfLowDimCoeff = getNumberOfLowDimCoeff();
+        Matrix diag = expSt(heatTime, numberOfLowDimCoeff);
+        Matrix yt;
+        if (textLength > 50) {
+            yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prodParallel(diag.prod(getEigenCoord()));
+        } else {
+            yt = getEigenBasis().getSubMatrix(1, textLength, 1, numberOfLowDimCoeff).prod(diag.prod(getEigenCoord()));
+        }
+        return opD.prod(yt);
+    }
+
+    /**
+     * Gets segmentation.
+     *
+     * @param factory the factory
+     * @return the segmentation
+     */
+    public <L extends EigenLowBow, B extends BaseSegmentedBow<L>> List<B> getSegmentation(SegmentedBowFactory<L, B> factory) {
+        return lowBowSegmentator.getSegmentation(factory, this);
+    }
+
+
+    /**
+     * Gets low bow segmentator.
+     *
+     * @return the low bow segmentator
+     */
+    public LowBowSegmentator getLowBowSegmentator() {
+        return lowBowSegmentator;
+    }
+
+    /**
+     * Sets low bow segmentator.
+     *
+     * @param lowBowSegmentator the low bow segmentator
+     */
+    public void setLowBowSegmentator(LowBowSegmentator lowBowSegmentator) {
+        this.lowBowSegmentator = lowBowSegmentator;
     }
 }

@@ -5,7 +5,7 @@ import algebra.src.Vector;
 import graph.Graph;
 import inputOutput.TextIO;
 import javafx.util.Pair;
-import nlp.segmentedBow.BaseSegmentedBow;
+import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.utils.LdaWrapper;
 import numeric.src.Distance;
 
@@ -91,8 +91,8 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
     public Map<Integer, List<Integer>> clusterArcs(int kcluster) {
         //build corpus
         StringBuilder stringBuilder = new StringBuilder();
-        List<BaseSegmentedBow> segmentedBows = this.getSegmentedBows();
-        for (BaseSegmentedBow baseSegmentedBow : segmentedBows) {
+        List<SubSegmentedBow> segmentedBows = this.getSegmentedBows();
+        for (SubSegmentedBow baseSegmentedBow : segmentedBows) {
             stringBuilder.append(baseSegmentedBow.cutSegmentSubtitleWords()).append("\n");
         }
         //lda

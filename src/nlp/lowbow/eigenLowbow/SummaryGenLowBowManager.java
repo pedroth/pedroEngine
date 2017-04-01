@@ -6,7 +6,7 @@ import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.simpleLowBow.BaseLowBowManager;
 import nlp.segmentedBow.BaseSegmentedBow;
-import nlp.segmentedBow.SegmentedBowFactory;
+import nlp.segmentedBow.sub.SegmentedBowFactory;
 import numeric.src.Distance;
 import numeric.src.MyMath;
 import utils.StopWatch;
@@ -19,12 +19,12 @@ import java.util.List;
  *
  * @param <L> the type parameter
  */
-public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowBowManager<L> {
+public class SummaryGenLowBowManager<L extends EigenLowBow, B extends BaseSegmentedBow<L>> extends BaseLowBowManager<L> {
     // Eigen vectors of the LineLaplacian matrix
     private Matrix eigenBasisGlobal;
     // Eigen values of the LineLaplacian matrix
     private Vector eigenValuesGlobal;
-    private List<BaseSegmentedBow> segmentedBows;
+    private List<B> segmentedBows;
 
     /**
      * Instantiates a new Summary gen low bow manager.
@@ -105,11 +105,11 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
      *
      * @param factory the factory
      */
-    public void buildSegmentations(SegmentedBowFactory<BaseSegmentedBow> factory) {
+    public void buildSegmentations(SegmentedBowFactory<L, B> factory) {
         segmentedBows = new ArrayList<>();
         StopWatch stopWatch = new StopWatch();
         for (L docModel : docModels) {
-            List<BaseSegmentedBow> segmentation = docModel.getSegmentation(factory);
+            List<B> segmentation = docModel.getSegmentation(factory);
             System.out.println("segmentation computation time : " + stopWatch.getEleapsedTime());
             segmentedBows.addAll(segmentation);
             stopWatch.resetTime();
@@ -121,7 +121,7 @@ public class SummaryGenLowBowManager<L extends LowBowSubtitles> extends BaseLowB
      *
      * @return the segmented bows
      */
-    public List<BaseSegmentedBow> getSegmentedBows() {
+    public List<B> getSegmentedBows() {
         return segmentedBows;
     }
 }
