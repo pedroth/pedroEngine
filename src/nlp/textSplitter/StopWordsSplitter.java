@@ -8,11 +8,14 @@ import java.util.TreeMap;
 
 
 public class StopWordsSplitter implements TextSplitter {
-    private String address;
+    private static final String DEFAULT_STOP_WORD_LIST = "src/nlp/resources/wordLists/stopWords.txt";
     private TreeMap<String, Boolean> stopWords;
 
+    public StopWordsSplitter() {
+        this(DEFAULT_STOP_WORD_LIST);
+    }
+
     public StopWordsSplitter(String address) {
-        this.address = address;
         this.stopWords = new TreeMap<>();
         BufferedReader br = null;
         try {
@@ -39,7 +42,7 @@ public class StopWordsSplitter implements TextSplitter {
     @Override
     public String[] split(String in) {
         String[] text = in.replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", " ").toLowerCase().replaceAll("[^(\\p{L}|\\s+)]|\\(|\\)", "").split("\\s+");
-        ArrayList<String> ans = new ArrayList<String>();
+        ArrayList<String> ans = new ArrayList<>();
         for (int i = 0; i < text.length; i++) {
             if (!isStopWord(text[i])) {
                 ans.add(text[i]);

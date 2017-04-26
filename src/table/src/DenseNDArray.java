@@ -62,7 +62,7 @@ public class DenseNDArray<T> {
     }
 
     /**
-     * Set void.
+     * Set value.
      *
      * @param x the x
      * @param value the value

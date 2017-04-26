@@ -2,6 +2,7 @@ package nlp.lowbow.eigenLowbow;
 
 
 import algebra.src.LineGradient;
+import algebra.src.LineLaplacian;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import nlp.lowbow.simpleLowBow.BaseLowBow;
@@ -46,7 +47,7 @@ public class EigenLowBow extends BaseLowBow {
      *
      * @param originalText the original text
      * @param textSplitter the text splitter
-     * @param simplex      the simplex
+     * @param simplex the simplex
      */
     public EigenLowBow(String originalText, TextSplitter textSplitter, Simplex simplex) {
         super(originalText, textSplitter, simplex);
@@ -121,9 +122,9 @@ public class EigenLowBow extends BaseLowBow {
     /**
      * Build heat representation.
      *
-     * @param eigenBasis  the eigen basis
+     * @param eigenBasis the eigen basis
      * @param eigenValues the eigen values
-     * @param k           k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
+     * @param k k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
      */
     public void buildHeatRepresentation(Matrix eigenBasis, Vector eigenValues, int k) {
         if (rawCurve == null) {
@@ -137,6 +138,18 @@ public class EigenLowBow extends BaseLowBow {
         } else {
             this.eigenCoord = eigenBasis.getSubMatrix(1, textLength, 1, k).transpose().prod(rawCurve);
         }
+    }
+
+    /**
+     * Build heat representation.
+     *
+     * @param k k <= eigenBasis.getRows and is the k eigenVectors used to reduce dimensionality of the lowBow
+     */
+    public void buildHeatRepresentation(int k) {
+        LineLaplacian L = new LineLaplacian(textLength);
+        this.eigenBasis = new Matrix(L.getEigenVectors());
+        this.eigenValues = new Vector(L.getEigenValues());
+        buildHeatRepresentation(this.eigenBasis, this.eigenValues, k);
     }
 
     /**

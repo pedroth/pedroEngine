@@ -1,5 +1,5 @@
 package nlp.textSplitter;
 
 public interface TextSplitter {
-	public String[] split(String in);
+	String[] split(String in);
 }

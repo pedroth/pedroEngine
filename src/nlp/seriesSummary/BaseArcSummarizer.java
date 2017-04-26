@@ -153,6 +153,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      * The Segment length data.
      */
     protected List<Double> segmentLengthData;
+
     /**
      * The Is video concat.
      */
@@ -237,9 +238,11 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
     public void buildSummary(String outputAddress, double timeLengthMinutes) {
         try {
             this.outputAddress = outputAddress;
-            TextIO textIO = new TextIO();
             this.outputAddress += ('/' == this.outputAddress.charAt(outputAddress.length() - 1) ? "" : "/");
+            final String infoAddress = outputAddress + "/info/";
+            TextIO textIO = new TextIO();
             FilesCrawler.creatDirs(outputAddress);
+            FilesCrawler.creatDirs(infoAddress);
 
             //read files
             StopWatch stopWatch = new StopWatch();
@@ -281,7 +284,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 stopWatch.resetTime();
             }
 
-            textIO.write(this.outputAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+            textIO.write(infoAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
 
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {
@@ -321,7 +324,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             System.out.println("knn graph done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
-            textIO.write(this.outputAddress + "segmentGraph.txt", knnGraph.toStringGephi());
+            textIO.write(infoAddress + "segmentGraph.txt", knnGraph.toStringGephi());
 
             //clustering
             segmentIndexByClusterId = clusterArcs(kcluster);
@@ -331,27 +334,25 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 System.out.println(clusterSizeString);
             }
 
+            printNumberOfSegmentsPerCluster(infoAddress, textIO);
+
             graphByClusterIdMap = getClusteredGraph();
             log.add("Clustering done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Clustering done!! : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
-            StringBuilder stringBuilder = new StringBuilder();
-            for (Map.Entry<Integer, Graph> integerGraphEntry : graphByClusterIdMap.entrySet()) {
-                stringBuilder.append(integerGraphEntry.getValue().toStringGephi());
-            }
-            textIO.write(this.outputAddress + "segmentGraphPartition.txt", stringBuilder.toString());
+            printSegmentPartition(infoAddress, textIO);
 
             //summarize
             randomWalkSummary(graphByClusterIdMap, timeLengthMinutes, this.outputAddress);
 
-            topWordsPrint(20);
+            topWordsPrint(20, infoAddress);
 
             log.add("Summary done!! : " + stopWatch.getEleapsedTime());
             System.out.println("Summary done!! : " + stopWatch.getEleapsedTime());
             log.add("FINISH");
 
-            textIO.write(this.outputAddress + "Param.txt", this.toString());
+            textIO.write(infoAddress + "Param.txt", this.toString());
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -359,6 +360,22 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             e.printStackTrace();
             log.add(sw.toString());
         }
+    }
+
+    private void printNumberOfSegmentsPerCluster(String infoAddress, TextIO textIO) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<Integer, List<Integer>> entry : segmentIndexByClusterId.entrySet()) {
+            stringBuilder.append(entry.getKey() + "\t" + entry.getValue().size() + "\n");
+        }
+        textIO.write(infoAddress + "numberOfSegmentsPerCluster.txt", stringBuilder.toString());
+    }
+
+    private void printSegmentPartition(String infoAddress, TextIO textIO) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<Integer, Graph> integerGraphEntry : graphByClusterIdMap.entrySet()) {
+            stringBuilder.append(integerGraphEntry.getValue().toStringGephi());
+        }
+        textIO.write(infoAddress + "segmentGraphPartition.txt", stringBuilder.toString());
     }
 
     public List<Double> getSegmentLengthData() {
@@ -405,7 +422,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return mu / size;
     }
 
-    private void topWordsPrint(int k) {
+    private void topWordsPrint(int k, String infoAddress) {
         TextIO textIO = new TextIO();
         int dim = segmentedBows.get(0).getSegmentBow().getDim();
 
@@ -436,8 +453,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             TopKSymbolWithProb topKSymbolWithProb = new TopKSymbolWithProb(k);
             stringBuilder.append("cluster ").append(clusterId).append(": ").append(topKSymbolWithProb.nextSymbol(acc, lowBowManager.getSimplex())).append("\n\n");
         }
-        textIO.write(outputAddress + "TopWords.txt", stringBuilder.toString());
-        textIO.write(outputAddress + "GraphCentroid.txt", stringBuilder2.toString());
+        textIO.write(infoAddress + "TopWords.txt", stringBuilder.toString());
+        textIO.write(infoAddress + "GraphCentroid.txt", stringBuilder2.toString());
     }
 
     /**
@@ -743,5 +760,34 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     public void setNecessaryWordPredicate(RemoveWordsPredicate necessaryWordPredicate) {
         this.necessaryWordPredicate = necessaryWordPredicate;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseArcSummarizer{" +
+                "log=" + log +
+                ", heat=" + heat +
+                ", entropy=" + entropy +
+                ", knn=" + knn +
+                ", kcluster=" + kcluster +
+                ", histogramDistance=" + histogramDistance +
+                ", segmentedBows=" + segmentedBows +
+                ", graphByClusterIdMap=" + graphByClusterIdMap +
+                ", randomWalkDistributionByClusterIdMap=" + randomWalkDistributionByClusterIdMap +
+                ", lowBowManager=" + lowBowManager +
+                ", segmentIndexByClusterId=" + segmentIndexByClusterId +
+                ", knnGraph=" + knnGraph +
+                ", outputAddress='" + outputAddress + '\'' +
+                ", necessaryWordPredicate=" + necessaryWordPredicate +
+                ", entropyPredicate=" + entropyPredicate +
+                ", cutVideo=" + cutVideo +
+                ", graphCentroidByClusterId=" + graphCentroidByClusterId +
+                ", averageSegmentLength=" + averageSegmentLength +
+                ", standardDeviationSegmentLength=" + standardDeviationSegmentLength +
+                ", segmentLengthData=" + segmentLengthData +
+                ", isVideoConcat=" + isVideoConcat +
+                ", lowBowSegmentator=" + lowBowSegmentator +
+                ", stringComparator=" + stringComparator +
+                '}';
     }
 }

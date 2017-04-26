@@ -16,6 +16,7 @@ import org.junit.Test;
 import utils.Histogram;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class ArcSummaryTest {
 
@@ -25,59 +26,67 @@ public class ArcSummaryTest {
         RemoveWordsPredicate necessaryWordPredicate = RemoveStopWordsPredicate.getInstance();
 
         List<TestParameters> testParametersList = new ArrayList<>(4);
+        final int numberOfCluster = 6;
+        final double heat = 0.04;
+        final double entropy = 0.05;
+        final int knn = 0;
+        final int timeArc = 10;
+        final boolean cutVideo = true;
+        final boolean concatVideo = true;
+        final MaxDerivativeSegmentator instance = MaxDerivativeSegmentator.getInstance();
+        testParametersList.add(new TestParameters.TestParametersBuilder()
+                .seriesAddress(baseVideoAddress + "OverTheGardenWall/")
+                .fileExtension("mkv")
+                .numberOfCluster(numberOfCluster)
+                .heat(heat)
+                .entropy(entropy)
+                .knn(knn)
+                .timeArc(timeArc)
+                .cutVideo(cutVideo)
+                .concatVideo(concatVideo)
+                .lowBowSegmentator(instance)
+                .necessaryWordPredicate(necessaryWordPredicate)
+                .build()
+                .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
                 .seriesAddress(baseVideoAddress + "BattleStarGalactica/")
                 .fileExtension("avi")
-                .numberOfCluster(6)
-                .heat(0.04)
-                .entropy(0)
-                .knn(5)
-                .timeArc(10)
-                .cutVideo(true)
-                .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .numberOfCluster(numberOfCluster)
+                .heat(heat)
+                .entropy(entropy)
+                .knn(knn)
+                .timeArc(timeArc)
+                .cutVideo(cutVideo)
+                .concatVideo(concatVideo)
+                .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
                 .seriesAddress(baseVideoAddress + "BreakingBad/")
                 .fileExtension("mp4")
-                .numberOfCluster(6)
-                .heat(0.04)
-                .entropy(0)
-                .knn(5)
-                .timeArc(10)
-                .cutVideo(true)
-                .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .numberOfCluster(numberOfCluster)
+                .heat(heat)
+                .entropy(entropy)
+                .knn(knn)
+                .timeArc(timeArc)
+                .cutVideo(cutVideo)
+                .concatVideo(concatVideo)
+                .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
                 .seriesAddress(baseVideoAddress + "MrRobot/")
                 .fileExtension("mkv")
-                .numberOfCluster(6)
-                .heat(0.04)
-                .entropy(0)
-                .knn(5)
-                .timeArc(10)
-                .cutVideo(true)
-                .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
-                .necessaryWordPredicate(necessaryWordPredicate)
-                .build()
-                .get());
-        testParametersList.add(new TestParameters.TestParametersBuilder()
-                .seriesAddress(baseVideoAddress + "OverTheGardenWall/")
-                .fileExtension("mkv")
-                .numberOfCluster(6)
-                .heat(0.04)
-                .entropy(0)
-                .knn(5)
-                .timeArc(10)
-                .cutVideo(true)
-                .concatVideo(true)
-                .lowBowSegmentator(MaxDerivativeSegmentator.getInstance())
+                .numberOfCluster(numberOfCluster)
+                .heat(heat)
+                .entropy(entropy)
+                .knn(knn)
+                .timeArc(timeArc)
+                .cutVideo(cutVideo)
+                .concatVideo(concatVideo)
+                .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
                 .build()
                 .get());
@@ -188,7 +197,9 @@ public class ArcSummaryTest {
                 }
             }
         }
-        return buildHist(data, bins);
+        Function<List<Double>, String> dataPrinterHist = x -> buildHist(x, bins);
+        Function<List<Double>, String> dataPrinter = this::buildData;
+        return dataPrinterHist.apply(data);
     }
 
     private String buildHist(List<Double> data, int bins) {
@@ -198,8 +209,18 @@ public class ArcSummaryTest {
         for (int i = 0; i < hist.size(); i++) {
             stringBuilder.append(hist.get(i) + "\n");
         }
-        stringBuilder.append("min:" + histogram.getXmin() + "\n");
-        stringBuilder.append("max:" + histogram.getXmax() + "\n");
+        stringBuilder.append("===\n");
+        stringBuilder.append("min\tmax\n");
+        stringBuilder.append(histogram.getXmin() + "\t");
+        stringBuilder.append(histogram.getXmax() + "\n");
+        return stringBuilder.toString();
+    }
+
+    private String buildData(List<Double> data) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Double point : data) {
+            stringBuilder.append(point).append("\n");
+        }
         return stringBuilder.toString();
     }
 
@@ -222,6 +243,8 @@ public class ArcSummaryTest {
             Double aDouble = distance.dist(segmentBow, segmentBow1);
             data.add(aDouble);
         }
-        return buildHist(data, bins);
+        Function<List<Double>, String> dataPrinterHist = x -> buildHist(x, bins);
+        Function<List<Double>, String> dataPrinter = this::buildData;
+        return dataPrinterHist.apply(data);
     }
 }

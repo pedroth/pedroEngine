@@ -116,6 +116,6 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
                 ", isNormalized=" + isNormalized +
                 ", spectralClustering=" + spectralClustering +
                 ", isAdrewEtAl=" + isAdrewEtAl +
-                '}';
+                '}' + "\n" + super.toString();
     }
 }

@@ -51,6 +51,7 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
     }
 
     private void computeHeatTime() {
+        // no basis for this calculation.
         this.heatTime = 5 * sigma * sigma;
     }
 
@@ -107,6 +108,6 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
                 ", sigma=" + sigma +
                 ", heatTime=" + heatTime +
                 ", isNormalized=" + isNormalized +
-                '}';
+                '}' + "\n" + super.toString();
     }
 }

@@ -18,16 +18,28 @@ public class Interval<X extends Comparable<X>> {
         return xmin;
     }
 
-    public void setXmin(X xmin) {
-        this.xmin = xmin;
-    }
-
     public X getXmax() {
         return xmax;
     }
 
-    public void setXmax(X xmax) {
-        this.xmax = xmax;
+    public Interval<X> union(Interval<X> interval) {
+        X newXmin = min(this.xmin, interval.getXmin());
+        X newXmax = max(this.xmax, interval.getXmax());
+        return new Interval<>(newXmin, newXmax);
+    }
+
+    private X max(X x, X y) {
+        return x.compareTo(y) >= 0 ? x : y;
+    }
+
+    private X min(X x, X y) {
+        return x.compareTo(y) <= 0 ? x : y;
+    }
+
+    public Interval<X> intersection(Interval<X> interval) {
+        X newXmin = max(this.xmin, interval.getXmin());
+        X newXmax = min(this.xmax, interval.getXmax());
+        return new Interval<>(newXmin, newXmax);
     }
 
     public boolean isEmptyInterval() {

@@ -146,6 +146,6 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
                 "alpha=" + alpha +
                 ", beta=" + beta +
                 ", numberIterations=" + numberIterations +
-                '}';
+                '}' + "\n" + super.toString();
     }
 }
