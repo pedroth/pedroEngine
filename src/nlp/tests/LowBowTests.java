@@ -4,10 +4,7 @@ import algebra.src.DistanceMatrix;
 import algebra.src.LineLaplacian;
 import algebra.src.Matrix;
 import algebra.src.Vector;
-import graph.Graph;
-import graph.KnnGraph;
-import graph.RandomWalkGraph;
-import graph.SpectralClustering;
+import graph.*;
 import inputOutput.CsvReader;
 import inputOutput.TextIO;
 import javafx.util.Pair;
@@ -261,7 +258,7 @@ public class LowBowTests {
         KnnGraph graph = new KnnGraph(distanceMatrix, 4);
 
         //clustering
-        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        SpectralClustering spectralClustering = new AndrewEtAlSpectralClustering(graph);
         Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
 
         //segments top k symbols
@@ -586,7 +583,7 @@ public class LowBowTests {
         KnnGraph graph = new KnnGraph(distanceMatrix, 4);
 
         //clustering
-        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        SpectralClustering spectralClustering = new AndrewEtAlSpectralClustering(graph);
         Map<Integer, List<Integer>> dataToClass = spectralClustering.clustering(5);
         Map<Integer, Graph> map = spectralClustering.getClusteredGraph();
         for (Integer key : map.keySet()) {

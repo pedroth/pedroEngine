@@ -86,7 +86,7 @@ public class ArcSummaryServer {
                     String[] input = parseInput(text.getText());
                     ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizerSpectral.getDistanceByName(input[6]));
                     arcSummarizerSpectral.setSigma(2);
-                    arcSummarizerSpectral.setNormalized(true);
+                    arcSummarizerSpectral.setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
                     arcSummarizerSpectral.setVideoConcat(true);
                     Thread thread = null;
                     if (SUMMARY_FOLDER_NAME.equals(input[7])) {

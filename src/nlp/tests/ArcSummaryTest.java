@@ -28,7 +28,7 @@ public class ArcSummaryTest {
         List<TestParameters> testParametersList = new ArrayList<>(4);
         final int numberOfCluster = 6;
         final double heat = 0.04;
-        final double entropy = 0.05;
+        final double entropy = 0.00;
         final int knn = 0;
         final int timeArc = 10;
         final boolean cutVideo = true;
@@ -103,7 +103,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
         stack.add(baseArcSummarizer);
 
         // spectral clustering Shi and Malik
@@ -112,8 +112,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
         baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setAdrewEtAl(false);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.NORM);
         stack.add(baseArcSummarizer);
 
         //  Latent Dirichlet Allocation
@@ -127,7 +126,7 @@ public class ArcSummaryTest {
         // spectral clustering not normalized
         baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(false);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.NNORM);
         baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
@@ -177,7 +176,7 @@ public class ArcSummaryTest {
         baseArcSummarizer.setCutVideo(cutVideo);
         baseArcSummarizer.setVideoConcat(concatVideo);
         baseArcSummarizer.setLowBowSegmentator(lowBowSegmentator);
-        ((ArcSummarizerSpectral) baseArcSummarizer).setNormalized(true);
+        ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
 
         baseArcSummarizer.buildSummary(output, timeArc);
         baseArcSummarizer.getSegmentLengthData().forEach(System.out::println);

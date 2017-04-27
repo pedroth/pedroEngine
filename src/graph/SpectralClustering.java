@@ -15,10 +15,8 @@ import java.util.function.Function;
 /**
  * The type Spectral clustering.
  */
-public class SpectralClustering extends AbstractGraphClustering {
+public abstract class SpectralClustering extends AbstractGraphClustering {
     private Matrix eigenCoeff;
-    private boolean isNormalized = false;
-    private boolean isAdrewEtAL = true;
     private int maxEigenValue;
     private SymmetricEigen symmetricEigen;
     private EigenvalueDecomposition eigenvalueDecomposition;
@@ -95,7 +93,7 @@ public class SpectralClustering extends AbstractGraphClustering {
         Matrix W = getWeightMatrix(similarityMeasure);
         Diagonal D = getDegreeMatrix(W);
         Diagonal sqrt = D.inverse().sqrt();
-        Matrix laplacianMatrix = (isNormalized && isAdrewEtAL) ? Matrix.scalarProd(0.5, sqrt.prod(Matrix.diff(D, W).prod(sqrt))) : Matrix.scalarProd(0.5, Matrix.diff(D, W));
+        Matrix laplacianMatrix = getLaplacian(D, W);
 
         //compute eigenVectors
         maxEigenValue = Integer.min(k + 1, laplacianMatrix.getRows());
@@ -104,14 +102,10 @@ public class SpectralClustering extends AbstractGraphClustering {
         this.eigenCoeff = U;
         Matrix subMatrix = U.getSubMatrix(1, U.getRows(), 2, maxEigenValue);
 
-        if (isAdrewEtAL && isNormalized) {
-            subMatrix = normalizeRows(subMatrix);
-        } else if (isNormalized) {
-            subMatrix = sqrt.prod(subMatrix);
-        }
+        Matrix transformMatrix = transformMatrix(subMatrix, D, W);
 
         //kmeans
-        Kmeans kmeans = new Kmeans(subMatrix.transpose());
+        Kmeans kmeans = new Kmeans(transformMatrix);
         kmeans.runKmeans(k, epsilon, repetitions);
 
         //fix index to graph index
@@ -120,13 +114,9 @@ public class SpectralClustering extends AbstractGraphClustering {
         return inverseClassification;
     }
 
-    private Matrix normalizeRows(Matrix subMatrix) {
-        Vector[] rowsVectors = subMatrix.getRowsVectors();
-        for (int i = 0; i < rowsVectors.length; i++) {
-            rowsVectors[i] = Vector.normalize(rowsVectors[i]);
-        }
-        return new Matrix(rowsVectors).transpose();
-    }
+    protected abstract Matrix transformMatrix(Matrix u, Diagonal d, Matrix w);
+
+    protected abstract Matrix getLaplacian(Diagonal d, Matrix w);
 
     private Matrix getWeightMatrix(Function<Double, Double> similarityMeasure) {
         Matrix adjacencyMatrix = this.graph.getAdjacencyMatrix();
@@ -162,22 +152,6 @@ public class SpectralClustering extends AbstractGraphClustering {
      */
     public Matrix getEigenCoeff() {
         return eigenCoeff;
-    }
-
-    public boolean isNormalized() {
-        return isNormalized;
-    }
-
-    public void setNormalized(boolean normalized) {
-        isNormalized = normalized;
-    }
-
-    public boolean isAdrewEtAL() {
-        return isAdrewEtAL;
-    }
-
-    public void setAdrewEtAL(boolean adrewEtAL) {
-        isAdrewEtAL = adrewEtAL;
     }
 
     private interface SpectralMethod {

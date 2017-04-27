@@ -315,7 +315,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             this.segmentLengthData = getSegmentLengthData();
             this.averageSegmentLength = computeAverageSegmentLength();
             this.standardDeviationSegmentLength = computeStandardDeviationLength();
-            rejectSegmentOutliers();
+            //rejectSegmentOutliers();
 
             //build knn-graph
             DistanceMatrix distanceMatrix = this.lowBowManager.getDistanceMatrixOfSegmentations(histogramDistance);
@@ -771,23 +771,14 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 ", knn=" + knn +
                 ", kcluster=" + kcluster +
                 ", histogramDistance=" + histogramDistance +
-                ", segmentedBows=" + segmentedBows +
-                ", graphByClusterIdMap=" + graphByClusterIdMap +
-                ", randomWalkDistributionByClusterIdMap=" + randomWalkDistributionByClusterIdMap +
-                ", lowBowManager=" + lowBowManager +
-                ", segmentIndexByClusterId=" + segmentIndexByClusterId +
-                ", knnGraph=" + knnGraph +
                 ", outputAddress='" + outputAddress + '\'' +
                 ", necessaryWordPredicate=" + necessaryWordPredicate +
                 ", entropyPredicate=" + entropyPredicate +
                 ", cutVideo=" + cutVideo +
-                ", graphCentroidByClusterId=" + graphCentroidByClusterId +
                 ", averageSegmentLength=" + averageSegmentLength +
                 ", standardDeviationSegmentLength=" + standardDeviationSegmentLength +
-                ", segmentLengthData=" + segmentLengthData +
                 ", isVideoConcat=" + isVideoConcat +
                 ", lowBowSegmentator=" + lowBowSegmentator +
-                ", stringComparator=" + stringComparator +
                 '}';
     }
 }

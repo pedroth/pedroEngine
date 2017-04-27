@@ -2,6 +2,7 @@ package numeric.test;
 
 
 import algebra.src.*;
+import graph.AndrewEtAlSpectralClustering;
 import graph.KnnGraph;
 import graph.SpectralClustering;
 import inputOutput.CsvReader;
@@ -234,7 +235,7 @@ public class NumericTest {
         data.add(new Vec2(0.1, -0.9));
         data.add(new Vec2(-0.1, -1.1));
         KnnGraph<Vector> graph = new KnnGraph<>(data, 3, (x, y) -> Vector.diff(x, y).squareNorm());
-        SpectralClustering spectralClustering = new SpectralClustering(graph);
+        SpectralClustering spectralClustering = new AndrewEtAlSpectralClustering(graph);
         spectralClustering.clustering(3);
         Map<Integer, Integer> classification = spectralClustering.getClassification();
         for (Map.Entry<Integer, Integer> entry : classification.entrySet()) {

@@ -2,35 +2,31 @@ package nlp.seriesSummary;
 
 import algebra.src.DistanceMatrix;
 import algebra.src.Vector;
-import graph.Graph;
-import graph.SpectralClustering;
+import graph.*;
 import numeric.src.Distance;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * The type Arc summarizer.
  */
 public class ArcSummarizerSpectral extends BaseArcSummarizer {
     private double sigma = 0.0;
-
-    private boolean isNormalized = true;
-
     private SpectralClustering spectralClustering;
-
-    private boolean isAdrewEtAl = true;
+    private SpectralTypeEnum spectralType = SpectralTypeEnum.ANDREW_ET_AL;
 
     /**
      * Instantiates a new Arc summarizer.
      *
-     * @param seriesAddress the series address
-     * @param videoExtension the video extension
-     * @param heat the heat
-     * @param entropy the entropy
-     * @param knn the knn
-     * @param kcluster the kcluster
+     * @param seriesAddress     the series address
+     * @param videoExtension    the video extension
+     * @param heat              the heat
+     * @param entropy           the entropy
+     * @param knn               the knn
+     * @param kcluster          the kcluster
      * @param histogramDistance the histogram distance
      */
     public ArcSummarizerSpectral(String seriesAddress, String videoExtension, double heat, double entropy, int knn, int kcluster, Distance<Vector> histogramDistance) {
@@ -58,9 +54,7 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
         if (sigma == 0.0) {
             computeSigma();
         }
-        this.spectralClustering = new SpectralClustering(knnGraph);
-        this.spectralClustering.setNormalized(isNormalized);
-        this.spectralClustering.setAdrewEtAL(isAdrewEtAl);
+        this.spectralClustering = spectralType.getSpectralClusteringFactory().apply(this.knnGraph);
         return this.spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
     }
 
@@ -93,29 +87,32 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
         this.sigma = sigma;
     }
 
-    public boolean isNormalized() {
-        return isNormalized;
-    }
-
-    public void setNormalized(boolean normalized) {
-        isNormalized = normalized;
-    }
-
-    public boolean isAdrewEtAl() {
-        return isAdrewEtAl;
-    }
-
-    public void setAdrewEtAl(boolean adrewEtAl) {
-        isAdrewEtAl = adrewEtAl;
+    public void setSpectralType(SpectralTypeEnum spectralType) {
+        this.spectralType = spectralType;
     }
 
     @Override
     public String toString() {
         return "ArcSummarizerSpectral{" +
                 "sigma=" + sigma +
-                ", isNormalized=" + isNormalized +
                 ", spectralClustering=" + spectralClustering +
-                ", isAdrewEtAl=" + isAdrewEtAl +
+                ", spectralType=" + spectralType +
                 '}' + "\n" + super.toString();
+    }
+
+    public enum SpectralTypeEnum {
+        NNORM(NNormSpectralClustering::new),
+        NORM(NormSpectralClustering::new),
+        ANDREW_ET_AL(AndrewEtAlSpectralClustering::new);
+
+        private Function<KnnGraph, SpectralClustering> spectralClusteringFactory;
+
+        SpectralTypeEnum(Function<KnnGraph, SpectralClustering> spectralClusteringFactory) {
+            this.spectralClusteringFactory = spectralClusteringFactory;
+        }
+
+        public Function<KnnGraph, SpectralClustering> getSpectralClusteringFactory() {
+            return spectralClusteringFactory;
+        }
     }
 }
