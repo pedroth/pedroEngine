@@ -1,7 +1,9 @@
 package nlp.tests;
 
+import algebra.src.Vector;
 import nlp.lowbow.eigenLowbow.LowBowSegmentator;
 import nlp.utils.RemoveWordsPredicate;
+import numeric.src.Distance;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -19,8 +21,9 @@ class TestParameters {
     boolean concatVideo;
     LowBowSegmentator lowBowSegmentator;
     RemoveWordsPredicate necessaryWordPredicate;
+    Distance<Vector> distance;
 
-    public TestParameters(int numberOfCluster, double heat, double entropy, int knn, double timeArc, boolean cutVideo, boolean concatVideo, LowBowSegmentator lowBowSegmentator, RemoveWordsPredicate necessaryWordPredicate, String seriesAddress, String fileExtension) {
+    public TestParameters(int numberOfCluster, double heat, double entropy, int knn, double timeArc, boolean cutVideo, boolean concatVideo, LowBowSegmentator lowBowSegmentator, RemoveWordsPredicate necessaryWordPredicate, Distance<Vector> distance, String seriesAddress, String fileExtension) {
         this.numberOfCluster = numberOfCluster;
         this.heat = heat;
         this.entropy = entropy;
@@ -33,6 +36,7 @@ class TestParameters {
         this.seriesAddress = seriesAddress;
         this.fileExtension = fileExtension;
         this.output = seriesAddress + "summary";
+        this.distance = distance;
     }
 
     @Override
@@ -66,6 +70,7 @@ class TestParameters {
         private Boolean concatVideo;
         private LowBowSegmentator lowBowSegmentator;
         private RemoveWordsPredicate necessaryWordPredicate;
+        private Distance<Vector> distance;
 
         public TestParametersBuilder() {
             // blank constructor
@@ -126,13 +131,18 @@ class TestParameters {
             return this;
         }
 
+        public TestParametersBuilder distance(Distance<Vector> distance) {
+            this.distance = distance;
+            return this;
+        }
+
         public Optional<TestParameters> build() {
             for (Field f : this.getClass().getFields()) {
                 if (f == null) {
                     return Optional.empty();
                 }
             }
-            return Optional.of(new TestParameters(this.numberOfCluster, this.heat, this.entropy, this.knn, this.timeArc, this.cutVideo, this.concatVideo, this.lowBowSegmentator, this.necessaryWordPredicate, this.seriesAddress, this.fileExtension));
+            return Optional.of(new TestParameters(this.numberOfCluster, this.heat, this.entropy, this.knn, this.timeArc, this.cutVideo, this.concatVideo, this.lowBowSegmentator, this.necessaryWordPredicate, this.distance, this.seriesAddress, this.fileExtension));
         }
     }
 }

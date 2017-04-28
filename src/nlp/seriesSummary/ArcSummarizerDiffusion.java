@@ -42,17 +42,9 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
         if (sigma == 0.0) {
             computeSigma();
         }
-        if (heatTime == 0.0) {
-            computeHeatTime();
-        }
         this.diffusionClustering = new DiffusionClustering(knnGraph);
         this.diffusionClustering.setNormalized(isNormalized);
         return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
-    }
-
-    private void computeHeatTime() {
-        // no basis for this calculation.
-        this.heatTime = 5 * sigma * sigma;
     }
 
 

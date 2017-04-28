@@ -34,6 +34,7 @@ public class ArcSummaryTest {
         final boolean cutVideo = true;
         final boolean concatVideo = true;
         final MaxDerivativeSegmentator instance = MaxDerivativeSegmentator.getInstance();
+        final Distance<Vector> distance = BaseArcSummarizer.simplexDist;
         testParametersList.add(new TestParameters.TestParametersBuilder()
                 .seriesAddress(baseVideoAddress + "OverTheGardenWall/")
                 .fileExtension("mkv")
@@ -46,6 +47,7 @@ public class ArcSummaryTest {
                 .concatVideo(concatVideo)
                 .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
+                .distance(distance)
                 .build()
                 .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
@@ -60,6 +62,7 @@ public class ArcSummaryTest {
                 .concatVideo(concatVideo)
                 .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
+                .distance(distance)
                 .build()
                 .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
@@ -74,6 +77,7 @@ public class ArcSummaryTest {
                 .concatVideo(concatVideo)
                 .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
+                .distance(distance)
                 .build()
                 .get());
         testParametersList.add(new TestParameters.TestParametersBuilder()
@@ -88,6 +92,7 @@ public class ArcSummaryTest {
                 .concatVideo(concatVideo)
                 .lowBowSegmentator(instance)
                 .necessaryWordPredicate(necessaryWordPredicate)
+                .distance(distance)
                 .build()
                 .get());
         testParametersList.forEach(this::summaryBaseExp);
@@ -98,7 +103,7 @@ public class ArcSummaryTest {
         Stack<BaseArcSummarizer> stack = new Stack<>();
 
         // spectral clustering andrew et al
-        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
@@ -107,7 +112,7 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         // spectral clustering Shi and Malik
-        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
@@ -116,7 +121,7 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         //  Latent Dirichlet Allocation
-        baseArcSummarizer = new ArcSummarizerLda(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer = new ArcSummarizerLda(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
         baseArcSummarizer.setVideoConcat(testParameters.concatVideo);
@@ -124,7 +129,7 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         // spectral clustering not normalized
-        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.NNORM);
         baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
@@ -133,9 +138,9 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         // diffusion clustering
-        baseArcSummarizer = new ArcSummarizerDiffusion(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, ArcSummarizerSpectral.simplexDist);
+        baseArcSummarizer = new ArcSummarizerDiffusion(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
-        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(50);
+        ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(-1);
         ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
         baseArcSummarizer.setLowBowSegmentator(testParameters.lowBowSegmentator);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);
@@ -143,7 +148,6 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         // summary
-        int i = 0;
         while (!stack.isEmpty()) {
             BaseArcSummarizer baseArcSummarizer1 = stack.pop();
             System.out.println(baseArcSummarizer1.toString());
@@ -154,7 +158,6 @@ public class ArcSummaryTest {
             textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
             String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
-            i++;
         }
     }
 

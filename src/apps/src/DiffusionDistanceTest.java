@@ -5,7 +5,6 @@ import algebra.src.Matrix;
 import algebra.src.Vec2;
 import algebra.src.Vector;
 import apps.utils.MyFrame;
-import graph.DiffusionClustering;
 import graph.Graph;
 import graph.GraphLaplacian;
 import graph.KnnGraph;
@@ -33,14 +32,13 @@ public class DiffusionDistanceTest extends MyFrame {
     private ArrayList<Vec2> points;
     // index starts at 1
     private int vertexCoordinate = 1;
-    private Matrix laplacian;
     private Matrix eigenVectors;
     private Vector eigenValues;
-    private double heatTime = 0.1;
+    private double heatTime = -1;
     /**
      * mouse coordinates
      */
-    private int mx, my, newMx, newMy;
+    private int mx, my;
 
     public DiffusionDistanceTest(String title, int width, int height) {
         super(title, width, height);
@@ -53,8 +51,6 @@ public class DiffusionDistanceTest extends MyFrame {
             points.add(new Vec2(2 * length * r.nextDouble() - length, 2 * length * r.nextDouble() - length));
         }
         drawData();
-        DiffusionClustering diffusionClustering = new DiffusionClustering(knnGraph);
-        heatTime = diffusionClustering.getAutoHeatTime();
         init();
     }
 
@@ -81,7 +77,7 @@ public class DiffusionDistanceTest extends MyFrame {
         }
         drawKnnGraph(knnGraph);
         GraphLaplacian graphLaplacian = new GraphLaplacian(knnGraph, (x) -> Math.exp(-(x * x) / 25));
-        laplacian = graphLaplacian.getL();
+        Matrix laplacian = graphLaplacian.getL();
         EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
         eigenVectors = new Matrix(eigenvalueDecomposition.getV().getArray());
         eigenValues = new Vector(eigenvalueDecomposition.getRealEigenvalues());
@@ -96,6 +92,10 @@ public class DiffusionDistanceTest extends MyFrame {
         eVertex.setX(vertexCoordinate, 1.0);
         Matrix transpose = Matrix.transpose(eigenVectors);
         Vector v = new Vector(eigenValues);
+        if (heatTime < 0) {
+            // formula is t = -log(epsilon) / eigenvalue_k, for positive eigenvalues. but here all eigenvalues are negative(see drawData function)
+            heatTime = Math.log(0.1) / v.getX((int) (Math.floor(0.04 * v.size()) + 1));
+        }
         v.applyFunction((x) -> Math.exp(x * heatTime));
         Vector f = eigenVectors.prodVector(Matrix.diag(v).prodVector(transpose.prodVector(eVertex)));
         double max = f.getMax().getX();
@@ -155,30 +155,39 @@ public class DiffusionDistanceTest extends MyFrame {
                 break;
             case KeyEvent.VK_1:
                 knn = 1;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_2:
                 knn = 2;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_3:
                 knn = 3;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_4:
                 knn = 4;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_5:
                 knn = 5;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_6:
                 knn = 6;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_7:
                 knn = 7;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_8:
                 knn = 8;
+                knnGraph = null;
                 break;
             case KeyEvent.VK_9:
                 knn = 9;
+                knnGraph = null;
                 break;
             default:
                 //nothing here

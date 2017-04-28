@@ -19,6 +19,8 @@ import java.util.function.Function;
  * The type Diffusion clustering.
  */
 public class DiffusionClustering extends AbstractGraphClustering {
+    private final static double REDUCE_DIMENSION_THRESHOLD = 0.1;
+    private final static double DEFAULT_PERCENT_OF_EIGEN_VALUES = 0.04;
     /**
      * The Heat time.
      */
@@ -26,8 +28,6 @@ public class DiffusionClustering extends AbstractGraphClustering {
     private Matrix eigenVectors;
     private Vector eigenValues;
     private Matrix eigenEmbedding;
-    private double reduceDimensionThreshold = 0.1;
-
     private boolean isNormalized = false;
 
     /**
@@ -42,7 +42,7 @@ public class DiffusionClustering extends AbstractGraphClustering {
     /**
      * Spectral clustering.
      *
-     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(gamma * #EigenValues + 1) else heatTime = heatTime
      * @param k                 the k number of clusters
      * @param similarityMeasure the similarity measure
      * @param epsilon           the epsilon
@@ -73,23 +73,9 @@ public class DiffusionClustering extends AbstractGraphClustering {
     }
 
     /**
-     * Spectral clustering.
-     *
-     * @param k                 the k number of clusters
-     * @param similarityMeasure the similarity measure
-     * @param epsilon           the epsilon
-     * @param repetitions       the repetitions
-     * @return the map of classByDataIndex and alters graph to have a classification on each vertex.
-     */
-    public Map<Integer, List<Integer>> clustering(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        return clustering(getAutoHeatTime(), k, similarityMeasure, epsilon, repetitions);
-    }
-
-
-    /**
      * Clustering jama.
      *
-     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(k+1) else heatTime = heatTime
+     * @param heatTime          the heat time, if heatTime < 0 then  heatTime = -log(epsilon)/ lambda(gamma * #EigenValues + 1) else heatTime = heatTime
      * @param k                 the k
      * @param similarityMeasure the similarity measure
      * @param epsilon           the epsilon
@@ -113,18 +99,6 @@ public class DiffusionClustering extends AbstractGraphClustering {
         });
     }
 
-    /**
-     * Clustering jama.
-     *
-     * @param k                 the k
-     * @param similarityMeasure the similarity measure
-     * @param epsilon           the epsilon
-     * @param repetitions       the repetitions
-     * @return the map
-     */
-    public Map<Integer, List<Integer>> clusteringJama(int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions) {
-        return clusteringJama(getAutoHeatTime(), k, similarityMeasure, epsilon, repetitions);
-    }
 
     private Map<Integer, List<Integer>> clustering(double heatTime, int k, Function<Double, Double> similarityMeasure, double epsilon, int repetitions, SpectralMethod spectralMethod) {
         k = Integer.max(k, 1);
@@ -139,15 +113,16 @@ public class DiffusionClustering extends AbstractGraphClustering {
         Matrix U = spectralMethod.getV(laplacianMatrix);
         this.eigenVectors = U;
 
-
         this.eigenValues = new Vector(spectralMethod.getEigenValues());
         Vector eigenValueCopy = new Vector(this.eigenValues);
-        eigenValueCopy.applyFunction(x -> Math.exp(-x * heatTime));
+
+        final double finalHeatTime = heatTime < 0.0 ? -Math.log(REDUCE_DIMENSION_THRESHOLD) / eigenValues.getX((int) (Math.floor(DEFAULT_PERCENT_OF_EIGEN_VALUES * eigenValueCopy.size()) + 1)) : heatTime;
+        eigenValueCopy.applyFunction(x -> Math.exp(-x * finalHeatTime));
 
         int compressDim = eigenValues.size();
 
         for (int i = 1; i <= eigenValueCopy.size(); i++) {
-            if (eigenValueCopy.getX(i) < reduceDimensionThreshold) {
+            if (eigenValueCopy.getX(i) < REDUCE_DIMENSION_THRESHOLD) {
                 compressDim = i;
                 break;
             }
@@ -268,23 +243,6 @@ public class DiffusionClustering extends AbstractGraphClustering {
         this.heatTime = heatTime;
     }
 
-    /**
-     * Gets reduce dimension threshold.
-     *
-     * @return the reduce dimension threshold
-     */
-    public double getReduceDimensionThreshold() {
-        return reduceDimensionThreshold;
-    }
-
-    /**
-     * Sets reduce dimension threshold.
-     *
-     * @param reduceDimensionThreshold the reduce dimension threshold
-     */
-    public void setReduceDimensionThreshold(double reduceDimensionThreshold) {
-        this.reduceDimensionThreshold = reduceDimensionThreshold;
-    }
 
     /**
      * Is normalized.
