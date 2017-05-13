@@ -27,9 +27,9 @@ public class ArcSummaryTest {
 
         List<TestParameters> testParametersList = new ArrayList<>(4);
         final int numberOfCluster = 6;
-        final double heat = 0.04;
-        final double entropy = 0.00;
-        final int knn = 0;
+        final double heat = 0.07;
+        final double entropy = 0.0;
+        final int knn = 1;
         final int timeArc = 10;
         final boolean cutVideo = true;
         final boolean concatVideo = true;
@@ -111,7 +111,7 @@ public class ArcSummaryTest {
         ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
         stack.add(baseArcSummarizer);
 
-        // spectral clustering Shi and Malik
+//        // spectral clustering Shi and Malik
         baseArcSummarizer = new ArcSummarizerSpectral(testParameters.seriesAddress, testParameters.fileExtension, testParameters.heat, testParameters.entropy, testParameters.knn, testParameters.numberOfCluster, testParameters.distance);
         baseArcSummarizer.setNecessaryWordPredicate(testParameters.necessaryWordPredicate);
         baseArcSummarizer.setCutVideo(testParameters.cutVideo);

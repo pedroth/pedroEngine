@@ -55,7 +55,7 @@ public class ArcSummarizerSpectral extends BaseArcSummarizer {
             computeSigma();
         }
         this.spectralClustering = spectralType.getSpectralClusteringFactory().apply(this.knnGraph);
-        return this.spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
+        return this.spectralClustering.clusteringJama(kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 50);
     }
 
     private void computeSigma() {

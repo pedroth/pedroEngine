@@ -3,7 +3,6 @@ package graph;
 
 import Jama.EigenvalueDecomposition;
 import algebra.src.Diagonal;
-import algebra.src.DistanceMatrix;
 import algebra.src.Matrix;
 import algebra.src.Vector;
 import numeric.src.HyperEigenAlgo;
@@ -12,7 +11,6 @@ import numeric.src.SymmetricEigen;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -175,28 +173,6 @@ public class DiffusionClustering extends AbstractGraphClustering {
         }
         return (Diagonal) Matrix.diag(degrees);
     }
-
-    public double getAutoHeatTime() {
-        DistanceMatrix distanceMatrix = graph.getDistanceMatrix();
-        Integer[] keyIndex = graph.getKeyIndex();
-        Map<Integer, Integer> inverseKeyIndex = graph.getInverseKeyIndex();
-        int rows = distanceMatrix.getRows();
-        int samples = Integer.max(1, rows / 2);
-        double acc = 0;
-        for (int i = 0; i < samples; i++) {
-            int randomIndex = (int) (Math.random() * rows);
-            Set<Integer> adjVertex = graph.getAdjVertex(keyIndex[randomIndex]);
-            double acc2 = 0;
-            for (Integer vertex : adjVertex) {
-                acc2 += distanceMatrix.getXY(randomIndex + 1, inverseKeyIndex.get(vertex));
-            }
-            acc2 /= adjVertex.size();
-            acc += acc2;
-        }
-        acc /= samples;
-        return 5 * acc * acc;
-    }
-
 
     /**
      * Gets eigen coeff.

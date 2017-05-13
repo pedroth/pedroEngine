@@ -3,7 +3,13 @@ package utils;
 import java.io.File;
 import java.util.*;
 
-public class FilesCrawler {
+public final class FilesCrawler {
+    /**
+     * default constructor.
+     */
+    private FilesCrawler() {
+        // private constructor to disallow instance creation
+    }
 
     /**
      * @param directoryName
@@ -17,7 +23,7 @@ public class FilesCrawler {
         while (!stack.isEmpty()) {
             File f = stack.pop();
             if (f.isFile()) {
-                filePathByFileName.put(f.getName(), f.getAbsolutePath());
+                filePathByFileName.put(f.getAbsolutePath(), f.getName());
             } else if (f.isDirectory()) {
                 File[] files = f.listFiles();
                 for (File file : files) {
@@ -36,7 +42,7 @@ public class FilesCrawler {
         List<String> ans = new ArrayList<>();
         Map<String, String> filesMap = FilesCrawler.listFilesRecursively(directoryName);
         for (Map.Entry<String, String> entry : filesMap.entrySet()) {
-            String address = entry.getValue();
+            String address = entry.getKey();
             if (isExtension(address, extension)) {
                 ans.add(address);
             }
@@ -54,8 +60,13 @@ public class FilesCrawler {
         return split[split.length - 1];
     }
 
-    public static void creatDirs(String address) {
+    public static void createDirs(String address) {
         File dirs = new File(address);
         dirs.mkdirs();
+    }
+
+    public static String[] getDirs(String path) {
+        File file = new File(path);
+        return file.list((current, name) -> new File(current, name).isDirectory());
     }
 }

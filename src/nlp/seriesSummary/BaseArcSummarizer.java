@@ -241,8 +241,8 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             this.outputAddress += ('/' == this.outputAddress.charAt(outputAddress.length() - 1) ? "" : "/");
             final String infoAddress = outputAddress + "/info/";
             TextIO textIO = new TextIO();
-            FilesCrawler.creatDirs(outputAddress);
-            FilesCrawler.creatDirs(infoAddress);
+            FilesCrawler.createDirs(outputAddress);
+            FilesCrawler.createDirs(infoAddress);
 
             //read files
             StopWatch stopWatch = new StopWatch();
@@ -251,7 +251,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
             Collections.sort(subtitles);
             List<String> videos = FilesCrawler.listFilesWithExtension(seriesAddress, this.getVideoExtension());
             Collections.sort(videos);
-            log.add("Read files : " + stopWatch.getEleapsedTime());
+            log.add("Read files " + subtitles.size() + " in : " + stopWatch.getEleapsedTime());
             System.out.println("Read files : " + stopWatch.getEleapsedTime());
             stopWatch.resetTime();
 
@@ -501,7 +501,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
         String auxAddress = outputAddress;
         auxAddress += clusterId + "/";
-        FilesCrawler.creatDirs(auxAddress);
+        FilesCrawler.createDirs(auxAddress);
 
         StringBuilder stringBuilder = new StringBuilder();
         TopKSymbol topKSymbol = new TopKSymbol(30);

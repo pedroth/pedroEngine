@@ -44,7 +44,7 @@ public class ArcSummarizerDiffusion extends BaseArcSummarizer {
         }
         this.diffusionClustering = new DiffusionClustering(knnGraph);
         this.diffusionClustering.setNormalized(isNormalized);
-        return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 500);
+        return this.diffusionClustering.clusteringJama(heatTime, kcluster, (x) -> Math.exp(-(x * x) / (2 * sigma * sigma)), 1E-10, 50);
     }
 
 
