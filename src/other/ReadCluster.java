@@ -3,8 +3,10 @@ package other;
 
 import inputOutput.TextIO;
 
+import java.io.IOException;
+
 public class ReadCluster {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.out.println("no arguments given");
         }

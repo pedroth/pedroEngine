@@ -145,7 +145,7 @@ public class LowBowSummaryPrepositions extends LowBow {
         printWordsToTextGraph();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         TextIO text = new TextIO();
         text.read("C:/Users/pedro/Desktop/research/Text.txt");
         LowBowSummaryPrepositions low = new LowBowSummaryPrepositions(text.getText());

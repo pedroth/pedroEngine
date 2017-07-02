@@ -1,17 +1,17 @@
 package nlp.utils;
 
 
+import java.io.IOException;
+
 public final class RemoveStopWordsPredicate implements RemoveWordsPredicate {
+    private StopWordPredicate stopWordPredicate;
 
-    private static RemoveWordsPredicate instance = new RemoveStopWordsPredicate();
-    private static StopWordPredicate stopWordPredicate = StopWordPredicate.getInstance();
-
-    private RemoveStopWordsPredicate() {
-        // prohibits instance creation
+    public RemoveStopWordsPredicate() throws IOException {
+        this.stopWordPredicate = new StopWordPredicate();
     }
 
-    public static RemoveWordsPredicate getInstance() {
-        return instance;
+    public RemoveStopWordsPredicate(String stopWordsAddress) throws IOException {
+        this.stopWordPredicate = new StopWordPredicate(stopWordsAddress);
     }
 
     @Override

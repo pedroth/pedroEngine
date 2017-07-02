@@ -15,15 +15,16 @@ import numeric.src.Distance;
 import org.junit.Test;
 import utils.Histogram;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 
 public class ArcSummaryTest {
 
     @Test
-    public void arcSummaryExperiment() {
+    public void arcSummaryExperiment() throws IOException {
         final String baseVideoAddress = "C:/pedro/escolas/ist/Tese/Series/";
-        RemoveWordsPredicate necessaryWordPredicate = RemoveStopWordsPredicate.getInstance();
+        RemoveWordsPredicate necessaryWordPredicate = new RemoveStopWordsPredicate();
 
         List<TestParameters> testParametersList = new ArrayList<>(4);
         final int numberOfCluster = 6;
@@ -148,7 +149,7 @@ public class ArcSummaryTest {
         stack.add(baseArcSummarizer);
 
         // summary
-        while (!stack.isEmpty()) {
+        while (!stack.isEmpty()) try {
             BaseArcSummarizer baseArcSummarizer1 = stack.pop();
             System.out.println(baseArcSummarizer1.toString());
             String outputAddress = testParameters.output + Math.random();
@@ -158,6 +159,8 @@ public class ArcSummaryTest {
             textIO.write(outputAddress + "/IntraClusterDistanceHist.txt", intraDistanceHist);
             String interClusterDistanceHist = computeInterDistanceHistRandomSample(baseArcSummarizer1.getSegmentedBows(), baseArcSummarizer1.getSegmentIndexByClusterId(), false, 3 * baseArcSummarizer1.getSegmentedBows().size(), ArcSummarizerSpectral.cosineDist, 30);
             textIO.write(outputAddress + "/InterClusterDistanceHist.txt", interClusterDistanceHist);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

@@ -2,6 +2,7 @@ package inputOutput;
 
 import table.src.HyperTable;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,7 +33,7 @@ public class CsvReader extends HyperTable<Integer, String> {
      *
      * @param address the address
      */
-    public void read(String address) {
+    public void read(String address) throws IOException {
         textIO.read(address);
         String text = textIO.getText();
         String[] split = text.split("\n");

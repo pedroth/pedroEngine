@@ -4,10 +4,12 @@ import inputOutput.CsvReader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
+
 public class TableTest {
 
     @Test
-    public void testTable() {
+    public void testTable() throws IOException {
         CsvReader table = new CsvReader();
         table.read("src/numeric/test/resource/testData.csv");
         System.out.println(table);

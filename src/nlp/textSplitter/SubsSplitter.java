@@ -3,6 +3,7 @@ package nlp.textSplitter;
 import inputOutput.TextIO;
 import utils.Interval;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Predicate;
@@ -36,7 +37,7 @@ public class SubsSplitter implements TextSplitter {
         predicate = x -> true;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         SubsSplitter subsSplitter = new SubsSplitter();

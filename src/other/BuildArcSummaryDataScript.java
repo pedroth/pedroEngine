@@ -4,11 +4,12 @@ import inputOutput.TextIO;
 import table.src.HyperTable;
 import utils.FilesCrawler;
 
+import java.io.IOException;
 import java.util.HashSet;
 
 public class BuildArcSummaryDataScript {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String address = "C:/pedro/escolas/ist/Tese/Stuff/Data/4th_stop_word_list_automatic_params";
 
         HashSet<String> xCoord = new HashSet<>();
@@ -39,7 +40,7 @@ public class BuildArcSummaryDataScript {
         System.out.println(matlabDataScript.toString());
     }
 
-    private static String getNumberOfSegmentsData(String address) {
+    private static String getNumberOfSegmentsData(String address) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         TextIO textIO = new TextIO(address + "/info/numberOfSegmentsPerCluster.txt");
         final String text = textIO.getText();
@@ -121,7 +122,7 @@ public class BuildArcSummaryDataScript {
         }
     }
 
-    private static String getHistogramData(String seriesDir) {
+    private static String getHistogramData(String seriesDir) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         final String InterAddress = seriesDir + "/InterClusterDistanceHist.txt";
         final String IntraAddress = seriesDir + "/IntraClusterDistanceHist.txt";
@@ -130,7 +131,7 @@ public class BuildArcSummaryDataScript {
         return stringBuilder.toString();
     }
 
-    private static void getHistogramData(StringBuilder stringBuilder, String histAddressData) {
+    private static void getHistogramData(StringBuilder stringBuilder, String histAddressData) throws IOException {
         TextIO textIO = new TextIO(histAddressData);
         final String[] split = textIO.getText().split("===\nmin\tmax");
         final String[] interHist = split[0].split("\n");
@@ -145,7 +146,7 @@ public class BuildArcSummaryDataScript {
         stringBuilder.append("\n");
     }
 
-    private static String getMethodName(String seriesDir) {
+    private static String getMethodName(String seriesDir) throws IOException {
         TextIO textIO = new TextIO(seriesDir + "/info/Param.txt");
         final String text = textIO.getText();
         final String methodRaw = text.split("\n")[0];

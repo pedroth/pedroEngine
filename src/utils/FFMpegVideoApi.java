@@ -87,7 +87,7 @@ public class FFMpegVideoApi {
         }
     }
 
-    public static void concat(List<String> videosAddress, String outputAddress) {
+    public static void concat(List<String> videosAddress, String outputAddress) throws IOException {
         TextIO textIO = new TextIO();
         StringBuilder stringBuilder = new StringBuilder();
         for (String videoAddress : videosAddress) {
@@ -113,7 +113,7 @@ public class FFMpegVideoApi {
         return '"' + s + '"';
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         String videoAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWallS1E1.mkv";
         File desktop = new File(System.getProperty("user.home"), "Desktop");
         ArrayList<String> videosAddress = new ArrayList<>(3);

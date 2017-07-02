@@ -3,6 +3,7 @@ package numeric.src;
 import inputOutput.TextIO;
 import nlp.textSplitter.TextSplitter;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -116,7 +117,7 @@ public class MySet {
      *
      * @param args the input arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         TextIO t1 = new TextIO();
         t1.read("src/nlp/resources/wordLists/stopWords.txt");
         TextIO t2 = new TextIO();

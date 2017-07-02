@@ -31,15 +31,21 @@ public class ArcSummaryServer {
     private final static String HOME_ADDRESS = "src/nlp/resources/web/";
     private final static String SUMMARY_FOLDER_NAME = "summary";
     private final static String OUTPUT_VIDEO_EXTENSION = "mp4";
-    private final static RemoveWordsPredicate necessaryWordPredicate = RemoveStopWordsPredicate.getInstance();
+    private static RemoveWordsPredicate necessaryWordPredicate;
     private final int serverPort;
     private Map<String, ArcSummaryThreadPair> arcSummarizerMap = new HashMap<>(3);
 
-    public ArcSummaryServer(int serverPort) {
+    public ArcSummaryServer(int serverPort) throws IOException {
         this.serverPort = serverPort;
+        try {
+            this.necessaryWordPredicate = new RemoveStopWordsPredicate("stopWords.txt");
+        } catch (IOException e) {
+            this.necessaryWordPredicate = new RemoveStopWordsPredicate();
+        }
+
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length > 0) {
             final String regex = "[0-9]*";
             final Pattern pattern = Pattern.compile(regex);

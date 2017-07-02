@@ -26,6 +26,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class LowBowVisualizer<L extends BaseLowBow> extends MyFrame implements M
         this.init();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         //get all files
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);

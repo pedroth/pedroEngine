@@ -364,7 +364,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
     }
 
-    private void printNumberOfSegmentsPerCluster(String infoAddress, TextIO textIO) {
+    private void printNumberOfSegmentsPerCluster(String infoAddress, TextIO textIO) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         for (Map.Entry<Integer, List<Integer>> entry : segmentIndexByClusterId.entrySet()) {
             stringBuilder.append(entry.getKey() + "\t" + entry.getValue().size() + "\n");
@@ -372,7 +372,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         textIO.write(infoAddress + "numberOfSegmentsPerCluster.txt", stringBuilder.toString());
     }
 
-    private void printSegmentPartition(String infoAddress, TextIO textIO) {
+    private void printSegmentPartition(String infoAddress, TextIO textIO) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         for (Map.Entry<Integer, Graph> integerGraphEntry : graphByClusterIdMap.entrySet()) {
             stringBuilder.append(integerGraphEntry.getValue().toStringGephi());
@@ -424,7 +424,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         return mu / size;
     }
 
-    private void topWordsPrint(int k, String infoAddress) {
+    private void topWordsPrint(int k, String infoAddress) throws IOException {
         TextIO textIO = new TextIO();
         int dim = segmentedBows.get(0).getSegmentBow().getDim();
 
@@ -474,7 +474,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
      */
     public abstract Map<Integer, List<Integer>> clusterArcs(int kcluster);
 
-    private void randomWalkSummary(Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) {
+    private void randomWalkSummary(Map<Integer, Graph> map, double timeLengthMinutes, String outputAddress) throws IOException {
         for (Integer key : map.keySet()) {
             StopWatch stopWatch = new StopWatch();
             Graph graphClass = map.get(key);
@@ -492,7 +492,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         }
     }
 
-    private void cutVideoUnderConstraint(int[] permutation, String outputAddress, int clusterId, double timeLengthMinutes, Graph graphClass) {
+    private void cutVideoUnderConstraint(int[] permutation, String outputAddress, int clusterId, double timeLengthMinutes, Graph graphClass) throws IOException {
         List<String> segmentedAddresses = new ArrayList<>();
 
         // vertexIdByIndex values are index values in {1, ..., n}
@@ -537,7 +537,7 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
         text.write(auxAddress + "segmentsCorpus.txt", stringBuilder.toString());
     }
 
-    private void concatVideos(List<String> segmentedAddresses, String auxAddress, String clusterId) {
+    private void concatVideos(List<String> segmentedAddresses, String auxAddress, String clusterId) throws IOException {
         Collections.sort(segmentedAddresses, stringComparator);
         String outputConcatAddress = auxAddress + "Arc" + clusterId + "Summary";
         FFMpegVideoApi.concat(segmentedAddresses, outputConcatAddress + ".mp4");

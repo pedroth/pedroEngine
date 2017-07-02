@@ -36,6 +36,7 @@ import utils.FilesCrawler;
 import utils.StopWatch;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -46,7 +47,7 @@ public class LowBowTests {
      * Test lambda sensitivity.
      */
     @Test
-    public void testLambdaSensitivity() {
+    public void testLambdaSensitivity() throws IOException {
         int samples = 100;
         double step = 1.0 / (samples - 1);
         double lambda = 0;
@@ -74,7 +75,7 @@ public class LowBowTests {
      * Texts under different smoothing
      */
     @Test
-    public void lowbowSmoothingGenerationTest() {
+    public void lowbowSmoothingGenerationTest() throws IOException {
         TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         int samples = 10;
@@ -113,7 +114,7 @@ public class LowBowTests {
      * Test Subtitle LowBow Cut
      */
     @Test
-    public void TestSubtitles() {
+    public void TestSubtitles() throws IOException {
         String principalAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall";
         String endFile = ".srt";
         int numOfEpisodes = 10;
@@ -133,7 +134,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void printLowBow() {
+    public void printLowBow() throws IOException {
         TextIO text = new TextIO();
         text.read("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/OverTheGardenWall1.srt");
         LowBow lowBowSubtitles = new LowBow(text.getText(), new SubsSplitter());
@@ -145,7 +146,7 @@ public class LowBowTests {
 
 
     @Test
-    public void readLowBow() {
+    public void readLowBow() throws IOException {
         CsvReader csvReader = new CsvReader();
         csvReader.read("C:/Users/Pedroth/Desktop/lowbow.csv");
         Matrix lowBow = csvReader.map(Csv2Matrix.getInstance());
@@ -160,7 +161,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void HeatRepresentationTest() {
+    public void HeatRepresentationTest() throws IOException {
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
         List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "mkv");
@@ -192,7 +193,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void spectralClusterTest() {
+    public void spectralClusterTest() throws IOException {
         //get all files
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
@@ -311,7 +312,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void testSegmentation() {
+    public void testSegmentation() throws IOException {
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "srt");
         Collections.sort(subtitles);
         List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4");
@@ -353,7 +354,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void testSegmentationCount() {
+    public void testSegmentationCount() throws IOException {
         double entropy = 0.1;
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
@@ -454,7 +455,7 @@ public class LowBowTests {
 
 
     @Test
-    public void testSegmentationCountSingle() {
+    public void testSegmentationCountSingle() throws IOException {
         int samples = 100;
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
@@ -496,7 +497,7 @@ public class LowBowTests {
 
 
     @Test
-    public void heatCostK() {
+    public void heatCostK() throws IOException {
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "srt");
         Collections.sort(subtitles);
         List<String> videos = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/BreakingBad/", "mp4");
@@ -532,7 +533,7 @@ public class LowBowTests {
 
 
     @Test
-    public void testSummarization() {
+    public void testSummarization() throws IOException {
         //get all files
         List<String> subtitles = FilesCrawler.listFilesWithExtension("C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/", "srt");
         Collections.sort(subtitles);
@@ -599,7 +600,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void testEntropy() {
+    public void testEntropy() throws IOException {
         String src = "C:/pedro/escolas/ist/Tese/Series/";
         List<String> address = new ArrayList<>();
         List<String> extension = new ArrayList<>();
@@ -661,7 +662,7 @@ public class LowBowTests {
 
 
     @Test
-    public void testSegmentationHist() {
+    public void testSegmentationHist() throws IOException {
         double entropy = 0.1;
         int samplesEpisodes = 8;
         int samplesK = 50;
@@ -754,7 +755,7 @@ public class LowBowTests {
     }
 
     @Test
-    public void testSegmentationHistSub() {
+    public void testSegmentationHistSub() throws IOException {
         double entropy = 0.1;
         int samplesEpisodes = 8;
         int samples = 100;

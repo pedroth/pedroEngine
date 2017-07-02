@@ -10,32 +10,27 @@ public class TextIO {
         text = new StringBuilder();
     }
 
-    public TextIO(String adress) {
+    public TextIO(String adress) throws IOException {
         super();
         this.read(adress);
     }
 
-    public void read(String address) {
+    public void read(String address) throws IOException {
         this.text = new StringBuilder();
         BufferedReader in;
-        try {
-            if (isUrl(address)) {
-                URL url;
-                url = new URL(address);
-                in = new BufferedReader(new InputStreamReader(url.openStream()));
+        if (isUrl(address)) {
+            URL url;
+            url = new URL(address);
+            in = new BufferedReader(new InputStreamReader(url.openStream()));
 
-            } else {
-                in = new BufferedReader(new FileReader(address));
-            }
+        } else {
+            in = new BufferedReader(new FileReader(address));
+        }
 
-            String line;
+        String line;
 
-            while ((line = in.readLine()) != null) {
-                text.append(line).append(String.format("\n"));
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        while ((line = in.readLine()) != null) {
+            text.append(line).append(String.format("\n"));
         }
     }
 
@@ -55,25 +50,21 @@ public class TextIO {
         }
     }
 
-    public void write(String address, String text) {
+    public void write(String address, String text) throws IOException {
         if (isUrl(address))
             return;
 
-        try {
-            File file = new File(address);
+        File file = new File(address);
 
-            // if file doesnt exists, then create it
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            PrintStream bw = new PrintStream(file);
-
-            bw.print(text);
-
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        // if file doesnt exists, then create it
+        if (!file.exists()) {
+            file.createNewFile();
         }
+        PrintStream bw = new PrintStream(file);
+
+        bw.print(text);
+
+        bw.close();
 
     }
 

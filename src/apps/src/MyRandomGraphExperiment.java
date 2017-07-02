@@ -12,11 +12,8 @@ import realFunction.src.UniVarFunction;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,65 +85,58 @@ public class MyRandomGraphExperiment {
          * build GUI
 		 */
         this.BuildGUI();
-        functionType.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (functionType.getSelectedItem().equals("Random")) {
-                    functionString.setVisible(false);
-                    xMinTxt.setVisible(false);
-                    xMaxTxt.setVisible(false);
-                    yMinTxt.setVisible(false);
-                    yMaxTxt.setVisible(false);
-                } else if (functionType.getSelectedItem().equals("Constant")) {
-                    functionString.setVisible(false);
-                    functionString.setText("1.0");
-                    xMinTxt.setVisible(false);
-                    xMaxTxt.setVisible(false);
-                    yMinTxt.setVisible(false);
-                    yMaxTxt.setVisible(false);
-                } else {
-                    functionString.setVisible(true);
-                    xMinTxt.setVisible(true);
-                    xMaxTxt.setVisible(true);
-                    yMinTxt.setVisible(true);
-                    yMaxTxt.setVisible(true);
-                }
+        functionType.addItemListener(e -> {
+            if (functionType.getSelectedItem().equals("Random")) {
+                functionString.setVisible(false);
+                xMinTxt.setVisible(false);
+                xMaxTxt.setVisible(false);
+                yMinTxt.setVisible(false);
+                yMaxTxt.setVisible(false);
+            } else if (functionType.getSelectedItem().equals("Constant")) {
+                functionString.setVisible(false);
+                functionString.setText("1.0");
+                xMinTxt.setVisible(false);
+                xMaxTxt.setVisible(false);
+                yMinTxt.setVisible(false);
+                yMaxTxt.setVisible(false);
+            } else {
+                functionString.setVisible(true);
+                xMinTxt.setVisible(true);
+                xMaxTxt.setVisible(true);
+                yMinTxt.setVisible(true);
+                yMaxTxt.setVisible(true);
             }
         });
 
-        runButton.addActionListener(new ActionListener() {
+        runButton.addActionListener(e -> {
+            expr = functionString.getText();
+            xmin = MyMath.numericRead(xMinTxt.getText());
+            xmax = MyMath.numericRead(xMaxTxt.getText());
+            ymin = MyMath.numericRead(yMinTxt.getText());
+            ymax = MyMath.numericRead(yMaxTxt.getText());
+            numVertex = (int) Math.max(1, Math.floor(MyMath.numericRead(numOfVertexTxt.getText())));
+            samples = (int) Math.max(1, Math.floor(MyMath.numericRead(numberOfSamplesTxt.getText())));
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String xminStr = xMinTxt.getText();
-                expr = functionString.getText();
-                xmin = MyMath.numericRead(xMinTxt.getText());
-                xmax = MyMath.numericRead(xMaxTxt.getText());
-                ymin = MyMath.numericRead(yMinTxt.getText());
-                ymax = MyMath.numericRead(yMaxTxt.getText());
-                numVertex = (int) Math.max(1, Math.floor(MyMath.numericRead(numOfVertexTxt.getText())));
-                samples = (int) Math.max(1, Math.floor(MyMath.numericRead(numberOfSamplesTxt.getText())));
+            scale = MyMath.clamp(MyMath.numericRead(scaleTxt.getText()), 0, 1);
 
-                scale = MyMath.clamp(MyMath.numericRead(scaleTxt.getText()), 0, 1);
+            switch (positiveFunctionCombo.getSelectedItem()) {
+                case "abs":
+                    positiveFunction = Math::abs;
+                    break;
 
-                switch (positiveFunctionCombo.getSelectedItem()) {
-                    case "abs":
-                        positiveFunction = x -> Math.abs(x);
-                        break;
+                case "max":
+                    positiveFunction = x -> Math.max(x, 0);
+                    break;
 
-                    case "max":
-                        positiveFunction = x -> Math.max(x, 0);
-                        break;
-
-                    case "square":
-                        positiveFunction = x -> x * x;
-                        break;
-                }
-
-                runExperiments();
+                case "square":
+                    positiveFunction = x -> x * x;
+                    break;
             }
-
+            try {
+                runExperiments();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
         });
     }
 
@@ -210,7 +200,7 @@ public class MyRandomGraphExperiment {
         runPanel.add(runButton);
         panel.add(runPanel);
         frame.add(panel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
 
@@ -297,7 +287,7 @@ public class MyRandomGraphExperiment {
         }
     }
 
-    private void runExperiments() {
+    private void runExperiments() throws IOException {
         List<Double> degreeData = new ArrayList<Double>((int) (numVertex * samples));
         List<Double> clusteringCoeffData = new ArrayList<Double>((int) (numVertex * samples));
         List<Double> distancesData = new ArrayList<Double>((int) (numVertex * numVertex * samples));

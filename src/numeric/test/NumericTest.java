@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import utils.StopWatch;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,7 @@ public class NumericTest {
     }
 
     @Test
-    public void PCATest() {
+    public void PCATest() throws IOException {
         CsvReader table = new CsvReader();
         table.read("src/numeric/test/resource/testData2.csv");
         int[] size = table.getSize();

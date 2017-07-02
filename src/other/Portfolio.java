@@ -4,6 +4,7 @@ import inputOutput.TextIO;
 import nlp.textSplitter.CharacterSplitter;
 import nlp.utils.TextAlignment;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Portfolio {
@@ -28,7 +29,7 @@ public class Portfolio {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		/*
 		 *  Reading
 		 */

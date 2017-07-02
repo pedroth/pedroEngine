@@ -2,6 +2,7 @@ package inputOutput;
 
 import algebra.src.Matrix;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,16 @@ public class CsvReaderMatrix {
     private String regex;
 
     private Matrix matrix;
+
+    public CsvReaderMatrix(String address) throws IOException {
+        super();
+        this.delimiters.put("\\t", true);
+        this.delimiters.put(",", true);
+        this.delimiters.put(";", true);
+        this.textIO = new TextIO(address);
+        this.regex = buildRegex();
+        buildMatrix();
+    }
 
     private String buildRegex() {
         StringBuilder stringBuilder = new StringBuilder(3);
@@ -27,16 +38,6 @@ public class CsvReaderMatrix {
         }
         stringBuilder.append(")");
         return stringBuilder.toString();
-    }
-
-    public CsvReaderMatrix(String address) {
-        super();
-        this.delimiters.put("\\t", true);
-        this.delimiters.put(",", true);
-        this.delimiters.put(";", true);
-        this.textIO = new TextIO(address);
-        this.regex = buildRegex();
-        buildMatrix();
     }
 
     private void buildMatrix() {

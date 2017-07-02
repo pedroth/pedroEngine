@@ -10,6 +10,8 @@ import nlp.textSplitter.MyTextSplitter;
 import nlp.textSplitter.SpaceSplitter;
 import nlp.textSplitter.StopWordsSplitter;
 
+import java.io.IOException;
+
 /**
  * 
  * @author pedro
@@ -112,8 +114,10 @@ public class LowBowSummaryApp {
 			HeatMethod heat = new SparseHeatFlow();
 			l.heatFlow(lambda, heat);
 			text.write(addressOut, l.generateText(new SymbolAtMax()));
-		} catch(RuntimeException e) {
-			
-		}
+        } catch(RuntimeException e) {
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 	}
 }

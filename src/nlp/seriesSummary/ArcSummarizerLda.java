@@ -9,6 +9,7 @@ import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.utils.LdaWrapper;
 import numeric.src.Distance;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -71,7 +72,7 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
         return kgraph;
     }
 
-    private List<Vector> readMatrix(String address) {
+    private List<Vector> readMatrix(String address) throws IOException {
         List<Vector> ans = new ArrayList<>();
         TextIO textIO = new TextIO();
         textIO.read(address);
@@ -96,11 +97,16 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
             stringBuilder.append(baseSegmentedBow.cutSegmentSubtitleWords()).append("\n");
         }
         //lda
-        TextIO textIO = new TextIO();
-        String address = this.outputAddress + "segmentsCorpus.txt";
-        textIO.write(address, stringBuilder.toString());
-        LdaWrapper.computeLda(address, kcluster, alpha, beta, numberIterations, "ldaModel");
-        List<Vector> thetas = readMatrix(this.outputAddress + "ldaModel.theta");
+        List<Vector> thetas = null;
+        try {
+            TextIO textIO = new TextIO();
+            String address = this.outputAddress + "segmentsCorpus.txt";
+            textIO.write(address, stringBuilder.toString());
+            LdaWrapper.computeLda(address, kcluster, alpha, beta, numberIterations, "ldaModel");
+            readMatrix(this.outputAddress + "ldaModel.theta");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         //cluster
         Map<Integer, List<Integer>> segmentIndexByClassificationLda = new HashMap<>();
         for (int i = 0; i < kcluster; i++) {

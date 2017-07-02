@@ -15,13 +15,14 @@ import org.junit.Test;
 import utils.FilesCrawler;
 import utils.Interval;
 
+import java.io.IOException;
 import java.util.*;
 
 public class SegmentationTest {
 
 
     @Test
-    public void segmentTestVideo() {
+    public void segmentTestVideo() throws IOException {
         final String desktopAddress = System.getProperty("user.home") + "/Desktop/";
         final String baseAddress = "C:/pedro/escolas/ist/Tese/Series/OverTheGardenWall/";
         final double heatTime = 0.04;
@@ -38,7 +39,7 @@ public class SegmentationTest {
         //lowbow representation
         for (int i = 0; i < 1; i++) {
             textIO.read(subtitles.get(i));
-            textSplitter = new SubsSplitter(RemoveStopWordsPredicate.getInstance());
+            textSplitter = new SubsSplitter(new RemoveStopWordsPredicate());
             LowBowSubtitles<SubsSplitter> low = new LowBowSubtitles<>(textIO.getText(), textSplitter, videos.get(i));
             LowBowSegmentator lowBowSegmentator = MaxDerivativeSegmentator.getInstance();
             low.setLowBowSegmentator(lowBowSegmentator);
@@ -65,7 +66,7 @@ public class SegmentationTest {
     }
 
     @Test
-    public void segmentC99() {
+    public void segmentC99() throws IOException {
         final String baseAddress = "C:/pedro/escolas/ist/Tese/C99/";
 //        final String baseAddress = "C:/Users/Pedroth/Downloads/C99-1.2-release/C99-1.2-release/naacl00Exp/data/";
         final TextIO textIO = new TextIO();
@@ -90,7 +91,7 @@ public class SegmentationTest {
         }
     }
 
-    private void computeAverageFilePk(TextIO textIO, TextSplitter textSplitter, List<String> texts, double kPercent) {
+    private void computeAverageFilePk(TextIO textIO, TextSplitter textSplitter, List<String> texts, double kPercent) throws IOException {
         double averagePk = 0;
         final int n = texts.size();
         for (int i = 0; i < n; i++) {

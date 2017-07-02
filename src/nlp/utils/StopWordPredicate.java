@@ -2,39 +2,32 @@ package nlp.utils;
 
 import inputOutput.TextIO;
 
+import java.io.IOException;
 import java.util.HashSet;
 
 /**
  * The type Stop word predicate.
  */
 public class StopWordPredicate implements RemoveWordsPredicate {
+    private static final String DEEFAULT_ADDRESS = "src/nlp/resources/wordLists/stopWords.txt";
+    private HashSet<String> stopWordsSet;
 
-    private static HashSet<String> stopWordsSet;
-    private static StopWordPredicate stopWordPredicate = new StopWordPredicate();
+    public StopWordPredicate() throws IOException {
+        this(DEEFAULT_ADDRESS);
+    }
 
-
-    private StopWordPredicate() {
+    public StopWordPredicate(String stopWordListAddress) throws IOException {
         TextIO text = new TextIO();
-        text.read("src/nlp/resources/wordLists/stopWords.txt");
+        text.read(stopWordListAddress);
         String[] split = text.getText().split("\n");
         stopWordsSet = new HashSet<>(split.length);
         for (int i = 0; i < split.length; i++) {
             stopWordsSet.add(split[i]);
         }
-
     }
 
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
-    public static StopWordPredicate getInstance() {
-        return stopWordPredicate;
-    }
-
-    public static void main(String[] args) {
-        StopWordPredicate stopWordPredicate = StopWordPredicate.getInstance();
+    public static void main(String[] args) throws IOException {
+        StopWordPredicate stopWordPredicate = new StopWordPredicate();
         System.out.println(stopWordPredicate.test("a"));
     }
 
