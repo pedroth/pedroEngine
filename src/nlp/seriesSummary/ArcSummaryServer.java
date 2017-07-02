@@ -19,7 +19,6 @@ import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -146,18 +145,11 @@ public class ArcSummaryServer {
                 TextIO text = new TextIO();
                 text.read(httpExchange.getRequestBody());
                 Map<String, String> in = JServerUtils.parsePostMessage(text.getText());
-
-                String id = in.get("id");
                 int clusterId = Integer.valueOf(in.get("clusterId"));
-                List<String> filesWithExtension = FilesCrawler.listFilesWithExtension(HOME_ADDRESS + SUMMARY_FOLDER_NAME + id + "/" + clusterId + "/", OUTPUT_VIDEO_EXTENSION);
                 StringBuilder stringBuilder = new StringBuilder();
                 // first append cluster number, this is necessary because communication is asynchronous
                 stringBuilder.append(clusterId).append(" ");
-                // append video addresses
-                for (int i = 0; i < filesWithExtension.size(); i++) {
-                    String[] split = filesWithExtension.get(i).replace("\\", "/").split("/");
-                    stringBuilder.append(split[split.length - 1]).append(i == filesWithExtension.size() - 1 ? "" : " ");
-                }
+                stringBuilder.append("Arc" + clusterId + "Summary.mp4");
                 JServerUtils.respondWithText(httpExchange, stringBuilder.toString());
             } catch (Exception e) {
                 JServerUtils.respondWithText(httpExchange, getTraceError(e));
