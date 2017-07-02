@@ -284,7 +284,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
                 stopWatch.resetTime();
             }
 
-            textIO.write(infoAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+            if (this.necessaryWordPredicate != null) {
+                textIO.write(infoAddress + "removedWords.txt", this.necessaryWordPredicate.getNotNecessaryWordString());
+            }
 
             //lowbow representation
             for (int i = 0; i < subtitles.size(); i++) {

@@ -1,9 +1,15 @@
 package nlp.seriesSummary;
 
+import algebra.src.Vector;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
+import nlp.lowbow.eigenLowbow.MaxDerivativeSegmentator;
+import nlp.utils.RemoveStopWordsPredicate;
+import nlp.utils.RemoveWordsPredicate;
+import numeric.src.Distance;
+import utils.FFMpegVideoApi;
 import utils.FilesCrawler;
 import utils.JServerUtils;
 
@@ -15,6 +21,9 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * based on  http://www.programcreek.com/java-api-examples/index.php?source_dir=middleman-master/test/middleman/proxy/DummyHttpServer.java
@@ -23,8 +32,8 @@ public class ArcSummaryServer {
     private final static String HOME_ADDRESS = "src/nlp/resources/web/";
     private final static String SUMMARY_FOLDER_NAME = "summary";
     private final static String OUTPUT_VIDEO_EXTENSION = "mp4";
+    private final static RemoveWordsPredicate necessaryWordPredicate = RemoveStopWordsPredicate.getInstance();
     private final int serverPort;
-    private JServerUtils serverUtils = new JServerUtils();
     private Map<String, ArcSummaryThreadPair> arcSummarizerMap = new HashMap<>(3);
 
     public ArcSummaryServer(int serverPort) {
@@ -32,16 +41,23 @@ public class ArcSummaryServer {
     }
 
     public static void main(String[] args) {
-        ArcSummaryServer arcSummaryServer = new ArcSummaryServer(8080);
-        arcSummaryServer.start();
-    }
-
-    private String[] parseInput(String request) {
-        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("\n", "").split("&");
-        for (int i = 0; i < split.length; i++) {
-            split[i] = split[i].split("=")[1];
+        if (args.length > 0) {
+            final String regex = "[0-9]*";
+            final Pattern pattern = Pattern.compile(regex);
+            final Matcher matcher = pattern.matcher(args[0]);
+            ArcSummaryServer arcSummaryServer = new ArcSummaryServer(matcher.find() ? Integer.valueOf(args[0]) : 8080);
+            arcSummaryServer.start();
+        } else {
+            ArcSummaryServer arcSummaryServer = new ArcSummaryServer(8080);
+            arcSummaryServer.start();
         }
-        return split;
+
+        TextIO textIO = new TextIO("conf");
+        final String text = textIO.getText();
+        final String[] split = text.split("\n");
+        final String[] parameters = split[0].split("\\s+");
+        FFMpegVideoApi.ffmpegAddress = parameters[1];
+
     }
 
     private String parseGetInput(String request) {
@@ -66,92 +82,102 @@ public class ArcSummaryServer {
                     System.out.println(this.getClass() + " - received message from " + httpExchange.getRemoteAddress());
                     String file = parseGetInput(requestURI.toString());
                     if (OUTPUT_VIDEO_EXTENSION.equals(FilesCrawler.getExtension(file))) {
-                        serverUtils.respondWithBytes(httpExchange, HOME_ADDRESS + file);
+                        JServerUtils.respondWithBytes(httpExchange, HOME_ADDRESS + file);
+                        return;
+                    }
+                    if ("/ArcSummary".equals(file)) {
+                        JServerUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + "ArcSummary.html");
                     } else {
-                        serverUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
+                        JServerUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
                     }
                 } catch (Exception e) {
-                    serverUtils.respondWithText(httpExchange, getTraceError(e));
+                    JServerUtils.respondWithText(httpExchange, getTraceError(e));
                 }
             }
         });
 
-        summaryServer.createContext("/input", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
-                try {
-                    System.out.println(httpExchange.getRequestURI());
-                    TextIO text = new TextIO();
-                    text.read(httpExchange.getRequestBody());
-                    String[] input = parseInput(text.getText());
-                    ArcSummarizerSpectral arcSummarizerSpectral = new ArcSummarizerSpectral(input[0], input[1], Double.valueOf(input[2]), Double.valueOf(input[3]), Integer.valueOf(input[4]), Integer.valueOf(input[5]), ArcSummarizerSpectral.getDistanceByName(input[6]));
-                    arcSummarizerSpectral.setSigma(2);
-                    arcSummarizerSpectral.setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
-                    arcSummarizerSpectral.setVideoConcat(true);
-                    Thread thread = null;
-                    if (SUMMARY_FOLDER_NAME.equals(input[7])) {
-                        thread = new Thread(() -> arcSummarizerSpectral.buildSummary(HOME_ADDRESS + input[7] + input[9], Double.valueOf(input[8])));
-                    } else {
-                        thread = new Thread(() -> arcSummarizerSpectral.buildSummary(input[7], Double.valueOf(input[8])));
-                    }
-                    arcSummarizerMap.put(input[9], new ArcSummaryThreadPair(thread, arcSummarizerSpectral));
-                    thread.start();
-                    serverUtils.respondWithText(httpExchange, "loading . . . ");
-                } catch (Exception e) {
-                    serverUtils.respondWithText(httpExchange, getTraceError(e));
-                }
+        summaryServer.createContext("/input", httpExchange -> {
+            try {
+                System.out.println(httpExchange.getRequestURI());
+                TextIO text = new TextIO();
+                text.read(httpExchange.getRequestBody());
+                Map<String, String> input = JServerUtils.parsePostMessage(text.getText());
+                ArcSummaryBuilder arcSummaryBuilder = new ArcSummaryBuilder()
+                        .setDistance(BaseArcSummarizer.getDistanceByName(input.get("distance")))
+                        .setEntropy(Double.valueOf(input.get("entropy")))
+                        .setFileExtension(input.get("video"))
+                        .setHeat(Double.valueOf(input.get("heat")))
+                        .setKnn(Integer.valueOf(input.get("knn")))
+                        .setNumberOfCluster(Integer.valueOf(input.get("kcluster")))
+                        .setSeriesAddress(input.get("file"));
+                final BaseArcSummarizer arcSummarizer = ArcSummaryProviderEnum.getSummarizerByName(input.get("method"), arcSummaryBuilder);
+                Thread thread = new Thread(() -> arcSummarizer.buildSummary(HOME_ADDRESS + input.get("out") + input.get("id"), Double.valueOf(input.get("time"))));
+                arcSummarizerMap.put(input.get("id"), new ArcSummaryThreadPair(thread, arcSummarizer));
+                thread.start();
+                JServerUtils.respondWithText(httpExchange, "loading . . . ");
+            } catch (Exception e) {
+                JServerUtils.respondWithText(httpExchange, getTraceError(e));
             }
         });
 
 
-        summaryServer.createContext("/log", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
-                try {
-                    System.out.println(httpExchange.getRequestURI());
-                    TextIO text = new TextIO();
-                    text.read(httpExchange.getRequestBody());
-                    String[] in = parseInput(text.getText());
+        summaryServer.createContext("/log", httpExchange -> {
+            try {
+                System.out.println(httpExchange.getRequestURI());
+                TextIO text = new TextIO();
+                text.read(httpExchange.getRequestBody());
+                Map<String, String> in = JServerUtils.parsePostMessage(text.getText());
 
-                    ArcSummaryThreadPair arcSummaryThreadPair = arcSummarizerMap.get(in[0]);
+                ArcSummaryThreadPair arcSummaryThreadPair = arcSummarizerMap.get(in.get("id"));
 
-                    StringBuilder stringBuilder = new StringBuilder();
-                    for (String log : arcSummaryThreadPair.getArcSummarySummarizer().getLog()) {
-                        stringBuilder.append(log + "<br>");
-                    }
-                    serverUtils.respondWithText(httpExchange, "loading . . .  " + stringBuilder);
-                } catch (Exception e) {
-                    serverUtils.respondWithText(httpExchange, getTraceError(e));
+                StringBuilder stringBuilder = new StringBuilder();
+                for (String log : arcSummaryThreadPair.getArcSummarySummarizer().getLog()) {
+                    stringBuilder.append(log + "<br>");
                 }
+                JServerUtils.respondWithText(httpExchange, "loading . . .  " + stringBuilder);
+            } catch (Exception e) {
+                JServerUtils.respondWithText(httpExchange, getTraceError(e));
             }
         });
 
-        summaryServer.createContext("/getVideo", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
-                try {
-                    System.out.println(httpExchange.getRequestURI());
-                    TextIO text = new TextIO();
-                    text.read(httpExchange.getRequestBody());
-                    String[] in = parseInput(text.getText());
+        summaryServer.createContext("/getVideo", httpExchange -> {
+            try {
+                System.out.println(httpExchange.getRequestURI());
+                TextIO text = new TextIO();
+                text.read(httpExchange.getRequestBody());
+                Map<String, String> in = JServerUtils.parsePostMessage(text.getText());
 
-                    String id = in[0];
-                    int clusterId = Integer.valueOf(in[1]);
-                    List<String> filesWithExtension = FilesCrawler.listFilesWithExtension(HOME_ADDRESS + SUMMARY_FOLDER_NAME + id + "/" + clusterId + "/", OUTPUT_VIDEO_EXTENSION);
-                    StringBuilder stringBuilder = new StringBuilder();
-                    // first append cluster number, this is necessary because communication is asynchronous
-                    stringBuilder.append(in[1]).append(" ");
-                    // append video addresses
-                    for (int i = 0; i < filesWithExtension.size(); i++) {
-                        String[] split = filesWithExtension.get(i).replace("\\", "/").split("/");
-                        stringBuilder.append(split[split.length - 1]).append(i == filesWithExtension.size() - 1 ? "" : " ");
-                    }
-                    serverUtils.respondWithText(httpExchange, stringBuilder.toString());
-                } catch (Exception e) {
-                    serverUtils.respondWithText(httpExchange, getTraceError(e));
+                String id = in.get("id");
+                int clusterId = Integer.valueOf(in.get("clusterId"));
+                List<String> filesWithExtension = FilesCrawler.listFilesWithExtension(HOME_ADDRESS + SUMMARY_FOLDER_NAME + id + "/" + clusterId + "/", OUTPUT_VIDEO_EXTENSION);
+                StringBuilder stringBuilder = new StringBuilder();
+                // first append cluster number, this is necessary because communication is asynchronous
+                stringBuilder.append(clusterId).append(" ");
+                // append video addresses
+                for (int i = 0; i < filesWithExtension.size(); i++) {
+                    String[] split = filesWithExtension.get(i).replace("\\", "/").split("/");
+                    stringBuilder.append(split[split.length - 1]).append(i == filesWithExtension.size() - 1 ? "" : " ");
                 }
+                JServerUtils.respondWithText(httpExchange, stringBuilder.toString());
+            } catch (Exception e) {
+                JServerUtils.respondWithText(httpExchange, getTraceError(e));
             }
         });
+
+        summaryServer.createContext("/getInit", httpExchange -> {
+            try {
+                System.out.println(httpExchange.getRequestURI());
+                StringBuilder stringBuilder = new StringBuilder();
+                for (ArcSummaryProviderEnum provider : ArcSummaryProviderEnum.values()) {
+                    stringBuilder.append(provider.getName()).append(" ");
+                }
+                JServerUtils.respondWithText(httpExchange, stringBuilder.toString());
+            } catch (Exception e) {
+                JServerUtils.respondWithText(httpExchange, getTraceError(e));
+            }
+        });
+
+
         summaryServer.setExecutor(null);
         summaryServer.start();
     }
@@ -163,6 +189,128 @@ public class ArcSummaryServer {
         e.printStackTrace(pw);
         e.printStackTrace();
         return sw.toString();
+    }
+
+
+    private enum ArcSummaryProviderEnum {
+        SPECTRAL_NG("SpectralNG", x -> {
+            BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(x.seriesAddress, x.fileExtension, x.heat, x.entropy, x.knn, x.numberOfCluster, x.distance);
+            baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+            baseArcSummarizer.setCutVideo(true);
+            baseArcSummarizer.setVideoConcat(true);
+            baseArcSummarizer.setLowBowSegmentator(MaxDerivativeSegmentator.getInstance());
+            ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.ANDREW_ET_AL);
+            return baseArcSummarizer;
+        }),
+        SPECTRAL_NORM("SpectralNorm", x -> {
+            BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(x.seriesAddress, x.fileExtension, x.heat, x.entropy, x.knn, x.numberOfCluster, x.distance);
+            baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+            baseArcSummarizer.setCutVideo(true);
+            baseArcSummarizer.setVideoConcat(true);
+            baseArcSummarizer.setLowBowSegmentator(MaxDerivativeSegmentator.getInstance());
+            ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.NORM);
+            return baseArcSummarizer;
+        }),
+        SPECTRAL_UNORM("SpectralUNorm", x -> {
+            BaseArcSummarizer baseArcSummarizer = new ArcSummarizerSpectral(x.seriesAddress, x.fileExtension, x.heat, x.entropy, x.knn, x.numberOfCluster, x.distance);
+            baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+            baseArcSummarizer.setCutVideo(true);
+            baseArcSummarizer.setVideoConcat(true);
+            baseArcSummarizer.setLowBowSegmentator(MaxDerivativeSegmentator.getInstance());
+            ((ArcSummarizerSpectral) baseArcSummarizer).setSpectralType(ArcSummarizerSpectral.SpectralTypeEnum.NNORM);
+            return baseArcSummarizer;
+        }),
+        DIFFUSION("Diffusion", x -> {
+            BaseArcSummarizer baseArcSummarizer = new ArcSummarizerDiffusion(x.seriesAddress, x.fileExtension, x.heat, x.entropy, x.knn, x.numberOfCluster, x.distance);
+            baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+            baseArcSummarizer.setCutVideo(true);
+            baseArcSummarizer.setVideoConcat(true);
+            baseArcSummarizer.setLowBowSegmentator(MaxDerivativeSegmentator.getInstance());
+            ((ArcSummarizerDiffusion) baseArcSummarizer).setHeatTime(-1);
+            ((ArcSummarizerDiffusion) baseArcSummarizer).setNormalized(false);
+            return baseArcSummarizer;
+        }),
+        LDA("LDA", x -> {
+            BaseArcSummarizer baseArcSummarizer = new ArcSummarizerLda(x.seriesAddress, x.fileExtension, x.heat, x.entropy, x.knn, x.numberOfCluster, x.distance);
+            baseArcSummarizer.setNecessaryWordPredicate(necessaryWordPredicate);
+            baseArcSummarizer.setCutVideo(true);
+            baseArcSummarizer.setVideoConcat(true);
+            baseArcSummarizer.setLowBowSegmentator(MaxDerivativeSegmentator.getInstance());
+            return baseArcSummarizer;
+        });
+
+        private static Map<String, ArcSummaryProviderEnum> providerEnumByNameMap = new HashMap<>(ArcSummaryProviderEnum.values().length);
+
+        static {
+            for (ArcSummaryProviderEnum provider : ArcSummaryProviderEnum.values()) {
+                providerEnumByNameMap.put(provider.getName(), provider);
+            }
+        }
+
+        private String name;
+        private Function<ArcSummaryBuilder, BaseArcSummarizer> factory;
+
+        ArcSummaryProviderEnum(String name, Function<ArcSummaryBuilder, BaseArcSummarizer> factory) {
+            this.name = name;
+            this.factory = factory;
+        }
+
+        public static BaseArcSummarizer getSummarizerByName(String name, ArcSummaryBuilder builder) {
+            return providerEnumByNameMap.get(name).getFactory().apply(builder);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Function<ArcSummaryBuilder, BaseArcSummarizer> getFactory() {
+            return factory;
+        }
+    }
+
+    private static class ArcSummaryBuilder {
+        String seriesAddress;
+        String fileExtension;
+        int numberOfCluster;
+        double heat;
+        double entropy;
+        int knn;
+        Distance<Vector> distance;
+
+        public ArcSummaryBuilder setSeriesAddress(String seriesAddress) {
+            this.seriesAddress = seriesAddress;
+            return this;
+        }
+
+        public ArcSummaryBuilder setFileExtension(String fileExtension) {
+            this.fileExtension = fileExtension;
+            return this;
+        }
+
+        public ArcSummaryBuilder setNumberOfCluster(int numberOfCluster) {
+            this.numberOfCluster = numberOfCluster;
+            return this;
+        }
+
+        public ArcSummaryBuilder setHeat(double heat) {
+            this.heat = heat;
+            return this;
+        }
+
+        public ArcSummaryBuilder setEntropy(double entropy) {
+            this.entropy = entropy;
+            return this;
+        }
+
+        public ArcSummaryBuilder setKnn(int knn) {
+            this.knn = knn;
+            return this;
+        }
+
+        public ArcSummaryBuilder setDistance(Distance<Vector> distance) {
+            this.distance = distance;
+            return this;
+        }
     }
 
     private class ArcSummaryThreadPair {

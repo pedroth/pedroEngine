@@ -23,7 +23,6 @@ public class PublicChatServer {
     private final static double TIMEOUT = 10;
     private final int serverPort;
     private List<UnitLog> log = new ArrayList<>();
-    private JServerUtils serverUtils = new JServerUtils();
     private Map<String, Double> uID2TimeMap = new ConcurrentHashMap<>();
     private StopWatch stopWatch;
 
@@ -84,9 +83,9 @@ public class PublicChatServer {
                 if ("".equals(file) || "/PublicChat".equals(file)) {
                     file = "PublicChat.html";
                 }
-                serverUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
+                JServerUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
             } catch (IOException e) {
-                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+                JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
         });
 
@@ -99,7 +98,7 @@ public class PublicChatServer {
                 if ("".equals(text)) {
                     throw new RuntimeException("Empty String");
                 }
-                Map<String, String> stringMap = parsePostInput(text);
+                Map<String, String> stringMap = JServerUtils.parsePostMessage(text);
                 for (Map.Entry<String, String> entry : stringMap.entrySet()) {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
@@ -107,9 +106,9 @@ public class PublicChatServer {
                 putClientInMap(id);
                 String jsonAns = getLogInfo(Integer.valueOf(stringMap.get("index").replaceAll("\n", "")));
                 System.out.println(jsonAns);
-                serverUtils.respondWithText(httpExchange, jsonAns);
+                JServerUtils.respondWithText(httpExchange, jsonAns);
             } catch (Exception e) {
-                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+                JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
         });
 
@@ -119,34 +118,32 @@ public class PublicChatServer {
 
                 TextIO textIO = new TextIO();
                 textIO.read(httpExchange.getRequestBody());
-                Map<String, String> stringMap = parsePostInputUnformatted(textIO.getText());
+                Map<String, String> stringMap = JServerUtils.parsePostMessageUnformatted(textIO.getText());
                 for (Map.Entry<String, String> entry : stringMap.entrySet()) {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
-
                 String id = stringMap.get("id");
                 putClientInMap(id);
                 log.add(new UnitLog(id, stringMap.get("log")));
-                serverUtils.respondWithText(httpExchange, "OK");
+                JServerUtils.respondWithText(httpExchange, "OK");
             } catch (Exception e) {
-                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+                JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
         });
 
         summaryServer.createContext("/clear", httpExchange -> {
             try {
                 printClientData(httpExchange);
-
                 TextIO textIO = new TextIO();
                 textIO.read(httpExchange.getRequestBody());
-                Map<String, String> stringMap = parsePostInput(textIO.getText());
+                Map<String, String> stringMap = JServerUtils.parsePostMessage(textIO.getText());
                 for (Map.Entry<String, String> entry : stringMap.entrySet()) {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
                 log.removeAll(log);
-                serverUtils.respondWithText(httpExchange, "OK");
+                JServerUtils.respondWithText(httpExchange, "OK");
             } catch (Exception e) {
-                serverUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+                JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
         });
 
@@ -182,30 +179,6 @@ public class PublicChatServer {
         return request.replace("/PublicChat/", "").replace("%5B", "[").replace("%5D", "]").replace("%2C", ",");
     }
 
-    private Map<String, String> parsePostInput(String request) {
-        Map<String, String> ans = new HashMap<>();
-        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("+", " ").split("&");
-        for (int i = 0; i < split.length; i++) {
-            String[] split1 = split[i].split("=");
-            String key = split1[0];
-            String value = split1[1];
-            ans.put(key, value);
-        }
-        return ans;
-    }
-
-    private Map<String, String> parsePostInputUnformatted(String request) {
-        request = request.substring(0, request.length() - 1);
-        Map<String, String> ans = new HashMap<>();
-        String[] split = request.split("&");
-        for (int i = 0; i < split.length; i++) {
-            String[] split1 = split[i].split("=");
-            String key = split1[0];
-            String value = split1[1];
-            ans.put(key, value);
-        }
-        return ans;
-    }
 
     private String getTraceError(Exception e) {
         StringWriter sw = new StringWriter();

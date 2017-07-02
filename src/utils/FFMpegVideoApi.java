@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * You need to have fmpeg installed
  */
 public class FFMpegVideoApi {
-    private static String ffmpegAddress = "C:/Program Files/ffmpeg/bin";
+    public static String ffmpegAddress = "C:/Program Files/ffmpeg/bin";
 
     private FFMpegVideoApi() {
         // empty on purpose

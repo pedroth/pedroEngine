@@ -2,8 +2,21 @@
 <head>
     <style>
         #log {
-        display: none
+          display: none
         }
+
+        .hiddenClass {
+          display: none
+        }
+
+        #videoExtensionOther {
+          display: none
+        }
+
+        #entropyMethod {
+          display: none
+        }
+
     </style>
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet"
@@ -15,7 +28,7 @@
 <body>
 
 <div class="jumbotron text-center">
-    <h1>Arc Summarizer</h1>
+    <a href="ArcSummary"><h1>Arc Summarizer</h1></a>
 </div>
 <div class="container" id="container">
     <div class="form-group row">
@@ -27,41 +40,61 @@
     </div>
     <div class="form-group row">
         <label class="col-sm-2 control-label">Video extension : </label>
-
-        <div class="col-sm-10">
+        <div class="col-sm-3">
             <select class="selectpicker" id="videoExtension">
                 <option>mp4</option>
                 <option>avi</option>
                 <option>mkv</option>
+                <option>other</option>
             </select>
         </div>
-    </div>
-    <div class="form-group row">
-        <label class="col-sm-2 control-label">Heat percentage: </label>
-
-        <div class="col-sm-10">
-            <input type="number" min="0" step="0.01" max="1" id="heat">
+        <div class="col-sm-7">
+            <input type="text" class="form-control" id="videoExtensionOther">
         </div>
     </div>
     <div class="form-group row">
-        <label class="col-sm-2 control-label">Entropy percentage: </label>
+        <label class="col-sm-2 control-label">Heat percentage[0,1]: </label>
 
-        <div class="col-sm-10">
-            <input type="number" min="0" step="0.01" max="1" id="entropy">
+        <div class="col-sm-5">
+            <input type="number" min="0" step="0.01" max="1" value="0.04" id="heat">
+        </div>
+
+    </div>
+    <div class="form-group row">
+
+        <label class="col-sm-2 control-label">Stop word removal method : </label>
+        <div class="col-sm-3">
+            <select class="selectpicker" id="stopWordsMethod">
+                <option>Stop Words</option>
+                <option>Entropy</option>
+            </select>
+        </div>
+        <div class="col-sm-5" id="entropyMethod">
+            <label class="col-sm-3 control-label">Entropy[0,1]: </label>
+            <div class="col-sm-3">
+                <input type="number" min="0" step="0.01" max="1" value="0.0" id="entropy">
+            </div>
         </div>
     </div>
     <div class="form-group row">
-        <label class="col-sm-2 control-label">knn : </label>
+        <label class="col-sm-2 control-label">Knn : </label>
 
-        <div class="col-sm-10">
-            <input type="number" min="1" step="1" id="knn">
+        <div class="col-sm-3">
+            <input type="number" min="1" step="1" id="knn" value="1">
+            <button class="btn btn-primary" id="knnDefaultButton">Default</button>
         </div>
     </div>
     <div class="form-group row">
-        <label class="col-sm-2 control-label">number of clusters/topics : </label>
+        <label class="col-sm-2 control-label">Clustering method: </label>
+        <div class="col-sm-3">
+            <select id="clusteringMethod"></select>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 control-label">Number of clusters/topics : </label>
 
         <div class="col-sm-10">
-            <input type="number" min="1" step="1" id="kcluster">
+            <input type="number" min="1" step="1" value="2" id="kcluster">
         </div>
     </div>
 
@@ -76,19 +109,15 @@
             </select>
         </div>
     </div>
-
-    <div class="form-group row">
-        <label class="col-sm-2 control-label">Output folder: </label>
-
-        <div class="col-sm-10">
-            <input type="text" class="form-control" id="outFolder">
+    <div class="hiddenClass">
+        <input type="text" id="outFolder" value="summary">
         </div>
-    </div>
+
     <div class="form-group row">
         <label class="col-sm-2 control-label">Time per cluster(minutes) : </label>
 
         <div class="col-sm-10">
-            <input type="number" min="0" id="time">
+            <input type="number" min="0" id="time" value="5">
         </div>
     </div>
     <div class="form-group row">

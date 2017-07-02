@@ -27,6 +27,7 @@ public class DiffusionClustering extends AbstractGraphClustering {
     private Vector eigenValues;
     private Matrix eigenEmbedding;
     private boolean isNormalized = false;
+    private Kmeans kmeans;
 
     /**
      * Instantiates a new Spectral clustering.
@@ -138,7 +139,7 @@ public class DiffusionClustering extends AbstractGraphClustering {
         this.eigenEmbedding = prod;
 
         //kmeans
-        Kmeans kmeans = new Kmeans(prod);
+        kmeans = new Kmeans(prod);
         kmeans.runKmeans(k, epsilon, repetitions);
 
         //fix index to graph index
