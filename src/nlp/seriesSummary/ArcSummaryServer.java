@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
  */
 public class ArcSummaryServer {
     private final static String HOME_ADDRESS = "src/nlp/resources/web/";
-    private final static String SUMMARY_FOLDER_NAME = "summary";
     private final static String OUTPUT_VIDEO_EXTENSION = "mp4";
     private static RemoveWordsPredicate necessaryWordPredicate;
     private final int serverPort;
@@ -38,9 +37,9 @@ public class ArcSummaryServer {
     public ArcSummaryServer(int serverPort) throws IOException {
         this.serverPort = serverPort;
         try {
-            this.necessaryWordPredicate = new RemoveStopWordsPredicate("stopWords.txt");
+            necessaryWordPredicate = new RemoveStopWordsPredicate("stopWords.txt");
         } catch (IOException e) {
-            this.necessaryWordPredicate = new RemoveStopWordsPredicate();
+            necessaryWordPredicate = new RemoveStopWordsPredicate();
         }
 
     }
@@ -56,12 +55,16 @@ public class ArcSummaryServer {
             ArcSummaryServer arcSummaryServer = new ArcSummaryServer(8080);
             arcSummaryServer.start();
         }
-
-        TextIO textIO = new TextIO("conf");
-        final String text = textIO.getText();
-        final String[] split = text.split("\n");
-        final String[] parameters = split[0].split("\\s+");
-        FFMpegVideoApi.ffmpegAddress = parameters[1];
+        try {
+            TextIO textIO = new TextIO("conf");
+            final String text = textIO.getText();
+            final String[] split = text.split("\n");
+            final String[] parameters = split[0].split("=");
+            System.out.println(parameters[1]);
+            FFMpegVideoApi.ffmpegAddress = parameters[1];
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

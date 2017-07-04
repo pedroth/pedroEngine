@@ -10,7 +10,7 @@ public class LdaWrapper {
     public static String jLDADMMAddress = "lib/";
 
     public static void computeLda(String corpusAddress, int numberOfTopics, double alpha, double beta, int iterations, String modelName) {
-        String command = "java -jar " + jLDADMMAddress + "/jLDADMM.jar -model LDA" +
+        String command = "java -jar " + jLDADMMAddress + "jLDADMM.jar -model LDA" +
                 " -corpus " + corpusAddress +
                 " -ntopics " + numberOfTopics +
                 " -alpha " + alpha +
@@ -32,7 +32,7 @@ public class LdaWrapper {
             int state = proc.waitFor();
             System.out.println(state + ", time : " + stopWatch.getEleapsedTime());
         } catch (IOException e) {
-            System.err.println("Error calling ffmpeg -ss -i -c copy -copyts");
+            System.err.println("java -jar " + jLDADMMAddress + "/jLDADMM.jar -model LDA");
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();

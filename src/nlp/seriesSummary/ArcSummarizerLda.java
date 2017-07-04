@@ -103,7 +103,7 @@ public class ArcSummarizerLda extends BaseArcSummarizer {
             String address = this.outputAddress + "segmentsCorpus.txt";
             textIO.write(address, stringBuilder.toString());
             LdaWrapper.computeLda(address, kcluster, alpha, beta, numberIterations, "ldaModel");
-            readMatrix(this.outputAddress + "ldaModel.theta");
+            thetas = readMatrix(this.outputAddress + "ldaModel.theta");
         } catch (IOException e) {
             e.printStackTrace();
         }
