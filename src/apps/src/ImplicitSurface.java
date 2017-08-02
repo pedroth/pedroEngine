@@ -52,7 +52,7 @@ public class ImplicitSurface extends MyFrame {
 
     private int indexFunction = 0;
 
-    private int[] traceSamplesIndex = {10, 75, 150, 60, 90, 90, 60, 300, 20, 20};
+    private int[] traceSamplesIndex = {10, 75, 150, 60, 90, 90, 60, 500, 20, 20};
     private int traceSamples = traceSamplesIndex[0];
 
     private double[][] particlePos = {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}};
@@ -99,7 +99,6 @@ public class ImplicitSurface extends MyFrame {
         double aux = (0.5 * x - 1);
         return 1 - aux * aux;
     }
-
 
     /**
      * f : R^3->R, is the function which the level set will be drawn. The level
@@ -263,7 +262,7 @@ public class ImplicitSurface extends MyFrame {
     }
 
     double[] line(double[] init, double[] dir, double t) {
-        return add(init, scalarMult(t, dir));
+        return new double[]{init[0] + dir[0] * t, init[1] + dir[1] * t, init[2] + dir[2] * t};
     }
 
     double[] shading(double[] pos) {
@@ -303,36 +302,39 @@ public class ImplicitSurface extends MyFrame {
     }
 
     double[] trace2(double[] init, double[] dir) {
+        final int maxIte = 10;
         double[] ans = {0, 0, 0};
         double h = maxVision / traceSamples;
-        double epsilon = 1E-3;
-        double t = 0;
+        double t;
+        double lastF = Double.MIN_VALUE;
+        double f = 0;
+        double[] p = new double[3];
         for (t = 0; t < maxVision; ) {
-            double[] p = line(init, dir, t);
-            double f = f(p[0], p[1], p[2]);
-            if (f < 0) {
+            p = line(init, dir, t);
+            f = f(p[0], p[1], p[2]);
+            if (f * lastF < 0) {
                 break;
             }
             t += h;
+            lastF = f;
         }
-        if (t > maxVision) {
+        if (t >= maxVision) {
             return ans;
         }
         double tLeft = t - h;
         double tRight = t;
 
-        double root = 0;
-        double fRoot = 1;
-        double[] l = new double[3];
-        for (int i = 0; i < 10; i++) {
+        double root;
+        double fRoot = f;
+        for (int i = 0; i < maxIte; i++) {
             root = 0.5 * (tLeft + tRight);
-            l = line(init, dir, root);
-            fRoot = f(l[0], l[1], l[2]);
+            p = line(init, dir, root);
+            fRoot = f(p[0], p[1], p[2]);
             if (Math.abs(fRoot) < 1E-3) {
                 break;
             } else {
-                l = line(init, dir, tLeft);
-                if (Math.signum(f(l[0], l[1], l[2])) == Math.signum(fRoot)) {
+                p = line(init, dir, tLeft);
+                if (Math.signum(f(p[0], p[1], p[2])) == Math.signum(fRoot)) {
                     tLeft = root;
                 } else {
                     tRight = root;
@@ -340,7 +342,7 @@ public class ImplicitSurface extends MyFrame {
             }
         }
         double lambda = 0.1;
-        return scalarMult(1 - fRoot / lambda, shading(l));
+        return scalarMult(1 - fRoot / lambda, shading(p));
     }
 
     double[] trace(double[] init, double[] dir) {
@@ -446,9 +448,11 @@ public class ImplicitSurface extends MyFrame {
          * */
         Graphics image = engine.getImageGraphics();
         orbit(dt);
-        euler();
+        if (indexFunction == 8) {
+            euler();
+        }
         raytrace();
-        int index = 0;
+        int index;
         for (int i = 0; i < sqrtSamples; i++) {
             for (int j = 0; j < sqrtSamples; j++) {
                 double x = (1.0 * widthChanged / sqrtSamples) * i;
@@ -567,18 +571,12 @@ public class ImplicitSurface extends MyFrame {
         }
 
         eyeThrust = ans;
-        // initColorBuffer(minSamples);
-
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         double[] aux = {0, 0, 0};
         eyeThrust = aux;
-        // if(myNorm(dEye) < 1E-3){
-        // initColorBuffer(maxSamples);
-        // }
-
     }
 
     @Override
@@ -598,7 +596,6 @@ public class ImplicitSurface extends MyFrame {
     public void mouseReleased(MouseEvent e) {
         thetaThrust = 0;
         phiThrust = 0;
-        // initColorBuffer(maxSamples);
     }
 
     @Override
@@ -625,7 +622,6 @@ public class ImplicitSurface extends MyFrame {
         // phiThrust = 40 * 2 * Math.PI * (dy / height);
         mx = newMx;
         my = newMy;
-        // initColorBuffer(minSamples);
     }
 
     @Override

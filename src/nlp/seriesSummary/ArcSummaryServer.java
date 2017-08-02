@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * based on  http://www.programcreek.com/java-api-examples/index.php?source_dir=middleman-master/test/middleman/proxy/DummyHttpServer.java
  */
 public class ArcSummaryServer {
-    private final static String HOME_ADDRESS = "src/nlp/resources/web/";
+    private final static String HOME_ADDRESS = "web/";
     private final static String OUTPUT_VIDEO_EXTENSION = "mp4";
     private static RemoveWordsPredicate necessaryWordPredicate;
     private final int serverPort;
@@ -56,7 +56,7 @@ public class ArcSummaryServer {
             arcSummaryServer.start();
         }
         try {
-            TextIO textIO = new TextIO("conf");
+            TextIO textIO = new TextIO("conf.txt");
             final String text = textIO.getText();
             final String[] split = text.split("\n");
             final String[] parameters = split[0].split("=");
