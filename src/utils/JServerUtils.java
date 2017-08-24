@@ -5,7 +5,10 @@ import com.sun.net.httpserver.HttpExchange;
 import inputOutput.TextIO;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -68,9 +71,9 @@ public final class JServerUtils {
     }
 
 
-    public static Map<String, String> parsePostMessage(String request) {
+    public static Map<String, String> parsePostMessage(String request) throws UnsupportedEncodingException {
         Map<String, String> ans = new HashMap<>();
-        String[] split = request.replace("%3A", ":").replace("%5C", "/").replace("%2F", "/").replace("+", " ").replace("\n", "").split("&");
+        String[] split = URLDecoder.decode(request, StandardCharsets.UTF_8.toString()).split("&");
         for (int i = 0; i < split.length; i++) {
             String[] split1 = split[i].split("=");
             String key = split1[0];

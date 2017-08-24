@@ -10,8 +10,11 @@ import utils.StopWatch;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -175,8 +178,8 @@ public class PublicChatServer {
         return stringBuilder.toString();
     }
 
-    private String parseGetInput(String request) {
-        return request.replace("/PublicChat/", "").replace("%5B", "[").replace("%5D", "]").replace("%2C", ",");
+    private String parseGetInput(String request) throws UnsupportedEncodingException {
+        return URLDecoder.decode(request, StandardCharsets.UTF_8.toString()).replace("/PublicChat/", "");
     }
 
 
