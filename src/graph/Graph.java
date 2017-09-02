@@ -3,14 +3,7 @@ package graph;
 import algebra.src.Matrix;
 import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The type Graph.
@@ -320,7 +313,7 @@ public class Graph {
      * Put vertex property.
      *
      * @param <T> the type parameter
-     * @param i the i
+     * @param i   the i
      * @param str the str
      * @param obj the obj
      */
@@ -334,7 +327,7 @@ public class Graph {
     /**
      * Gets vertex property.
      *
-     * @param i the i
+     * @param i   the i
      * @param str the str
      * @return the vertex property
      */
@@ -346,13 +339,22 @@ public class Graph {
         return (T) stringObjectMap.get(str);
     }
 
+
+    public <T> List<T> getVertexPropertyMap(String str) {
+        List<T> ans = new ArrayList<>();
+        for (Integer u : edges.keySet()) {
+            ans.add(getVertexProperty(u, str));
+        }
+        return ans;
+    }
+
     /**
      * Put edge property.
      *
-     * @param <T> the type parameter
+     * @param <T>  the type parameter
      * @param pair the pair
-     * @param str the str
-     * @param obj the obj
+     * @param str  the str
+     * @param obj  the obj
      */
     public <T> void putEdgeProperty(Pair<Integer, Integer> pair, String str, T obj) {
         if (edges.get(pair.getKey()).contains(pair.getValue())) {
@@ -367,7 +369,7 @@ public class Graph {
      * Gets edge property.
      *
      * @param pair the pair
-     * @param str the str
+     * @param str  the str
      * @return the edge property
      */
     public <T> T getEdgeProperty(Pair<Integer, Integer> pair, String str) {

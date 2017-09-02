@@ -1,9 +1,26 @@
 package algorithms;
 
+import numeric.src.MyMath;
+
 import java.util.Stack;
 
 public class QuickSortWithPermutation implements Sort {
+    public static boolean DECREASING_ORDER = true;
     private int[] permutation;
+    private int order;
+
+    public QuickSortWithPermutation() {
+        this.order = 1;
+    }
+
+    /**
+     * Creates instance of quick sort with order defined by isReverseOrder param
+     *
+     * @param isReverseOrder
+     */
+    public QuickSortWithPermutation(boolean isReverseOrder) {
+        this.order = isReverseOrder ? -1 : 1;
+    }
 
     public static void main(String[] args) {
         Integer[] v = {0, 1, 2, 3, 4, 6, 75, 32, 4, 5};
@@ -43,7 +60,7 @@ public class QuickSortWithPermutation implements Sort {
                 swap(v, pivot, high);
                 int j = low;
                 for (int i = low; i < high; i++) {
-                    if (v[i].compareTo(pvalue) <= 0) {
+                    if (this.order * v[i].compareTo(pvalue) <= 0) {
                         swap(v, i, j);
                         j++;
                     }
@@ -66,5 +83,10 @@ public class QuickSortWithPermutation implements Sort {
             this.permutation[i] = this.permutation[j];
             this.permutation[j] = tempP;
         }
+    }
+
+    public <T> T[] permutate(T[] array) {
+        assert permutation != null : "You must order something in order to have a permutation of that sorting";
+        return MyMath.permutate(array, permutation);
     }
 }

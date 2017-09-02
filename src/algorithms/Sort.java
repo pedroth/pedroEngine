@@ -1,8 +1,15 @@
 package algorithms;
 
 /**
- * Created by Pedroth on 4/10/2016.
+ * The interface Sort.
  */
 public interface Sort {
+
+    /**
+     * Sort elements according to some order defined in implementations
+     *
+     * @param <T>   the type parameter
+     * @param array the array
+     */
     <T extends Comparable> void sort(T[] array);
 }

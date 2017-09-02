@@ -4,6 +4,8 @@ import algebra.src.Diagonal;
 import algebra.src.Vector;
 import realFunction.src.ExpressionFunction;
 
+import java.util.Arrays;
+
 public class MyMath {
     public static double clamp(double x, double xmin, double xmax) {
         return Math.max(xmin, Math.min(xmax, x));
@@ -126,5 +128,14 @@ public class MyMath {
                 return x * powInt(x * x, q);
             }
         }
+    }
+
+    public static <T> T[] permutate(T[] array, int[] permutation) {
+        assert array.length != permutation.length : "input array sizes must be equal";
+        final T[] copy = Arrays.copyOf(array, array.length);
+        for (int i = 0; i < permutation.length; i++) {
+            copy[i] = array[permutation[i]];
+        }
+        return copy;
     }
 }

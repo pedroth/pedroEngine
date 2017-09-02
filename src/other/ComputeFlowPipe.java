@@ -6,14 +6,13 @@ import inputOutput.TextIO;
 import javafx.util.Pair;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Stack;
 
 public class ComputeFlowPipe {
-    public static int main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
         if (args.length == 0) {
             System.out.println("An input file address must be passed as an argument.");
-            return 0;
+            return;
         }
         TextIO textIO = new TextIO(args[0]);
         final String[] split = textIO.getText().split("\n");
@@ -26,12 +25,27 @@ public class ComputeFlowPipe {
             graph.addEdge(u, v);
             graph.putEdgeProperty(new Pair<>(u, v), "flow", Integer.parseInt(params[2]));
         }
-        List<List<Integer>> disconnectedTopologicOrder = topologicalOrder(graph);
+        Integer[] topologicalOrder = topologicalOrder(graph);
+        for (Integer u : graph.getVertexSet()) {
+            graph.putVertexProperty(u, "flowAcc", 0);
+            for (Integer v : graph.getAdjVertex(u)) {
+                graph.putEdgeProperty(new Pair<>(u, v), "flowAcc", 0);
+            }
+        }
+        for (Integer u : topologicalOrder) {
+            for (Integer v : graph.getAdjVertex(u)) {
+                final int update = (int) graph.getVertexProperty(u, "flowAcc") + (int) graph.getEdgeProperty(new Pair<>(u, v), "flow");
+                graph.putVertexProperty(v, "flowAcc", update + (int) graph.getVertexProperty(v, "flowAcc"));
+                graph.putEdgeProperty(new Pair<>(u, v), "flowAcc", update);
+                System.out.printf("accumulatedFlow(%d, %d) =  %d \n", u, v, update);
+            }
+        }
     }
 
-    private static List<List<Integer>> topologicalOrder(Graph graph) {
+    private static Integer[] topologicalOrder(Graph graph) {
         int time = 0;
-        LinkedList<Integer> stack = new LinkedList<>();
+        Stack<Integer> stack = new Stack<>();
+        Stack<Integer> auxStack = new Stack<>();
         for (Integer u : graph.getVertexSet()) {
             graph.putVertexProperty(u, "start", Integer.MIN_VALUE);
             graph.putVertexProperty(u, "end", Integer.MIN_VALUE);
@@ -43,28 +57,34 @@ public class ComputeFlowPipe {
             stack.add(u);
             // DFS
             while (!stack.isEmpty()) {
-                int w = stack.pollFirst();
-                graph.putVertexProperty(w, "start", time++);
-                for (Integer v : graph.getAdjVertex(u)) {
-                    if ((int) graph.getVertexProperty(v, "start") > 0 && (int) graph.getVertexProperty(v, "end") < 0) {
-                        throw new RuntimeException("The graph has cycles ... please put a DAG( direct acyclic graph ).");
-                    }
-                    //v.end < 0 whenever v.start < 0 by construction
-                    if ((int) graph.getVertexProperty(v, "start") < 0) {
-                        stack.push(v);
+                int w = stack.pop();
+                if ((int) graph.getVertexProperty(w, "start") < 0) {
+                    graph.putVertexProperty(w, "start", time++);
+                    for (Integer v : graph.getAdjVertex(w)) {
+                        if ((int) graph.getVertexProperty(v, "start") > 0 && (int) graph.getVertexProperty(v, "end") < 0) {
+                            throw new RuntimeException("The graph has cycles ... please put a DAG( direct acyclic graph ).");
+                        }
+                        //v.end < 0 whenever v.start < 0 by construction
+                        if ((int) graph.getVertexProperty(v, "start") < 0) {
+                            auxStack.push(v);
+                        }
                     }
                 }
                 if (isFinished(w, graph)) {
                     graph.putVertexProperty(w, "end", ++time);
                 } else {
-                    stack.add(w);
+                    stack.push(w);
+                    while (!auxStack.empty()) {
+                        stack.push(auxStack.pop());
+                    }
                 }
             }
         }
-        final Integer[] vertexArray = graph.getVertexSet().toArray(new Integer[graph.getVertexSet().size()]);
-        QuickSortWithPermutation quickSortWithPermutation = new QuickSortWithPermutation();
-        quickSortWithPermutation.sort(vertexArray);
-        final int[] permutation = quickSortWithPermutation.getPermutation();
+        QuickSortWithPermutation quickSortWithPermutation = new QuickSortWithPermutation(QuickSortWithPermutation.DECREASING_ORDER);
+        Integer[] ends = graph.getVertexPropertyMap("end").toArray(new Integer[graph.getNumVertex()]);
+        quickSortWithPermutation.sort(ends);
+        Integer[] topologicOrder = graph.getKeyIndex();
+        return quickSortWithPermutation.permutate(topologicOrder);
     }
 
     private static boolean isFinished(int u, Graph graph) {
