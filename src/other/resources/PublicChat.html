@@ -1,16 +1,45 @@
 <html>
 <head>
     <style>
-        /* Set gray background color and 100% height */
-        .sidenav {
-        background-color: #f1f1f1;
-        height: 100%;
-        }
+    /* Set gray background color and 100% height */
+    .sidenav {
+            background-color: #f1f1f1;
+            height: 100%;
+    }
 
-        footer {
-        background-color: #f1f1f1;
-        padding: 15px;
-        }
+    footer {
+            background-color: #f1f1f1;
+            padding: 15px;
+    }
+
+    #progress-wrp {
+        border: 1px solid #0099CC;
+        padding: 1px;
+        position: relative;
+        height: 30px;
+        border-radius: 3px;
+        margin: 10px;
+        text-align: left;
+        background: #fff;
+        box-shadow: inset 1px 3px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    #progress-wrp .progress-bar{
+        height: 100%;
+        border-radius: 3px;
+        background-color: #4286f4;
+        width: 0;
+        box-shadow: inset 1px 1px 10px rgba(0, 0, 0, 0.11);
+    }
+
+    #progress-wrp .status{
+        top:3px;
+        left:50%;
+        position:absolute;
+        display:inline-block;
+        color: #000000;
+    }
+
     </style>
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet"
@@ -58,7 +87,13 @@
                 <button type="button" class="btn btn-default" id="send">Send</button>
                 <button type="button" class="btn btn-default" id="clear">Clear Server</button>
             </div>
-
+            <div class="form-group">
+                <input type="file" id="file"/>
+                <div id="progress-wrp">
+                    <div class="progress-bar"></div>
+                    <div class="status">0%</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -83,8 +83,8 @@ public class ComputeFlowPipe {
         QuickSortWithPermutation quickSortWithPermutation = new QuickSortWithPermutation(QuickSortWithPermutation.DECREASING_ORDER);
         Integer[] ends = graph.getVertexPropertyMap("end").toArray(new Integer[graph.getNumVertex()]);
         quickSortWithPermutation.sort(ends);
-        Integer[] topologicOrder = graph.getKeyIndex();
-        return quickSortWithPermutation.permutate(topologicOrder);
+        Integer[] topologicalOrder = graph.getKeyIndex();
+        return quickSortWithPermutation.permutate(topologicalOrder);
     }
 
     private static boolean isFinished(int u, Graph graph) {

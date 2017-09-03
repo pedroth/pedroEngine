@@ -7,16 +7,14 @@ import inputOutput.TextIO;
 import utils.JServerUtils;
 import utils.StopWatch;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,7 +67,6 @@ public class PublicChatServer {
             }
         }, 0, 1000);
 
-
         try {
             InetSocketAddress inetSocketAddress = new InetSocketAddress(serverPort);
             System.out.println("Start public chat server at : " + inetSocketAddress);
@@ -83,10 +80,12 @@ public class PublicChatServer {
             try {
                 printClientData(httpExchange);
                 String file = parseGetInput(httpExchange.getRequestURI().toString());
-                if ("".equals(file) || "/PublicChat".equals(file)) {
+                if ("/PublicChat".equals(file)) {
                     file = "PublicChat.html";
+                    JServerUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
+                } else {
+                    JServerUtils.respondWithBytes(httpExchange, HOME_ADDRESS + file);
                 }
-                JServerUtils.respondWithTextFile(httpExchange, HOME_ADDRESS + file);
             } catch (IOException e) {
                 JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
             }
@@ -150,8 +149,43 @@ public class PublicChatServer {
             }
         });
 
-        summaryServer.setExecutor(null);
+        summaryServer.createContext("/upload", httpExchange -> {
+            OutputStream outputStream = null;
+            try {
+                printClientData(httpExchange);
+                int c;
+                TextIO textIO = new TextIO();
+                final InputStream requestBody = httpExchange.getRequestBody();
+//                final Optional<String> uploadName = getUploadName(textIO.read(requestBody, 2));
+//                if (!uploadName.isPresent()) {
+//                    JServerUtils.respondWithText(httpExchange, "No File Name");
+//                    return;
+//                }
+                final String fileName = "batata";//uploadName.get();
+                outputStream = new FileOutputStream(HOME_ADDRESS + "/" + fileName);
+                while ((c = requestBody.read()) != -1) {
+                    outputStream.write(c);
+                }
+                JServerUtils.respondWithText(httpExchange, fileName);
+            } catch (Exception e) {
+                JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
+            } finally {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            }
+        });
+
+        summaryServer.setExecutor(Executors.newCachedThreadPool());
         summaryServer.start();
+    }
+
+    private Optional<String> getUploadName(String read) {
+        final String[] split = read.split("filename=");
+        if (split.length > 1) {
+            return Optional.of(split[1].replace("\n", "").replace("\"", ""));
+        }
+        return Optional.empty();
     }
 
     private String getLogInfo(int index) {

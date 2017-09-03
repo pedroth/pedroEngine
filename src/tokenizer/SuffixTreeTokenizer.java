@@ -133,6 +133,7 @@ public class SuffixTreeTokenizer extends TokenRecognizer {
 		return answer.toArray(new String[0]);
 	}
 
+
 	/** --------------------------------- **/
 	/** debug stuff */
 	public void printStateMachine(Node n) {

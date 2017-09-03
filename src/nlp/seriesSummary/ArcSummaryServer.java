@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -179,7 +180,7 @@ public class ArcSummaryServer {
         });
 
 
-        summaryServer.setExecutor(null);
+        summaryServer.setExecutor(Executors.newCachedThreadPool());
         summaryServer.start();
     }
 

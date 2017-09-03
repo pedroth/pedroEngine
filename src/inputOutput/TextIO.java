@@ -34,20 +34,26 @@ public class TextIO {
         }
     }
 
-    public void read(InputStream address) {
+    public String read(InputStream address) {
+        return read(address, -1);
+    }
+
+    public String read(InputStream address, int numberOfLines) {
+        boolean isInf = numberOfLines < 0;
+        int acc = 0;
         this.text = new StringBuilder();
-        BufferedReader in;
+        BufferedReader in = null;
         try {
             in = new BufferedReader(new InputStreamReader(address));
             String line;
-
-            while ((line = in.readLine()) != null) {
+            while ((line = in.readLine()) != null && (acc < numberOfLines || isInf)) {
                 text.append(line).append(String.format("\n"));
+                acc++;
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return text.toString();
     }
 
     public void write(String address, String text) throws IOException {
