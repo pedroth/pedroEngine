@@ -6,24 +6,25 @@ import nlp.textSplitter.TextSplitter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * The type My set.
  */
-public class MySet {
+public class MySet<T> implements Iterable {
     /**
      * The Set.
      */
-    HashMap<String, Boolean> set;
+    private HashMap<T, Boolean> set;
 
     /**
      * Instantiates a new My set.
      *
      * @param input the input
      */
-    public MySet(String[] input) {
+    public MySet(T[] input) {
         set = new HashMap<>();
-        for (String s : input) {
+        for (T s : input) {
             set.put(s, true);
         }
     }
@@ -36,9 +37,16 @@ public class MySet {
         set = new HashMap<>();
     }
 
-    public MySet(HashSet<String> input) {
+    public MySet(HashSet<T> input) {
         set = new HashMap<>();
-        for (String s : input) {
+        for (T s : input) {
+            set.put(s, true);
+        }
+    }
+
+    public MySet(Iterable<T> input) {
+        this.set = new HashMap<>();
+        for (T s : input) {
             set.put(s, true);
         }
     }
@@ -51,14 +59,12 @@ public class MySet {
      * @return the my set
      */
     public static MySet union(MySet a, MySet b) {
-        String[] setA = a.getSet();
-        String[] setB = b.getSet();
         MySet set = new MySet();
-        for (int i = 0; i < setA.length; i++) {
-            set.add(setA[i]);
+        for (Object s : a) {
+            set.add(s);
         }
-        for (int i = 0; i < setB.length; i++) {
-            set.add(setB[i]);
+        for (Object s : b) {
+            set.add(s);
         }
         return set;
     }
@@ -72,11 +78,10 @@ public class MySet {
      */
     public static MySet diff(MySet a, MySet b) {
         MySet ans = a.copy();
-        String[] setB = b.getSet();
-        for (int i = 0; i < setB.length; i++) {
-            Boolean aux = a.find(setB[i]);
+        for (Object s : b) {
+            Boolean aux = a.find(s);
             if (aux != null) {
-                ans.remove(setB[i]);
+                ans.remove(s);
             }
         }
         return ans;
@@ -91,11 +96,10 @@ public class MySet {
      */
     public static MySet intersection(MySet a, MySet b) {
         MySet ans = a.copy();
-        String[] set = a.getSet();
-        for (int i = 0; i < set.length; i++) {
-            Boolean aBoolean = b.find(set[i]);
+        for (Object s : a) {
+            Boolean aBoolean = b.find(s);
             if (aBoolean != null && aBoolean) {
-                ans.add(set[i]);
+                ans.add(a);
             }
         }
         return ans;
@@ -138,21 +142,12 @@ public class MySet {
     }
 
     /**
-     * Get set.
-     *
-     * @return the string [ ]
-     */
-    public String[] getSet() {
-        return set.keySet().toArray(new String[0]);
-    }
-
-    /**
      * Find boolean.
      *
      * @param s the s
      * @return the boolean
      */
-    public Boolean find(String s) {
+    public Boolean find(T s) {
         return set.get(s);
     }
 
@@ -162,8 +157,7 @@ public class MySet {
      * @return the my set
      */
     public MySet copy() {
-        String[] setA = this.getSet();
-        return new MySet(setA);
+        return new MySet(this);
     }
 
     /**
@@ -171,7 +165,7 @@ public class MySet {
      *
      * @param s the s
      */
-    public void remove(String s) {
+    public void remove(T s) {
         set.remove(s);
     }
 
@@ -180,19 +174,18 @@ public class MySet {
      *
      * @param s the s
      */
-    public void add(String s) {
+    public void add(T s) {
         if (!set.containsKey(s)) {
             set.put(s, true);
         }
     }
 
     public String toString() {
-        String[] aux = this.getSet();
-        String acm = "";
-        for (int i = 0; i < aux.length; i++) {
-            acm += aux[i] + "\n";
+        StringBuilder acm = new StringBuilder();
+        for (T s : this.set.keySet()) {
+            acm.append(s + "\n");
         }
-        return acm;
+        return acm.toString();
     }
 
     /**
@@ -204,4 +197,8 @@ public class MySet {
         return set.size();
     }
 
+    @Override
+    public Iterator iterator() {
+        return set.keySet().iterator();
+    }
 }

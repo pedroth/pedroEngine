@@ -4,6 +4,8 @@ package other;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
+import stateMachine.State;
+import tokenizer.SuffixTreeTokenizer;
 import utils.JServerUtils;
 import utils.StopWatch;
 
@@ -20,13 +22,13 @@ import java.util.regex.Pattern;
 
 public class PublicChatServer {
     private final static String HOME_ADDRESS = "src/other/resources/";
+    private final static int BUFFER_SIZE = 2 << 61;
     // time in seconds
     private final static double TIMEOUT = 10;
     private final int serverPort;
     private List<UnitLog> log = new ArrayList<>();
     private Map<String, Double> uID2TimeMap = new ConcurrentHashMap<>();
     private StopWatch stopWatch;
-
 
     public PublicChatServer(int serverPort) {
         this.serverPort = serverPort;
@@ -150,29 +152,12 @@ public class PublicChatServer {
         });
 
         summaryServer.createContext("/upload", httpExchange -> {
-            OutputStream outputStream = null;
             try {
                 printClientData(httpExchange);
-                int c;
-                TextIO textIO = new TextIO();
-                final InputStream requestBody = httpExchange.getRequestBody();
-//                final Optional<String> uploadName = getUploadName(textIO.read(requestBody, 2));
-//                if (!uploadName.isPresent()) {
-//                    JServerUtils.respondWithText(httpExchange, "No File Name");
-//                    return;
-//                }
-                final String fileName = "batata";//uploadName.get();
-                outputStream = new FileOutputStream(HOME_ADDRESS + "/" + fileName);
-                while ((c = requestBody.read()) != -1) {
-                    outputStream.write(c);
-                }
+                String fileName = uploadFile(httpExchange);
                 JServerUtils.respondWithText(httpExchange, fileName);
             } catch (Exception e) {
                 JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
-            } finally {
-                if (outputStream != null) {
-                    outputStream.close();
-                }
             }
         });
 
@@ -180,12 +165,29 @@ public class PublicChatServer {
         summaryServer.start();
     }
 
-    private Optional<String> getUploadName(String read) {
-        final String[] split = read.split("filename=");
-        if (split.length > 1) {
-            return Optional.of(split[1].replace("\n", "").replace("\"", ""));
+    private String uploadFile(HttpExchange he) throws IOException {
+        int c;
+        String fileName;
+        OutputStream outputStream = null;
+        final InputStream requestBody = he.getRequestBody();
+        try {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            SMUpload smUpload = new SMUpload(buffer);
+            while ((c = requestBody.read()) != -1) {
+                smUpload.next(c);
+            }
+            fileName = smUpload.getFileName();
+            assert fileName == null : new RuntimeException("No file name");
+            outputStream = new FileOutputStream(HOME_ADDRESS + fileName);
+            outputStream.write(buffer, 0, smUpload.getIndex());
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (outputStream != null) {
+                outputStream.close();
+            }
         }
-        return Optional.empty();
+        return fileName;
     }
 
     private String getLogInfo(int index) {
@@ -235,6 +237,106 @@ public class PublicChatServer {
         uID2TimeMap.put(id, 0.0);
     }
 
+    private static class SMUpload {
+        private String fileName;
+        private byte[] buffer;
+        private State<Integer> state;
+        private int index = 0;
+
+        private State<Integer> stateFive = new State<Integer>() {
+            @Override
+            public State<Integer> next(Integer x) {
+                return stateFive;
+            }
+        };
+        private State<Integer> stateFour = new State<Integer>() {
+            final String regex = "------WebKitFormBoundary";
+            private SuffixTreeTokenizer tokenizer;
+
+            {
+                tokenizer = new SuffixTreeTokenizer(new String[]{regex});
+                tokenizer.init();
+            }
+
+            @Override
+            public State<Integer> next(Integer x) {
+                final Optional<String> token = tokenizer.next((char) x.intValue());
+                if (index < buffer.length) {
+                    buffer[index] = x.byteValue();
+                }
+                if (token.isPresent()) {
+                    index = index - regex.length() + 1;
+                    return stateFive;
+                }
+                index++;
+                return stateFour;
+            }
+        };
+        private State<Integer> stateThree = new State<Integer>() {
+            private int accNewLines = 0;
+
+            @Override
+            public State<Integer> next(Integer x) {
+                if (x == '\n') {
+                    accNewLines++;
+                }
+                if (accNewLines == 3) {
+                    accNewLines = 0;
+                    return stateFour;
+                }
+                return stateThree;
+            }
+        };
+        private State<Integer> stateTwo = new State<Integer>() {
+            private StringBuilder stack = new StringBuilder();
+
+            @Override
+            public State<Integer> next(Integer x) {
+                if (x == '"') {
+                    fileName = this.stack.toString();
+                    this.stack = new StringBuilder();
+                    return stateThree;
+                }
+                this.stack.append((char) x.intValue());
+                return stateTwo;
+            }
+        };
+        private State<Integer> stateOne = new State<Integer>() {
+            private SuffixTreeTokenizer tokenizer;
+
+            {
+                tokenizer = new SuffixTreeTokenizer(new String[]{"filename=\""});
+                tokenizer.init();
+            }
+
+            @Override
+            public State<Integer> next(Integer x) {
+                final Optional<String> next = tokenizer.next((char) x.intValue());
+                if (next.isPresent()) {
+                    return stateTwo;
+                }
+                return stateOne;
+            }
+        };
+
+        SMUpload(byte[] buffer) {
+            this.buffer = buffer;
+            this.state = this.stateOne;
+        }
+
+        String getFileName() {
+            return fileName;
+        }
+
+        int getIndex() {
+            return index;
+        }
+
+        void next(int c) {
+            state = state.next(c);
+        }
+    }
+
     private class UnitLog {
         private String id;
         private String text;
@@ -260,5 +362,6 @@ public class PublicChatServer {
             this.text = text;
         }
     }
+
 
 }
