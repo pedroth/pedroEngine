@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpServer;
 import inputOutput.TextIO;
 import stateMachine.State;
 import tokenizer.SuffixTreeTokenizer;
+import utils.FilesCrawler;
 import utils.JServerUtils;
 import utils.StopWatch;
 
@@ -22,7 +23,8 @@ import java.util.regex.Pattern;
 
 public class PublicChatServer {
     private final static String HOME_ADDRESS = "src/other/resources/";
-    private final static int BUFFER_SIZE = 2 << 61;
+    private final static String DATA_ADDRESS = HOME_ADDRESS + "/data/";
+    private final static int BUFFER_SIZE = 2000000 * (1 << 10);
     // time in seconds
     private final static double TIMEOUT = 10;
     private final int serverPort;
@@ -145,6 +147,7 @@ public class PublicChatServer {
                     System.out.println(entry.getKey() + " : " + entry.getValue());
                 }
                 log.removeAll(log);
+                removeData();
                 JServerUtils.respondWithText(httpExchange, "OK");
             } catch (Exception e) {
                 JServerUtils.respondWithText(httpExchange, "<p>" + getTraceError(e) + "<p>");
@@ -165,6 +168,10 @@ public class PublicChatServer {
         summaryServer.start();
     }
 
+    private void removeData() {
+        FilesCrawler.applyFiles(DATA_ADDRESS, File::delete);
+    }
+
     private String uploadFile(HttpExchange he) throws IOException {
         int c;
         String fileName;
@@ -178,7 +185,8 @@ public class PublicChatServer {
             }
             fileName = smUpload.getFileName();
             assert fileName == null : new RuntimeException("No file name");
-            outputStream = new FileOutputStream(HOME_ADDRESS + fileName);
+            FilesCrawler.createDirs(DATA_ADDRESS);
+            outputStream = new FileOutputStream(DATA_ADDRESS + fileName);
             outputStream.write(buffer, 0, smUpload.getIndex());
         } catch (Exception e) {
             throw e;
@@ -249,6 +257,7 @@ public class PublicChatServer {
                 return stateFive;
             }
         };
+
         private State<Integer> stateFour = new State<Integer>() {
             final String regex = "------WebKitFormBoundary";
             private SuffixTreeTokenizer tokenizer;
@@ -272,6 +281,7 @@ public class PublicChatServer {
                 return stateFour;
             }
         };
+
         private State<Integer> stateThree = new State<Integer>() {
             private int accNewLines = 0;
 
@@ -287,6 +297,7 @@ public class PublicChatServer {
                 return stateThree;
             }
         };
+
         private State<Integer> stateTwo = new State<Integer>() {
             private StringBuilder stack = new StringBuilder();
 
@@ -301,6 +312,7 @@ public class PublicChatServer {
                 return stateTwo;
             }
         };
+
         private State<Integer> stateOne = new State<Integer>() {
             private SuffixTreeTokenizer tokenizer;
 

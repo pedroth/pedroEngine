@@ -2,6 +2,7 @@ package utils;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class FilesCrawler {
     /**
@@ -62,11 +63,26 @@ public final class FilesCrawler {
 
     public static void createDirs(String address) {
         File dirs = new File(address);
-        dirs.mkdirs();
+        if (!dirs.exists()) {
+            dirs.mkdirs();
+        }
     }
 
     public static String[] getDirs(String path) {
         File file = new File(path);
         return file.list((current, name) -> new File(current, name).isDirectory());
+    }
+
+
+    public static void applyFiles(String dirPath, Consumer<File> lambda) {
+        File dirs = new File(dirPath);
+        if (!dirs.isDirectory()) {
+            return;
+        }
+        for (File file : dirs.listFiles()) {
+            if (!file.isDirectory()) {
+                lambda.accept(file);
+            }
+        }
     }
 }

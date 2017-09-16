@@ -136,6 +136,7 @@ Upload.prototype.doUpload = function () {
         url: "/upload",
         xhr: function () {
             $("#progress-wrp").css("visibility", "visible");
+            $("#progress-wrp").slideDown();
             var myXhr = $.ajaxSettings.xhr();
             if (myXhr.upload) {
                 myXhr.upload.addEventListener('progress', that.progressHandling, false);
@@ -143,7 +144,7 @@ Upload.prototype.doUpload = function () {
             return myXhr;
         },
         success: function (data) {
-            $("#input").val(window.location.href + "/" + data);
+            $("#input").val(window.location.href + "/data/" + data);
             // your callback here
             console.log("Data uploaded " + data);
         },
