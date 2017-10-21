@@ -37,7 +37,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     private List<Vec2> points = new ArrayList<>(10);
 
     private List<Double> output = new ArrayList<>(10);
-
     private final MyModel knnLeastSquare = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -76,7 +75,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             // empty
         }
     };
-
     private final MyModel knnMonteCarlo = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -115,7 +113,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             // empty
         }
     };
-
     private final MyModel knn = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -142,7 +139,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             //empty
         }
     };
-
     private final MyModel knnRandom = new MyModel() {
         @Override
         public Double apply(Vec2 x) {
@@ -177,7 +173,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         }
     };
-
     private final MyModel diffusionLearning = new MyModel() {
         private Matrix eigenV;
 
@@ -218,7 +213,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             diffusionClustering.clusteringJama(this.heatTime, 2, d -> Math.exp(-(d * d / 2)), 0.01, 10);
         }
     };
-
+    private boolean isDebug = false;
     private boolean isShiftPressed = false;
 
     private boolean isControlPressed = false;
@@ -249,7 +244,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         this.init();
         initColorBuffer(MIN_SAMPLES);
-        this.model = knnLeastSquare;
+        this.model = knn;
 
     }
 
@@ -308,7 +303,9 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             this.setTitle(" FPS: " + format.format(aux));
         }
         this.engine.drawElements();
-//        this.engine.drawTree();
+        if (isDebug) {
+            this.engine.drawTree();
+        }
         this.engine.paintImage(this.getGraphics());
     }
 
@@ -348,6 +345,9 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             case KeyEvent.VK_V:
                 this.isVisualMode = !this.isVisualMode;
                 trainModel();
+                break;
+            case KeyEvent.VK_D:
+                this.isDebug = !this.isDebug;
                 break;
             default:
                 //nothing here

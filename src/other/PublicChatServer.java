@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 public class PublicChatServer {
     private final static String HOME_ADDRESS = "src/other/resources/";
     private final static String DATA_ADDRESS = HOME_ADDRESS + "/data/";
-    private final static int BUFFER_SIZE = 2000000 * (1 << 10);
     // time in seconds
     private final static double TIMEOUT = 10;
+    private static int BUFFER_SIZE = 2000000 * (1 << 10);
     private final int serverPort;
     private List<UnitLog> log = new ArrayList<>();
     private Map<String, Double> uID2TimeMap = new ConcurrentHashMap<>();
@@ -36,12 +36,17 @@ public class PublicChatServer {
         this.serverPort = serverPort;
     }
 
+    public PublicChatServer(int serverPort, int uploadBytes) {
+        this.serverPort = serverPort;
+        this.BUFFER_SIZE = uploadBytes;
+    }
+
     public static void main(String[] args) {
         if (args.length > 0) {
             final String regex = "[0-9]*";
             final Pattern pattern = Pattern.compile(regex);
             final Matcher matcher = pattern.matcher(args[0]);
-            PublicChatServer publicChatServer = new PublicChatServer(matcher.find() ? Integer.valueOf(args[0]) : 8080);
+            PublicChatServer publicChatServer = new PublicChatServer(matcher.find() ? Integer.valueOf(args[0]) : 8080, args.length > 1 ? Integer.valueOf(args[1]) : PublicChatServer.BUFFER_SIZE);
             publicChatServer.start();
         } else {
             PublicChatServer publicChatServer = new PublicChatServer(8080);

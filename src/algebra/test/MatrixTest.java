@@ -57,10 +57,11 @@ public class MatrixTest {
         Matrix m = new Matrix(new double[][]{{1, 0, 0, 0, 0}, {1, -2, 1, 0, 0}, {0, 1, -2, 1, 0}, {0, 0, 1, -2, 1}, {0, 0, 0, 0, 1}});
         System.out.println(m);
         m = Matrix.prod(Matrix.scalarProd(1, m), m);
-        Vector y = new Vector(new double[]{0, 0, 0, 0, 1});
+        Vector y = new Vector(new double[]{1, 0, 0, 0, 1});
         StopWatch stopWatch = new StopWatch();
         Vector x = Matrix.solveLinearSystem(m, y);
         System.out.println(stopWatch.getEleapsedTime());
+        System.out.println(x);
         Assert.assertTrue(Vector.diff(Vector.matrixProd(m, x), y).norm() < 1E-6);
     }
 

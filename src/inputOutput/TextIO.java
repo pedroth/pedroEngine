@@ -10,12 +10,12 @@ public class TextIO {
         text = new StringBuilder();
     }
 
-    public TextIO(String adress) throws IOException {
+    public TextIO(String address) throws IOException {
         super();
-        this.read(adress);
+        this.read(address);
     }
 
-    public void read(String address) throws IOException {
+    public String read(String address) throws IOException {
         this.text = new StringBuilder();
         BufferedReader in;
         if (isUrl(address)) {
@@ -32,6 +32,7 @@ public class TextIO {
         while ((line = in.readLine()) != null) {
             text.append(line).append(String.format("\n"));
         }
+        return text.toString();
     }
 
     public String read(InputStream address) {
@@ -74,8 +75,8 @@ public class TextIO {
 
     }
 
-    private boolean isUrl(String adress) {
-        String[] aux = adress.split("http");
+    private boolean isUrl(String address) {
+        String[] aux = address.split("http");
         if (aux.length > 1)
             return true;
         else
