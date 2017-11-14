@@ -5,23 +5,43 @@ import tokenizer.SuffixTreeTokenizer;
 import utils.FilesCrawler;
 import utils.Zipper;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 public class BuildPage {
-    private final static String base = "C:/pedro/";
+    private final static String base = "C:/Users/pcristovao/Desktop/";
+
     private final static String jarBuildingAddress = base + "visualExperiments/tools/JarsBuilding/";
+
     private final static String canonAddress = base + "visualExperiments/tools/canon.html";
+
     private final static String canonWithCommentsAddress = base + "visualExperiments/tools/canonWithComments.html";
+
     private final static String commentsAddress = base + "visualExperiments/tools/comments.html";
+
     private final static String mainAddress = base + "visualExperiments/main.html";
+
     private final static String indexAddress = base + "visualExperiments/index.html";
+
     private final static String javaExperimentsAddress = base + "visualExperiments/JavaExperiments/JavaExperiments";
+
     private final static String jsExperimentsAddress = base + "visualExperiments/JsExperiments/JsExperiments";
+
     private final static String blogAddress = base + "visualExperiments/Blog/Blog";
+
     private final static Map<String, List<String>> jarConfig = new HashMap<>();
 
     static {
@@ -40,7 +60,6 @@ public class BuildPage {
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            System.exit(1);
         }
     }
 
@@ -71,7 +90,7 @@ public class BuildPage {
     }
 
     private static void fillPage(String name, String path) {
-        String[] special = {"<!--Special-->"};
+        String[] special = { "<!--Special-->" };
         StringBuilder text = new StringBuilder("\n\n<h1>" + name + "</h1>\n");
         try {
             SuffixTreeTokenizer parser = new SuffixTreeTokenizer(special);
@@ -103,18 +122,22 @@ public class BuildPage {
         fillPage(name, path);
     }
 
-    private static void buildPages(String path, PageBuilder pageBuilder) throws IOException {
+    private static void buildPages(String path, PageBuilder pageBuilder) {
         String[] directories = FilesCrawler.getDirs(path);
 
         for (String directory : directories) {
-            pageBuilder.build(directory, path + "/" + directory);
+            try {
+                pageBuilder.build(directory, path + "/" + directory);
+            }catch (Exception e) {
+                System.out.println("Unknown error : " + e.getMessage());
+            }
             System.out.println(directory);
         }
         System.out.println(Arrays.toString(directories));
     }
 
     private static void buildPage(String templateAddress, String contentAddress, String outputAddress) {
-        String[] special = {"<!--Special-->"};
+        String[] special = { "<!--Special-->" };
         StringBuilder text = new StringBuilder();
         try {
             SuffixTreeTokenizer parser = new SuffixTreeTokenizer(special);
@@ -141,10 +164,10 @@ public class BuildPage {
         }
     }
 
-    private static void BuildWeb() throws IOException {
-        String pathJava = "C:/pedro/visualExperiments/JavaExperiments";
-        String pathJs = "C:/pedro/visualExperiments/JsExperiments";
-        String pathBlog = "C:/pedro/visualExperiments/Blog";
+    private static void BuildWeb()  {
+        String pathJava = base + "visualExperiments/JavaExperiments";
+        String pathJs = base + "visualExperiments/JsExperiments";
+        String pathBlog = base + "visualExperiments/Blog";
 
         buildPage(canonAddress, commentsAddress, canonWithCommentsAddress);
         buildPage(canonAddress, mainAddress, indexAddress);
