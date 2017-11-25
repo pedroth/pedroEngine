@@ -5,21 +5,10 @@ import tokenizer.SuffixTreeTokenizer;
 import utils.FilesCrawler;
 import utils.Zipper;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
 import java.util.*;
 import java.util.function.Function;
 
@@ -120,7 +109,7 @@ public class BuildPage {
         for (String directory : directories) {
             try {
                 pageBuilder.build(directory, path + "/" + directory);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Unknown error : " + e.getMessage());
             }
             System.out.println(directory);
@@ -129,7 +118,7 @@ public class BuildPage {
     }
 
     private static void buildPage(String templateAddress, String contentAddress, String outputAddress) {
-        String[] special = { "<!--Special-->" };
+        String[] special = {"<!--Special-->"};
         StringBuilder text = new StringBuilder();
         try {
             SuffixTreeTokenizer parser = new SuffixTreeTokenizer(special);
@@ -156,7 +145,7 @@ public class BuildPage {
         }
     }
 
-    private static void BuildWeb()  {
+    private static void BuildWeb() {
         String pathJava = base + "visualExperiments/JavaExperiments";
         String pathJs = base + "visualExperiments/JsExperiments";
         String pathBlog = base + "visualExperiments/Blog";
