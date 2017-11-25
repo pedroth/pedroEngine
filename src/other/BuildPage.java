@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.function.Function;
 
 public class BuildPage {
     private final static String base = "C:/pedro/";
@@ -45,7 +46,7 @@ public class BuildPage {
     }
 
     public static void buildJavaPage(String name, String path) throws IOException {
-        fillPage(name, path);
+        fillPage(name, path, x -> "\n\n<h1>" + x + "</h1>\n", x -> "</br></br></br><p>Download app here :<a href='" + name + ".zip'>" + name + ".zip</a></p>");
         // add Java zip
         // create folder
         File file = new File(name);
@@ -70,9 +71,9 @@ public class BuildPage {
         file.delete();
     }
 
-    private static void fillPage(String name, String path) {
+    private static void fillPage(String name, String path, Function<String, String> beginString, Function<String, String> endString) {
         String[] special = {"<!--Special-->"};
-        StringBuilder text = new StringBuilder("\n\n<h1>" + name + "</h1>\n");
+        StringBuilder text = new StringBuilder(beginString.apply(name));
         try {
             SuffixTreeTokenizer parser = new SuffixTreeTokenizer(special);
             parser.init();
@@ -90,7 +91,7 @@ public class BuildPage {
                     writer.write(line + "\n");
                 } else {
                     writer.write(text + "\n");
-                    writer.write("</br></br></br><p>Download app here :<a href='" + name + ".zip'>" + name + ".zip</a></p>");
+                    writer.write(endString.apply(name));
                 }
             }
             writer.close();
@@ -100,7 +101,7 @@ public class BuildPage {
     }
 
     public static void buildJsPage(String name, String path) {
-        fillPage(name, path);
+        fillPage(name, path, x -> "\n\n<h1>" + x + "</h1>\n", x -> "");
     }
 
     private static void buildPages(String path, PageBuilder pageBuilder) throws IOException {
