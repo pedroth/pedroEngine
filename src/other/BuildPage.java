@@ -5,10 +5,21 @@ import tokenizer.SuffixTreeTokenizer;
 import utils.FilesCrawler;
 import utils.Zipper;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.*;
 import java.util.function.Function;
 
@@ -41,7 +52,6 @@ public class BuildPage {
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            System.exit(1);
         }
     }
 
@@ -104,18 +114,22 @@ public class BuildPage {
         fillPage(name, path, x -> "\n\n<h1>" + x + "</h1>\n", x -> "");
     }
 
-    private static void buildPages(String path, PageBuilder pageBuilder) throws IOException {
+    private static void buildPages(String path, PageBuilder pageBuilder) {
         String[] directories = FilesCrawler.getDirs(path);
 
         for (String directory : directories) {
-            pageBuilder.build(directory, path + "/" + directory);
+            try {
+                pageBuilder.build(directory, path + "/" + directory);
+            }catch (Exception e) {
+                System.out.println("Unknown error : " + e.getMessage());
+            }
             System.out.println(directory);
         }
         System.out.println(Arrays.toString(directories));
     }
 
     private static void buildPage(String templateAddress, String contentAddress, String outputAddress) {
-        String[] special = {"<!--Special-->"};
+        String[] special = { "<!--Special-->" };
         StringBuilder text = new StringBuilder();
         try {
             SuffixTreeTokenizer parser = new SuffixTreeTokenizer(special);
@@ -142,10 +156,10 @@ public class BuildPage {
         }
     }
 
-    private static void BuildWeb() throws IOException {
-        String pathJava = "C:/pedro/visualExperiments/JavaExperiments";
-        String pathJs = "C:/pedro/visualExperiments/JsExperiments";
-        String pathBlog = "C:/pedro/visualExperiments/Blog";
+    private static void BuildWeb()  {
+        String pathJava = base + "visualExperiments/JavaExperiments";
+        String pathJs = base + "visualExperiments/JsExperiments";
+        String pathBlog = base + "visualExperiments/Blog";
 
         buildPage(canonAddress, commentsAddress, canonWithCommentsAddress);
         buildPage(canonAddress, mainAddress, indexAddress);
