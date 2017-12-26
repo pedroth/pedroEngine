@@ -63,6 +63,7 @@ public class BuildPage {
         // copy jar
         Files.copy(Paths.get(jarBuildingAddress + config.get(0)), Paths.get(name + "/" + newJarName), StandardCopyOption.REPLACE_EXISTING);
         textIO.write(name + "/README.txt", readMe);
+        textIO.write(name + "/README.md", readMe);
         textIO.write(name + "/run.bat", runBat);
         textIO.write(name + "/run.sh", runBat);
         Zipper.zipIt(name, path + "/" + name + ".zip");

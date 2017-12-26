@@ -25,8 +25,15 @@ import java.util.function.Function;
  */
 public class EigenSimulation extends MyFrame {
     private static final String HELP_STRING_TEXT =
-            " <1> : heat map\n" + " <2> : directional heat map\n" + " <3> : gradient field visualization\n" + " <4> : chess pattern\n" + " drag mouse to change camera\n" + "\n"
-                    + "right mouse click to scale";
+                                    "[blue ball]  : intrinsic method \n"+
+                                    "[green ball] : power method \n"+
+                                    "[red ball] : constrained gradient descend \n"+
+                                    " <1> : heat map\n" +
+                                    " <2> : directional heat map\n" +
+                                    " <3> : gradient field visualization\n" +
+                                    " <4> : chess pattern\n" +
+                                    " drag mouse to change camera\n" +
+                                    "right mouse click to scale\n" ;
 
     /*
      * Ray trace Image parameters
@@ -41,7 +48,7 @@ public class EigenSimulation extends MyFrame {
     /**
      * The Max vision.
      */
-/*
+    /*
      * The Max vision.
      */
     double maxVision = 10.0;
@@ -594,7 +601,7 @@ public class EigenSimulation extends MyFrame {
         @Override
         public Vector update(Matrix symMatrix, Vector init) {
             Vector eigenV = init;
-             /*
+            /*
              * grad is the direction that maximizes quadratic form
              */
             Vector grad = symMatrix.prodVector(eigenV);
