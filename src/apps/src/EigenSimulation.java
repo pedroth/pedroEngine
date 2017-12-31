@@ -997,7 +997,9 @@ public class EigenSimulation extends MyFrame {
             for (int i = 0; i < nn; i++) {
                 int y = i % n;
                 int x = i / n;
-                tex[i] = ((y % (n / 8)) < n / 16) ^ ((x % (n / 8)) < n / 16) ? 1.0 : 0.0;
+                final int i1 = n / 8;
+                final int i2 = n / 16;
+                tex[i] = ((y % i1) < i2) ^ ((x % i1) < i2) ? 1.0 : 0.0;
             }
         }
 
