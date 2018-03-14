@@ -9,6 +9,7 @@ import nlp.lowbow.simpleLowBow.*;
 import nlp.symbolSampler.SymbolSampler;
 import nlp.symbolSampler.TopKSymbol;
 import nlp.textSplitter.MyTextSplitter;
+import nlp.textSplitter.SpaceSplitter;
 import numeric.src.Camera3D;
 import numeric.src.MyMath;
 import twoDimEngine.TwoDimEngine;
@@ -23,6 +24,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author pedro
@@ -101,6 +104,33 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     private SymbolSampler symbolSampler = new TopKSymbol(5);
 
+    enum FlowsEnum {
+        SPARSE("Sparse", new SparseHeatFlow()),
+        MATRIX("Matrix", new MatrixHeatFlow()),
+        KERNEL("Kernel", new HeatKernelFlow()),
+        GRAPH_LAPLACIAN("GraphLaplacian", new GraphLaplacianFlow()),
+        HEAT_EXPONENTIAL("HeatExponential", new HeatFlow()),
+        EIGEN_HEAT("EigenHeat", new LaplacianEigenFlow());
+
+        private HeatMethod heatFlow;
+        private String flowName;
+        private static Map<String, FlowsEnum> flowsByNameMap = new HashMap<>(FlowsEnum.values().length);
+        static {
+            for (FlowsEnum flowsEnum : FlowsEnum.values()) {
+                flowsByNameMap.put(flowsEnum.flowName, flowsEnum);
+            }
+        }
+
+        FlowsEnum(String flowName, HeatMethod heatFlow) {
+            this.flowName = flowName;
+            this.heatFlow = heatFlow;
+        }
+
+        public static HeatMethod getHeatMethodFromName(String name) {
+            return flowsByNameMap.get(name).heatFlow;
+        }
+    }
+
 
     public TextCurves(String title, int width, int height) {
         super(title, width, height);
@@ -133,13 +163,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         button = new Button("Load");
         button.addActionListener(new myActionListener(this));
         Button addButton = new Button("Reset");
-        addButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reset();
-            }
-        });
+        addButton.addActionListener(e -> reset());
         pbuttons.add(button);
         pbuttons.add(addButton);
         p1.add(pbuttons);
@@ -153,14 +177,10 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         samplesSliderTxt = new Label("samples/txtLength:" + samplesIn);
         p2.add(samplesSliderTxt);
         samplesSlider = new JSlider(0, 9, 0);
-        samplesSlider.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                JSlider aux = (JSlider) e.getSource();
-                samplesIn = samplesInMin + ((samplesInMax - samplesInMin) / (aux.getMaximum())) * (aux.getValue());
-                samplesSliderTxt.setText("samples/txtLength:" + samplesIn);
-            }
+        samplesSlider.addChangeListener(e -> {
+            JSlider aux = (JSlider) e.getSource();
+            samplesIn = samplesInMin + ((samplesInMax - samplesInMin) / (aux.getMaximum())) * (aux.getValue());
+            samplesSliderTxt.setText("samples/txtLength:" + samplesIn);
         });
         p2.add(samplesSlider);
         p1.add(p2);
@@ -188,34 +208,24 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
          */
         Panel p5 = new Panel(new GridLayout(1, 2));
         Button generateButton = new Button("Generate");
-        generateButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                generateText();
-            }
-        });
+        generateButton.addActionListener(e -> generateText());
         /**
          * Poly AbstractSimplex
          */
         simplexOnPolyButton = new Button("PCA");
-        simplexOnPolyButton.addActionListener(new ActionListener() {
+        simplexOnPolyButton.addActionListener(e -> {
+            if (simplexOnPolyButton.getLabel().equals("PCA")) {
+                simplexOnPolyState = 0;
+                buildPca(true);
+            } else {
+                simplexOnPolyState = 1;
+            }
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (simplexOnPolyButton.getLabel().equals("PCA")) {
-                    simplexOnPolyState = 0;
-                    buildPca(true);
-                } else {
-                    simplexOnPolyState = 1;
-                }
-
-                if (simplexOnPolyState == 1 || simplexOnPolyState == 2) {
-                    simplexOnPolyButton.setLabel("PCA");
-                    engine.setCamera(-1, 1, -1, 1);
-                } else {
-                    simplexOnPolyButton.setLabel("Barycentric");
-                }
+            if (simplexOnPolyState == 1 || simplexOnPolyState == 2) {
+                simplexOnPolyButton.setLabel("PCA");
+                engine.setCamera(-1, 1, -1, 1);
+            } else {
+                simplexOnPolyButton.setLabel("Barycentric");
             }
         });
         p5.add(simplexOnPolyButton);
@@ -231,23 +241,15 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         lambdaIn = lambdaInMin;
         lambdaSliderTxt = new Label("" + lambdaIn);
         heatLambdaSlider = new JSlider(0, 99, 0);
-        heatLambdaSlider.addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                JSlider aux = (JSlider) e.getSource();
-                lambdaIn = lambdaInMin + ((lambdaInMax - lambdaInMin) / (aux.getMaximum())) * (aux.getValue());
-                lambdaSliderTxt.setText("" + lambdaIn);
-            }
+        heatLambdaSlider.addChangeListener(e -> {
+            JSlider aux = (JSlider) e.getSource();
+            lambdaIn = lambdaInMin + ((lambdaInMax - lambdaInMin) / (aux.getMaximum())) * (aux.getValue());
+            lambdaSliderTxt.setText("" + lambdaIn);
         });
         Button heatFlowButton = new Button("Heat Flow");
-        heatFlowButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                HeatMethod heat = heatMethod;
-                heatFlow(lambdaIn, heat);
-            }
+        heatFlowButton.addActionListener(e -> {
+            HeatMethod heat = heatMethod;
+            heatFlow(lambdaIn, heat);
         });
         p6.add(lambdaSliderTxt);
         p6.add(heatLambdaSlider);
@@ -258,40 +260,11 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         p7.add(new Label(""));
         p7.add(new Label(""));
         flowSolverChoice = new Choice();
-        flowSolverChoice.add("Sparse");
-        flowSolverChoice.add("Matrix");
-        flowSolverChoice.add("Kernel");
-        flowSolverChoice.add("GraphLaplacian");
-        flowSolverChoice.add("HeatExponential");
-        flowSolverChoice.add("EigenHeat");
-        flowSolverChoice.addItemListener(new ItemListener() {
+        for (FlowsEnum flowsEnum : FlowsEnum.values()) {
+            flowSolverChoice.add(flowsEnum.name());
+        }
 
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                switch (flowSolverChoice.getSelectedItem()) {
-                    case "Sparse":
-                        heatMethod = new SparseHeatFlow();
-                        break;
-                    case "Matrix":
-                        heatMethod = new MatrixHeatFlow();
-                        break;
-                    case "Kernel":
-                        heatMethod = new HeatKernelFlow();
-                        break;
-                    case "GraphLaplacian":
-                        heatMethod = new GraphLaplacianFlow();
-                        break;
-                    case "HeatExponential":
-                        heatMethod = new HeatFlow();
-                        break;
-                    case "EigenHeat":
-                        heatMethod = new LaplacianEigenFlow();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
+        flowSolverChoice.addItemListener(e -> this.heatMethod = FlowsEnum.getHeatMethodFromName(flowSolverChoice.getSelectedItem()));
         flowSolverChoice.select("Matrix");
         p7.add(flowSolverChoice);
         p1.add(p7);
@@ -302,9 +275,9 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         isProcess = false;
         input.setVisible(true);
         camera = new Camera3D();
-        projCurves = new ArrayList<Vec2[]>();
-        projLines = new ArrayList<Line2D[]>();
-        strCurves = new ArrayList<String2D[]>();
+        projCurves = new ArrayList<>();
+        projLines = new ArrayList<>();
+        strCurves = new ArrayList<>();
         lowbowM = new LowBowManagerPca();
         centerMass = new Vec3();
         stdev = 0;
@@ -609,7 +582,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
             return;
 
         LowBow low = lowList.get(lowList.size() - 1);
-        TextFrame frame = new TextFrame("Generated Text", low.generateText(symbolSampler));
+        new TextFrame("Generated Text", low.generateText(symbolSampler));
     }
 
     public void pcaCoords() {
@@ -666,10 +639,8 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
                 frame.setVisible(false);
             }
             String inString = inOut.getText();
-//			LowBow lowbow = new LowBow(inString, new StopWordsSplitter("src/nlp/resources/wordLists/stopWords.txt"));
-//			LowBow lowbow = new LowBow(inString, new SpaceSplitter());
-            LowBowPca lowbow = new LowBowPca(inString, new MyTextSplitter());
-//			LowBow lowbow = new LowBow(inString, new CharacterSplitter());
+//            LowBowPca lowbow = new LowBowPca(inString, new MyTextSplitter());
+            LowBowPca lowbow = new LowBowPca(inString, new SpaceSplitter());
             isReady = true;
             double sigma = 0.02;
             try {
