@@ -24,16 +24,17 @@ import java.util.function.Function;
  * The type Eigen simulation.
  */
 public class EigenSimulation extends MyFrame {
-    private static final String HELP_STRING_TEXT =
-                                    "[blue ball]  : intrinsic method \n"+
-                                    "[green ball] : power method \n"+
-                                    "[red ball] : constrained gradient descend \n"+
-                                    " <1> : heat map\n" +
-                                    " <2> : directional heat map\n" +
-                                    " <3> : gradient field visualization\n" +
-                                    " <4> : chess pattern\n" +
-                                    " drag mouse to change camera\n" +
-                                    "right mouse click to scale\n" ;
+    private static final TextFrame HELP_FRAME = TextFrame.builder()
+            .addLine("[blue ball]  : intrinsic method")
+            .addLine("[green ball] : power method")
+            .addLine("[red ball] : constrained gradient descend")
+            .addLine(" <1> : heat map")
+            .addLine("<2> : directional heat map")
+            .addLine(" <3> : gradient field visualization")
+            .addLine(" <4> : chess pattern")
+            .addLine(" drag mouse to change camera")
+            .addLine("right mouse click to scale")
+            .buildWithTitle("Help") ;
 
     /*
      * Ray trace Image parameters
@@ -499,7 +500,7 @@ public class EigenSimulation extends MyFrame {
                 this.setSphereShader(new Lic(x -> ((x[1] % (x[2] / 8)) < x[2] / 16) ^ ((x[0] % (x[2] / 8)) < x[2] / 16) ? 1.0 : 0.0));
                 break;
             case KeyEvent.VK_H:
-                new TextFrame("help", HELP_STRING_TEXT);
+                HELP_FRAME.setVisible(true);
                 break;
             default:
                 Vec3 randomV = new Vec3();

@@ -20,7 +20,17 @@ public class ImplicitSurface extends MyFrame {
     protected double maxVision = 20;
     private TwoDimEngine engine;
     private String2D fps;
-    private String helpTextStr = " w : move camera foward\n" + " s : move camera backward\n" + " a : move camera to left\n" + " d : move camera to right\n" + " q : move camera down\n" + " e : move camera up\n" + "\n" + " p : hd on/off\n" + "\n" + " drag mouse to change camera\n" + "\n" + "[0-9]: change surface";
+    private static final TextFrame HELP_FRAME = TextFrame.builder()
+            .addLine(" w : move camera foward")
+            .addLine(" s : move camera backward")
+            .addLine(" a : move camera to left")
+            .addLine(" d : move camera to right")
+            .addLine(" q : move camera down")
+            .addLine(" e : move camera up")
+            .addLine("p : hd on/off")
+            .addLine(" drag mouse to change camera")
+            .addLine("[0-9]: change surface")
+            .buildWithTitle("Help");
     /**
      * mouse coordinates
      */
@@ -561,7 +571,7 @@ public class ImplicitSurface extends MyFrame {
         }
 
         if (keyCode == KeyEvent.VK_H) {
-            new TextFrame("help", helpTextStr);
+            HELP_FRAME.setVisible(true);
         }
 
         if (isHD) {
