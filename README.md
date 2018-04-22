@@ -12,5 +12,4 @@ Hope it might be useful for someone.
 * Basic Natural Language Processing
 * Lowbow Curves
 * Spectral graph algorithms
-* Public Chat
-* ArcSummarization 
+* ArcSummarization
