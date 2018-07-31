@@ -30,196 +30,20 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
     private static final int MIN_SAMPLES = 50;
 
+    private Point2D mousePoint = null;
+
     private BoxEngine engine;
 
     private PaintMethod2D shader;
 
     private List<Vec2> points = new ArrayList<>(10);
+    private List<Point2D> points2D = new ArrayList<>(10);
 
     private List<Double> output = new ArrayList<>(10);
-    private final MyModel knnLeastSquare = new MyModel() {
-        @Override
-        public Double apply(Vec2 x) {
-            int n = points.size();
-            if (n == 0) {
-                return 0.0;
-            }
-
-            int samples = 100;
-            Vec2[] randomPoints = new Vec2[samples];
-            double[] randomOut = new double[samples];
-            for (int i = 0; i < samples; i++) {
-                int r = (int) (Math.random() * n);
-                randomPoints[i] = points.get(r);
-                randomOut[i] = output.get(r);
-            }
-
-            Matrix X = new Matrix(randomPoints);
-            Matrix transpose = Matrix.transpose(X);
-            Vector y = transpose.prodVector(x);
-            Matrix sigma = transpose.prod(X);
-            Vector omega = Matrix.solveLinearSystem(sigma, y);
-            double max = omega.getMax().getX();
-            double min = omega.getMin().getX();
-            omega.applyFunction((z) -> (z - min) / (max - min));
-            Vector ones = new Vector(omega.getDim());
-            ones.fill(1.0);
-            double sum = Vector.innerProd(omega, ones);
-            omega = Vector.scalarProd(1.0 / sum, omega);
-            Vector out = new Vector(randomOut);
-            return Vector.innerProd(omega, out);
-        }
-
-        @Override
-        public void train(List<Vec2> x, List<Double> y) {
-            // empty
-        }
-    };
-    private final MyModel knnMonteCarlo = new MyModel() {
-        @Override
-        public Double apply(Vec2 x) {
-            int index = -1;
-            double minDist = Double.MAX_VALUE;
-            int size = points.size();
-            int monteCarloSample = 20;
-            int knnSample = Integer.min(5, size);
-
-            if (size == 0) {
-                return 0.0;
-            }
-
-            double acc = 0;
-            for (int k = 0; k < monteCarloSample; k++) {
-                int[] sampleIndex = new int[knnSample];
-                for (int i = 0; i < knnSample; i++) {
-                    sampleIndex[i] = (int) (Math.random() * size);
-                }
-
-                for (int i = 0; i < knnSample; i++) {
-                    int randomIndex = sampleIndex[i];
-                    double dist = Vec2.diff(x, points.get(randomIndex)).norm();
-                    if (minDist > dist) {
-                        minDist = dist;
-                        index = randomIndex;
-                    }
-                }
-                acc += output.get(index);
-            }
-            return acc / monteCarloSample;
-        }
-
-        @Override
-        public void train(List<Vec2> x, List<Double> y) {
-            // empty
-        }
-    };
-    private final MyModel knn = new MyModel() {
-        @Override
-        public Double apply(Vec2 x) {
-            int index = -1;
-            double minDist = Double.MAX_VALUE;
-            int size = points.size();
-
-            if (size == 0) {
-                return 0.0;
-            }
-
-            for (int i = 0; i < size; i++) {
-                double dist = Vec2.diff(x, points.get(i)).norm();
-                if (minDist > dist) {
-                    minDist = dist;
-                    index = i;
-                }
-            }
-            return output.get(index);
-        }
-
-        @Override
-        public void train(List<Vec2> x, List<Double> y) {
-            //empty
-        }
-    };
-    private final MyModel knnRandom = new MyModel() {
-        @Override
-        public Double apply(Vec2 x) {
-            int index = -1;
-            double minDist = Double.MAX_VALUE;
-            int size = points.size();
-
-            if (size == 0) {
-                return 0.0;
-            }
-
-            int knnSample = Integer.min(10, size);
-
-            int[] sampleIndex = new int[knnSample];
-            for (int i = 0; i < knnSample; i++) {
-                sampleIndex[i] = (int) (Math.random() * size);
-            }
-
-            for (int i = 0; i < knnSample; i++) {
-                int randomIndex = sampleIndex[i];
-                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
-                if (minDist > dist) {
-                    minDist = dist;
-                    index = randomIndex;
-                }
-            }
-            return output.get(index);
-        }
-
-        @Override
-        public void train(List<Vec2> x, List<Double> y) {
-
-        }
-    };
-    private final MyModel diffusionLearning = new MyModel() {
-        private Matrix eigenV;
-
-        private double heatTime = 10;
-
-        @Override
-        public Double apply(Vec2 x) {
-            int index = -1;
-            double minDist = Double.MAX_VALUE;
-            int size = points.size();
-
-            if (size == 0) {
-                return 0.0;
-            }
-
-            int knnSample = Integer.min(10, size);
-
-            int[] sampleIndex = new int[knnSample];
-            for (int i = 0; i < knnSample; i++) {
-                sampleIndex[i] = (int) (Math.random() * size);
-            }
-
-            for (int i = 0; i < knnSample; i++) {
-                int randomIndex = sampleIndex[i];
-                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
-                if (minDist > dist) {
-                    minDist = dist;
-                    index = randomIndex;
-                }
-            }
-            return output.get(index);
-        }
-
-        @Override
-        public void train(List<Vec2> x, List<Double> y) {
-            KnnGraph<Vec2> graph = new KnnGraph<>(x, 3, (p, q) -> Vec2.diff(p, q).norm());
-            DiffusionClustering diffusionClustering = new DiffusionClustering(graph);
-            diffusionClustering.clusteringJama(this.heatTime, 2, d -> Math.exp(-(d * d / 2)), 0.01, 10);
-        }
-    };
     private boolean isDebug = false;
     private boolean isShiftPressed = false;
-
     private boolean isControlPressed = false;
-
     private boolean isVisualMode = false;
-
     /*
      * mouse coordinates
      */
@@ -244,7 +68,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         this.init();
         initColorBuffer(MIN_SAMPLES);
-        this.model = knn;
+        this.model = new KnnModel();
 
     }
 
@@ -361,6 +185,8 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     private void resetData() {
         this.points.removeAll(this.points);
         this.output.removeAll(this.output);
+        this.points2D.removeAll(this.points2D);
+        this.mousePoint = null;
         this.engine.removeAllElements();
         this.engine.buildBoundingBoxTree();
     }
@@ -445,10 +271,11 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     }
 
     private void removeCrazy() {
-        List<AbstractDrawAble2D> things = engine.getThings();
+        this.mousePoint.setVisible(false);
+        List<Point2D> things = this.points2D;
         int size = things.size();
         for (int i = 0; i < size; i++) {
-            Point2D point2D = (Point2D) things.get(i);
+            Point2D point2D = things.get(i);
             Double color = output.get(i);
             boolean b = color > 0.5;
             point2D.setColor(new Color(b ? 0 : 255, b ? 255 : 0, 0));
@@ -462,12 +289,15 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Vector y = transpose.prodVector(mouse);
         Matrix sigma = transpose.prod(X);
         Vector omega = Matrix.solveLinearSystem(sigma, y);
-        List<AbstractDrawAble2D> things = engine.getThings();
+
+        // paint colors on data set
+        List<Point2D> things = this.points2D;
         int size = things.size();
         double max = omega.getMax().getX();
         double min = omega.getMin().getX();
+        System.out.println("Min: " + min + " ; Max: " + max);
         for (int i = 0; i < size; i++) {
-            Point2D point2D = (Point2D) things.get(i);
+            Point2D point2D = things.get(i);
             float[] heatColor = getHeatColor((omega.getX(i + 1) - min) / (max - min));
             point2D.setColor(new Color(heatColor[0], heatColor[1], heatColor[2]));
         }
@@ -478,15 +308,21 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         omega = Vector.scalarProd(1.0 / sum, omega);
         Vector out = new Vector(output.toArray(new Double[output.size()]));
         double expectedV = Vector.innerProd(omega, out);
-        Graphics image = this.getGraphics();
         int r = (int) MyMath.clamp((1.0 - expectedV) * 255.0, 0.0, 255.0);
         int g = (int) MyMath.clamp((expectedV * 255), 0.0, 255.0);
         int b = 0;
-        image.setColor(new Color(r, g, b));
-        double w = Math.ceil(2.0 * this.widthChanged / this.sqrtSamples);
-        double h = Math.ceil(2.0 * this.heightChanged / this.sqrtSamples);
 
-        image.fillRect((int) this.engine.integerCoordX(mouse.getX()), (int) this.engine.integerCoordY(mouse.getY()), (int) w, (int) h);
+        // draw mouse
+        if(this.mousePoint == null) {
+            this.mousePoint = new Point2D(mouse);
+            this.engine.addToTree(mousePoint);
+        }
+        this.mousePoint.setColor(new Color(r,g,b));
+        double percent = 0.01;
+        double sizeX = this.engine.getXmax() - this.engine.getXmin();
+        this.mousePoint.setRadius(sizeX * percent);
+        this.mousePoint.setPos(mouse);
+        this.mousePoint.setVisible(true);
     }
 
     private void addPoint(Vec2 mouse, boolean out) {
@@ -495,6 +331,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Point2D e = new Point2D(mouse);
         e.setRadius(dataRadius);
         e.setColor(out ? Color.green : Color.red);
+        this.points2D.add(e);
         this.engine.addToTree(e);
 
     }
@@ -519,6 +356,185 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Double apply(Vec2 x);
 
         void train(List<Vec2> x, List<Double> y);
+    }
+
+    class KnnLeastSquare implements MyModel {
+        @Override
+        public Double apply(Vec2 x) {
+            int n = points.size();
+            if (n == 0) {
+                return 0.0;
+            }
+
+            int samples = 100;
+            Vec2[] randomPoints = new Vec2[samples];
+            double[] randomOut = new double[samples];
+            for (int i = 0; i < samples; i++) {
+                int r = (int) (Math.random() * n);
+                randomPoints[i] = points.get(r);
+                randomOut[i] = output.get(r);
+            }
+
+            Matrix X = new Matrix(randomPoints);
+            Matrix transpose = Matrix.transpose(X);
+            Vector y = transpose.prodVector(x);
+            Matrix sigma = transpose.prod(X);
+            Vector omega = Matrix.solveLinearSystem(sigma, y);
+            double max = omega.getMax().getX();
+            double min = omega.getMin().getX();
+            omega.applyFunction((z) -> (z - min) / (max - min));
+            Vector ones = new Vector(omega.getDim());
+            ones.fill(1.0);
+            double sum = Vector.innerProd(omega, ones);
+            omega = Vector.scalarProd(1.0 / sum, omega);
+            Vector out = new Vector(randomOut);
+            return Vector.innerProd(omega, out);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            // empty
+        }
+    }
+
+    class KnnMonteCarlo implements MyModel {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+            int monteCarloSample = 20;
+            int knnSample = Integer.min(5, size);
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            double acc = 0;
+            for (int k = 0; k < monteCarloSample; k++) {
+                int[] sampleIndex = new int[knnSample];
+                for (int i = 0; i < knnSample; i++) {
+                    sampleIndex[i] = (int) (Math.random() * size);
+                }
+
+                for (int i = 0; i < knnSample; i++) {
+                    int randomIndex = sampleIndex[i];
+                    double dist = Vec2.diff(x, points.get(randomIndex)).norm();
+                    if (minDist > dist) {
+                        minDist = dist;
+                        index = randomIndex;
+                    }
+                }
+                acc += output.get(index);
+            }
+            return acc / monteCarloSample;
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            // empty
+        }
+    }
+
+    class KnnModel implements MyModel {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            for (int i = 0; i < size; i++) {
+                double dist = Vec2.diff(x, points.get(i)).norm();
+                if (minDist > dist) {
+                    minDist = dist;
+                    index = i;
+                }
+            }
+            return output.get(index);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            //empty
+        }
+    }
+
+    class KnnRandom implements MyModel {
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            int knnSample = Integer.min(10, size);
+
+            int[] sampleIndex = new int[knnSample];
+            for (int i = 0; i < knnSample; i++) {
+                sampleIndex[i] = (int) (Math.random() * size);
+            }
+
+            for (int i = 0; i < knnSample; i++) {
+                int randomIndex = sampleIndex[i];
+                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
+                if (minDist > dist) {
+                    minDist = dist;
+                    index = randomIndex;
+                }
+            }
+            return output.get(index);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) { }
+    }
+
+    class DiffusionLearning implements MyModel {
+        private Matrix eigenV;
+
+        private double heatTime = 10;
+
+        @Override
+        public Double apply(Vec2 x) {
+            int index = -1;
+            double minDist = Double.MAX_VALUE;
+            int size = points.size();
+
+            if (size == 0) {
+                return 0.0;
+            }
+
+            int knnSample = Integer.min(10, size);
+
+            int[] sampleIndex = new int[knnSample];
+            for (int i = 0; i < knnSample; i++) {
+                sampleIndex[i] = (int) (Math.random() * size);
+            }
+
+            for (int i = 0; i < knnSample; i++) {
+                int randomIndex = sampleIndex[i];
+                double dist = Vec2.diff(x, points.get(randomIndex)).norm();
+                if (minDist > dist) {
+                    minDist = dist;
+                    index = randomIndex;
+                }
+            }
+            return output.get(index);
+        }
+
+        @Override
+        public void train(List<Vec2> x, List<Double> y) {
+            KnnGraph<Vec2> graph = new KnnGraph<>(x, 3, (p, q) -> Vec2.diff(p, q).norm());
+            DiffusionClustering diffusionClustering = new DiffusionClustering(graph);
+            diffusionClustering.clusteringJama(this.heatTime, 2, d -> Math.exp(-(d * d / 2)), 0.01, 10);
+        }
     }
 
 }

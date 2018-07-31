@@ -18,8 +18,7 @@ import twoDimEngine.shaders.PaintMethod2D;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 public class DiffusionDistanceTest extends MyFrame {
     private static final int numPoints = 500;
@@ -76,7 +75,7 @@ public class DiffusionDistanceTest extends MyFrame {
             knnGraph.putVertexProperty(i + 1, "pos", points.get(i));
         }
         drawKnnGraph(knnGraph);
-        GraphLaplacian graphLaplacian = new GraphLaplacian(knnGraph, (x) -> Math.exp(-(x * x) / 25));
+        GraphLaplacian graphLaplacian = new GraphLaplacian(knnGraph, x -> Math.exp(-(x * x) / 25));
         Matrix laplacian = graphLaplacian.getL();
         EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
         eigenVectors = new Matrix(eigenvalueDecomposition.getV().getArray());
@@ -143,54 +142,23 @@ public class DiffusionDistanceTest extends MyFrame {
 
     @Override
     public void keyPressed(KeyEvent arg0) {
-        switch (arg0.getKeyCode()) {
-            case KeyEvent.VK_MINUS:
-                heatTime -= epsilon;
-                heatTime = Math.max(0, heatTime);
-                System.out.println(heatTime);
-                break;
-            case KeyEvent.VK_PLUS:
-                heatTime += epsilon;
-                System.out.println(heatTime);
-                break;
-            case KeyEvent.VK_1:
-                knn = 1;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_2:
-                knn = 2;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_3:
-                knn = 3;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_4:
-                knn = 4;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_5:
-                knn = 5;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_6:
-                knn = 6;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_7:
-                knn = 7;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_8:
-                knn = 8;
-                knnGraph = null;
-                break;
-            case KeyEvent.VK_9:
-                knn = 9;
-                knnGraph = null;
-                break;
-            default:
-                //nothing here
+        Map<Integer, Runnable> switchMap = new HashMap<>();
+        switchMap.put(KeyEvent.VK_PLUS, () -> {
+            heatTime += epsilon;
+            System.out.println(heatTime);
+        });
+        switchMap.put(KeyEvent.VK_MINUS, () -> {
+            heatTime -= epsilon;
+            heatTime = Math.max(0, heatTime);
+            System.out.println(heatTime);
+        });
+
+        final int dx = arg0.getKeyCode() - KeyEvent.VK_1;
+        if (dx > 0 && arg0.getKeyCode() <= KeyEvent.VK_9) {
+            knn = dx + 1;
+            knnGraph = null;
+        } else {
+            Optional.ofNullable(switchMap.get(arg0.getKeyCode())).ifPresent(Runnable::run);
         }
     }
 

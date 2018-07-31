@@ -22,7 +22,7 @@ public class BoxEngine extends AbstractEngine2D {
         tree = new Node();
     }
 
-    private void draw(AbstractDrawAble2D e) {
+    public void draw(AbstractDrawAble2D e) {
         PaintMethod2D painter = e.getMyPainter();
         if (e.getMyPainter() != null) {
             e.draw(painter);
