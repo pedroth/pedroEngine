@@ -7,7 +7,6 @@ import apps.utils.MyFrame;
 import graph.DiffusionClustering;
 import graph.KnnGraph;
 import numeric.MyMath;
-import twoDimEngine.AbstractDrawAble2D;
 import twoDimEngine.BoxEngine;
 import twoDimEngine.elements.Point2D;
 import twoDimEngine.shaders.FillShader;
@@ -23,12 +22,17 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class HeatLearning extends MyFrame implements MouseWheelListener {
 
     private static final double dataRadius = 0.01;
 
     private static final int MIN_SAMPLES = 50;
+
+    private Supplier<Function<Vec2, Vector>> computeOmegaFactory = CrazyLeastSquare::new;
+    private Function<Vec2, Vector> computeOmega = computeOmegaFactory.get();
 
     private Point2D mousePoint = null;
 
@@ -173,6 +177,12 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             case KeyEvent.VK_D:
                 this.isDebug = !this.isDebug;
                 break;
+            case KeyEvent.VK_1:
+                this.computeOmegaFactory = CrazyLeastSquare::new;
+                break;
+            case KeyEvent.VK_2:
+                this.computeOmegaFactory = CrazyDistribution::new;
+                break;
             default:
                 //nothing here
         }
@@ -253,7 +263,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Vec2 mouse = new Vec2(this.engine.inverseCoordX(this.mx), this.engine.inverseCoordY(this.my));
         if (SwingUtilities.isLeftMouseButton(e)) {
             if (this.isControlPressed) {
-                crazyStuff(mouse);
+                crazyStuff(mouse, this.computeOmega);
             } else {
                 addPoint(mouse, this.isShiftPressed);
             }
@@ -271,6 +281,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     }
 
     private void removeCrazy() {
+        this.computeOmega = this.computeOmegaFactory.get();
         this.mousePoint.setVisible(false);
         List<Point2D> things = this.points2D;
         int size = things.size();
@@ -282,14 +293,8 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         }
     }
 
-    private void crazyStuff(Vec2 mouse) {
-        int n = points.size();
-        Matrix X = new Matrix(points.toArray(new Vec2[n]));
-        Matrix transpose = Matrix.transpose(X);
-        Vector y = transpose.prodVector(mouse);
-        Matrix sigma = transpose.prod(X);
-        Vector omega = Matrix.solveLinearSystem(sigma, y);
-
+    private void crazyStuff(Vec2 mouse, Function<Vec2, Vector> computeOmega) {
+        final Vector omega = computeOmega.apply(mouse);
         // paint colors on data set
         List<Point2D> things = this.points2D;
         int size = things.size();
@@ -305,9 +310,9 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         Vector ones = new Vector(omega.getDim());
         ones.fill(1.0);
         double sum = Vector.innerProd(omega, ones);
-        omega = Vector.scalarProd(1.0 / sum, omega);
+        Vector omegaNorm = Vector.scalarProd(1.0 / sum, omega);
         Vector out = new Vector(output.toArray(new Double[output.size()]));
-        double expectedV = Vector.innerProd(omega, out);
+        double expectedV = Vector.innerProd(omegaNorm, out);
         int r = (int) MyMath.clamp((1.0 - expectedV) * 255.0, 0.0, 255.0);
         int g = (int) MyMath.clamp((expectedV * 255), 0.0, 255.0);
         int b = 0;
@@ -534,6 +539,62 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
             KnnGraph<Vec2> graph = new KnnGraph<>(x, 3, (p, q) -> Vec2.diff(p, q).norm());
             DiffusionClustering diffusionClustering = new DiffusionClustering(graph);
             diffusionClustering.clusteringJama(this.heatTime, 2, d -> Math.exp(-(d * d / 2)), 0.01, 10);
+        }
+    }
+
+    class CrazyLeastSquare implements Function<Vec2, Vector> {
+        private Matrix X;
+        private Matrix sigma;
+        private int n = 0;
+
+        @Override
+        public Vector apply(Vec2 x) {
+            if(this.n != points.size()) {
+                this.n = points.size();
+                this.X = new Matrix(points.toArray(new Vec2[this.n]));
+                Matrix transpose = Matrix.transpose(X);
+                this.sigma = transpose.prod(X);
+            }
+            Vector y = this.X.transpose().prodVector(x);
+            return Matrix.solveLinearSystem(this.sigma, y);
+        }
+    }
+
+    class CrazyDistribution implements Function<Vec2, Vector> {
+        private Matrix sigma;
+        private Matrix X;
+        private Vector alpha;
+        private int n = 0;
+
+        @Override
+        public Vector apply(Vec2 x) {
+            double h = 0.01;
+            final double sqrt = Math.sqrt(2);
+            if(this.n != points.size()) {
+                this.n = points.size();
+                this.X = new Matrix(points.toArray(new Vec2[this.n]));
+                Matrix transpose = Matrix.transpose(this.X);
+                this.sigma = transpose.prod(X);
+                this.alpha = new Vector(this.n);
+                this.alpha.fillRandom(0,1);
+                Vector ones = new Vector(this.n);
+                ones.fill(1);
+                this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(this.alpha, ones), this.alpha);
+            }
+            Vector ones = new Vector(this.n);
+            ones.fill(1);
+            int samples = 100;
+            Vector alphaDot;
+            Vector y = this.X.transpose().prodVector(x);
+            for (int j = 0; j < samples; j++){
+                Vector log = new Vector(Matrix.apply(this.alpha, z -> 1 / (z + 1E-20)));
+                alphaDot = Vector.diff(Vector.add(y, log), sigma.prodVector(this.alpha));
+                alphaDot = alphaDot.norm() > sqrt ? Vector.scalarProd(sqrt, Vector.normalize(alphaDot)) : alphaDot;
+                this.alpha = Vector.add(this.alpha, Vector.scalarProd(h, alphaDot));
+                //this.alpha = new Vector(Matrix.apply(this.alpha, z->Math.max(0, z)));
+                this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
+            }
+            return Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
         }
     }
 

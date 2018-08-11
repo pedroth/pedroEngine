@@ -2,6 +2,8 @@ package algebra;
 
 import algebra.utils.AlgebraException;
 
+import java.util.function.Function;
+
 /**
  * The type Vector.
  * @author pedro <p>

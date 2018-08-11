@@ -15,7 +15,13 @@ import java.util.function.Function;
  * The type Matrix.
  */
 public class Matrix {
+    /**
+     * The Other symbols.
+     */
     static final DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols();
+    /**
+     * The Df.
+     */
     static final DecimalFormat df;
 
     static {
@@ -44,16 +50,8 @@ public class Matrix {
     /**
      * Instantiates a new Matrix.
      *
-     * @param rows    number of rows of the matrix. Must be a positive integer
-     *                bigger than zero,
-     *                {
-     *                1,2, ...
-     *                }
-     * @param columns number of columns of the matrix. Must be a positive integer
-     *                bigger than zero,
-     *                {
-     *                1,2, ...
-     *                }
+     * @param rows    number of rows of the matrix. Must be a positive integer                bigger than zero,                {                1,2, ...                }
+     * @param columns number of columns of the matrix. Must be a positive integer                bigger than zero,                {                1,2, ...                }
      */
     public Matrix(int rows, int columns) {
         if (rows < 1 || columns < 1) {
@@ -190,9 +188,7 @@ public class Matrix {
      * @return the matrix
      */
     public static Matrix transpose(Matrix m) {
-        Matrix ans = m.copy();
-        ans.transpose();
-        return ans;
+        return m.transpose();
     }
 
     /**
@@ -274,8 +270,7 @@ public class Matrix {
      * Diag matrix.
      *
      * @param v is a matrix
-     * @return return a matrix with its diagonal members set to v_i coordinate of v if v is a vector (n by 1 matrix)
-     * else returns a vector of the diagonal member of v
+     * @return return a matrix with its diagonal members set to v_i coordinate of v if v is a vector (n by 1 matrix) else returns a vector of the diagonal member of v
      */
     public static Matrix diag(Matrix v) {
         int n = v.getRows();
@@ -326,6 +321,17 @@ public class Matrix {
         return acc;
     }
 
+    /**
+     * Apply matrix.
+     *
+     * @param lambda the lambda
+     * @return new matrix with function applied
+     */
+    public static Matrix apply(Matrix m, Function<Double, Double> lambda){
+        final Matrix copy = m.copy();
+        return copy.applyFunction(lambda::apply);
+    }
+
     private void constructMatrix(int rows, int columns) {
         this.rows = rows;
         this.columns = columns;
@@ -335,16 +341,8 @@ public class Matrix {
     /**
      * Gets xY.
      *
-     * @param x index for the rows where its domain is
-     *          {
-     *          1,2, ... , number of
-     *          rows
-     *          }
-     * @param y index for the columns where its domain is
-     *          {
-     *          1,2, ... , number
-     *          of columns
-     *          }
+     * @param x index for the rows where its domain is          {          1,2, ... , number of          rows          }
+     * @param y index for the columns where its domain is          {          1,2, ... , number          of columns          }
      * @return value of the matrix at x and y.
      */
     public double getXY(int x, int y) {
@@ -359,16 +357,8 @@ public class Matrix {
     /**
      * Sets xY.
      *
-     * @param x index for the rows where its domain is
-     *          {
-     *          1,2, ... , number of
-     *          rows
-     *          }
-     * @param y index for the columns where its domain is
-     *          {
-     *          1,2, ... , number
-     *          of columns
-     *          }
+     * @param x index for the rows where its domain is          {          1,2, ... , number of          rows          }
+     * @param y index for the columns where its domain is          {          1,2, ... , number          of columns          }
      * @param n value to store at x and y.
      */
     public void setXY(int x, int y, double n) {
@@ -676,9 +666,6 @@ public class Matrix {
                 m.setXY(j, i, this.getXY(i, j));
             }
         }
-        matrix = m.matrix;
-        rows = m.getRows();
-        columns = m.getColumns();
         return m;
     }
 
@@ -691,8 +678,7 @@ public class Matrix {
      * @param xmax upper bound row coordinate
      * @param ymin lower bound column coordinate
      * @param ymax upper bound column coordinate
-     * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ...
-     * ymax]
+     * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ... ymax]
      */
     public Matrix getSubMatrix(int xmin, int xmax, int ymin, int ymax) {
         Matrix ans;
@@ -717,8 +703,7 @@ public class Matrix {
      * @param ymin lower bound column coordinate
      * @param ymax upper bound column coordinate
      * @param m    the m
-     * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ...
-     * ymax]
+     * @return new Matrix which is the subMatrix M[xmin ... xmax ][ymin ... ymax]
      */
     public void setSubMatrix(int xmin, int xmax, int ymin, int ymax, Matrix m) {
         if (checkInputIndex(xmin, ymin) && checkInputIndex(xmax, ymax) && m.rows == (xmax - xmin + 1) && m.columns == (ymax - ymin + 1)) {
@@ -763,8 +748,7 @@ public class Matrix {
     /**
      * To vector.
      *
-     * @return vector with dimension rows * columns, whose elements are taken
-     * column-wise.
+     * @return vector with dimension rows * columns, whose elements are taken column-wise.
      */
     public Vector toVector() {
         Vector v = new Vector(this.rows * this.columns);
