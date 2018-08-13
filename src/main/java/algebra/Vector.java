@@ -6,9 +6,10 @@ import java.util.function.Function;
 
 /**
  * The type Vector.
+ *
  * @author pedro <p>
- *         <p>
- *         vectors are n * 1 matrices
+ * <p>
+ * vectors are n * 1 matrices
  */
 public class Vector extends Matrix {
     /**
@@ -26,8 +27,8 @@ public class Vector extends Matrix {
      * @param v receives 1 * n array but stores as a n * 1 vector
      */
     public Vector(double[] v) {
-        super(v);
-        this.transpose();
+        super(v.length,1);
+        for(int i = 0; i < v.length; i++) this.setX(i+1, v[i]);
     }
 
     /**
@@ -60,6 +61,7 @@ public class Vector extends Matrix {
 
     /**
      * static
+     *
      * @param v1 the v 1
      * @param v2 the v 2
      * @return the double
@@ -354,5 +356,13 @@ public class Vector extends Matrix {
             }
         }
         return new Vec2(min, minIndex);
+    }
+
+    public Vector map(Function<Double, Double> lambda) {
+        final Vector ans = this.copy();
+        for (int i = 0; i < ans.size(); i++) {
+            ans.setX(i + 1, lambda.apply(this.getX(i + 1)));
+        }
+        return ans;
     }
 }

@@ -1,10 +1,13 @@
 package apps;
 
+import Jama.EigenvalueDecomposition;
 import algebra.Matrix;
 import algebra.Vec2;
 import algebra.Vector;
 import apps.utils.MyFrame;
 import graph.DiffusionClustering;
+import graph.Graph;
+import graph.GraphLaplacian;
 import graph.KnnGraph;
 import numeric.MyMath;
 import twoDimEngine.BoxEngine;
@@ -31,10 +34,11 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
     private static final int MIN_SAMPLES = 50;
 
-    private Supplier<Function<Vec2, Vector>> computeOmegaFactory = CrazyLeastSquare::new;
+    private Supplier<Function<Vec2, Vector>> computeOmegaFactory = CrazyGraph::new;
     private Function<Vec2, Vector> computeOmega = computeOmegaFactory.get();
 
     private Point2D mousePoint = null;
+    private Point2D predictedPoint = null;
 
     private BoxEngine engine;
 
@@ -197,6 +201,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         this.output.removeAll(this.output);
         this.points2D.removeAll(this.points2D);
         this.mousePoint = null;
+        this.predictedPoint = null;
         this.engine.removeAllElements();
         this.engine.buildBoundingBoxTree();
     }
@@ -283,6 +288,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     private void removeCrazy() {
         this.computeOmega = this.computeOmegaFactory.get();
         this.mousePoint.setVisible(false);
+        this.predictedPoint.setVisible(false);
         List<Point2D> things = this.points2D;
         int size = things.size();
         for (int i = 0; i < size; i++) {
@@ -294,7 +300,20 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
     }
 
     private void crazyStuff(Vec2 mouse, Function<Vec2, Vector> computeOmega) {
+        final double sizeX = this.engine.getXmax() - this.engine.getXmin();
+        final double percent = 0.01;
+
+
         final Vector omega = computeOmega.apply(mouse);
+        final Matrix X = new Matrix(points.toArray(new Vec2[this.points.size()]));
+        final Vec2 predictedVec = new Vec2(X.prodVector(omega));
+
+        // draw predicted point
+        if (this.predictedPoint == null) {
+            this.predictedPoint = new Point2D(predictedVec);
+            this.engine.addToTree(this.predictedPoint);
+        }
+
         // paint colors on data set
         List<Point2D> things = this.points2D;
         int size = things.size();
@@ -318,16 +337,20 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         int b = 0;
 
         // draw mouse
-        if(this.mousePoint == null) {
+        if (this.mousePoint == null) {
             this.mousePoint = new Point2D(mouse);
-            this.engine.addToTree(mousePoint);
+            this.engine.addToTree(this.mousePoint);
         }
-        this.mousePoint.setColor(new Color(r,g,b));
-        double percent = 0.01;
-        double sizeX = this.engine.getXmax() - this.engine.getXmin();
+        this.mousePoint.setColor(new Color(r, g, b));
         this.mousePoint.setRadius(sizeX * percent);
         this.mousePoint.setPos(mouse);
         this.mousePoint.setVisible(true);
+
+        this.predictedPoint.setColor(new Color(0, 0, 0));
+        this.predictedPoint.setRadius(sizeX * percent);
+        this.predictedPoint.setPos(predictedVec);
+        this.predictedPoint.setVisible(true);
+
     }
 
     private void addPoint(Vec2 mouse, boolean out) {
@@ -498,7 +521,8 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
         }
 
         @Override
-        public void train(List<Vec2> x, List<Double> y) { }
+        public void train(List<Vec2> x, List<Double> y) {
+        }
     }
 
     class DiffusionLearning implements MyModel {
@@ -549,7 +573,7 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         @Override
         public Vector apply(Vec2 x) {
-            if(this.n != points.size()) {
+            if (this.n != points.size()) {
                 this.n = points.size();
                 this.X = new Matrix(points.toArray(new Vec2[this.n]));
                 Matrix transpose = Matrix.transpose(X);
@@ -568,33 +592,67 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         @Override
         public Vector apply(Vec2 x) {
-            double h = 0.01;
+            double h = 0.00001;
             final double sqrt = Math.sqrt(2);
-            if(this.n != points.size()) {
+            if (this.n != points.size()) {
                 this.n = points.size();
                 this.X = new Matrix(points.toArray(new Vec2[this.n]));
                 Matrix transpose = Matrix.transpose(this.X);
                 this.sigma = transpose.prod(X);
                 this.alpha = new Vector(this.n);
-                this.alpha.fillRandom(0,1);
+                this.alpha.fillRandom(0, 1);
                 Vector ones = new Vector(this.n);
                 ones.fill(1);
                 this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(this.alpha, ones), this.alpha);
             }
+            Vector mu = new Vector(this.n);
+            mu.fill(1);
             Vector ones = new Vector(this.n);
             ones.fill(1);
+
             int samples = 100;
             Vector alphaDot;
             Vector y = this.X.transpose().prodVector(x);
-            for (int j = 0; j < samples; j++){
-                Vector log = new Vector(Matrix.apply(this.alpha, z -> 1 / (z + 1E-20)));
-                alphaDot = Vector.diff(Vector.add(y, log), sigma.prodVector(this.alpha));
-                alphaDot = alphaDot.norm() > sqrt ? Vector.scalarProd(sqrt, Vector.normalize(alphaDot)) : alphaDot;
+            for (int i = 0; i < samples; i++) {
+                Vector inverse = new Vector(Matrix.apply(this.alpha, z -> 1.0 / (z + 1E-20)));
+                Vector log = new Vector(Matrix.apply(this.alpha, Math::log));
+                alphaDot = Vector.diff(Vector.add(y, inverse), Vector.add(sigma.prodVector(this.alpha), Vector.add(ones, log)));
+//                if (Double.isNaN(alphaDot.norm())) break;
+//                alphaDot = alphaDot.norm() > sqrt ? Vector.scalarProd(sqrt, Vector.normalize(alphaDot)) : alphaDot;
                 this.alpha = Vector.add(this.alpha, Vector.scalarProd(h, alphaDot));
-                //this.alpha = new Vector(Matrix.apply(this.alpha, z->Math.max(0, z)));
+                System.out.println("alpha constraint : " + Vector.innerProd(ones, this.alpha) + "\t mu norm : " + mu.norm());
                 this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
+                mu = Vector.add(mu, Vector.scalarProd(h, log));
             }
             return Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
+        }
+    }
+
+    class CrazyGraph implements Function<Vec2, Vector> {
+        private Matrix sigma;
+        private Matrix X;
+        private int n = 0;
+        private KnnGraph<Vec2> graph;
+        private Matrix U;
+        private Vector s;
+        private double time = 0.001;
+
+        @Override
+        public Vector apply(Vec2 x) {
+            if (this.n != points.size()) {
+                this.n = points.size();
+                this.X = new Matrix(points.toArray(new Vec2[this.n]));
+                Matrix transpose = Matrix.transpose(X);
+                this.sigma = transpose.prod(X);
+                this.graph = new KnnGraph<>(points, 3, (a, b) -> Vec2.diff(a, b).norm());
+                GraphLaplacian graphLaplacian = new GraphLaplacian(this.graph, z -> Math.exp(-(z * z) / 25));
+                Matrix laplacian = graphLaplacian.getL();
+                EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
+                this.U = new Matrix(eigenvalueDecomposition.getV().getArray());
+                this.s = new Vector(eigenvalueDecomposition.getRealEigenvalues());
+            }
+            Vector y = this.X.transpose().prodVector(x);
+            return this.U.prodVector(Matrix.diag(this.s.map(z->1 / (Math.exp(-z * time)))).prodVector(this.U.transpose().prodVector(Matrix.solveLinearSystem(this.sigma, y))));
         }
     }
 
