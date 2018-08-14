@@ -6,7 +6,6 @@ import algebra.Vec2;
 import algebra.Vector;
 import apps.utils.MyFrame;
 import graph.DiffusionClustering;
-import graph.Graph;
 import graph.GraphLaplacian;
 import graph.KnnGraph;
 import numeric.MyMath;
@@ -592,8 +591,6 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
 
         @Override
         public Vector apply(Vec2 x) {
-            double h = 0.00001;
-            final double sqrt = Math.sqrt(2);
             if (this.n != points.size()) {
                 this.n = points.size();
                 this.X = new Matrix(points.toArray(new Vec2[this.n]));
@@ -605,36 +602,39 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
                 ones.fill(1);
                 this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(this.alpha, ones), this.alpha);
             }
-            Vector mu = new Vector(this.n);
-            mu.fill(1);
+            int mu = 1;
+
             Vector ones = new Vector(this.n);
             ones.fill(1);
 
             int samples = 100;
             Vector alphaDot;
             Vector y = this.X.transpose().prodVector(x);
+
             for (int i = 0; i < samples; i++) {
-                Vector inverse = new Vector(Matrix.apply(this.alpha, z -> 1.0 / (z + 1E-20)));
-                Vector log = new Vector(Matrix.apply(this.alpha, Math::log));
-                alphaDot = Vector.diff(Vector.add(y, inverse), Vector.add(sigma.prodVector(this.alpha), Vector.add(ones, log)));
-//                if (Double.isNaN(alphaDot.norm())) break;
-//                alphaDot = alphaDot.norm() > sqrt ? Vector.scalarProd(sqrt, Vector.normalize(alphaDot)) : alphaDot;
-                this.alpha = Vector.add(this.alpha, Vector.scalarProd(h, alphaDot));
-                System.out.println("alpha constraint : " + Vector.innerProd(ones, this.alpha) + "\t mu norm : " + mu.norm());
+                Vector grad = new Vector(y.add(this.alpha.map(z -> 1 / z).scalarProd(1.0 / mu)).diff(this.sigma.prodVector(this.alpha)));
+                Matrix hessian = this.sigma.diff(Matrix.diag(this.alpha.map(z -> -1 / (z * z)).scalarProd(1.0 / mu)));
+                double t = 0.5 * Vector.innerProd(grad, grad) / Vector.innerProd(grad, hessian.prodVector(grad));
+                alphaDot = Vector.scalarProd(t, grad);
+                this.alpha = Vector.add(this.alpha, alphaDot);
+                System.out.println("alpha constraint : " + Vector.innerProd(ones, this.alpha) + "\t mu : " + mu);
+                this.alpha = this.alpha.map(z -> Math.max(1E-20, z));
                 this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
-                mu = Vector.add(mu, Vector.scalarProd(h, log));
+                mu += i;
             }
             return Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
         }
     }
 
     class CrazyGraph implements Function<Vec2, Vector> {
+        private Vector alpha;
         private Matrix sigma;
         private Matrix X;
         private int n = 0;
         private KnnGraph<Vec2> graph;
         private Matrix U;
         private Vector s;
+        private Matrix L;
         private double time = 0.001;
 
         @Override
@@ -646,13 +646,40 @@ public class HeatLearning extends MyFrame implements MouseWheelListener {
                 this.sigma = transpose.prod(X);
                 this.graph = new KnnGraph<>(points, 3, (a, b) -> Vec2.diff(a, b).norm());
                 GraphLaplacian graphLaplacian = new GraphLaplacian(this.graph, z -> Math.exp(-(z * z) / 25));
-                Matrix laplacian = graphLaplacian.getL();
-                EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(laplacian.getMatrix()));
+                this.L = graphLaplacian.getL();
+                EigenvalueDecomposition eigenvalueDecomposition = new EigenvalueDecomposition(new Jama.Matrix(this.L.getMatrix()));
                 this.U = new Matrix(eigenvalueDecomposition.getV().getArray());
                 this.s = new Vector(eigenvalueDecomposition.getRealEigenvalues());
+
+                this.alpha = new Vector(this.n);
+                this.alpha.fillRandom(0, 1);
+                Vector ones = new Vector(this.n);
+                ones.fill(1);
+                this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(this.alpha, ones), this.alpha);
             }
+            int mu = 1;
+            int gamma = 1;
+
+            Vector ones = new Vector(this.n);
+            ones.fill(1);
+
+            int samples = 100;
+            Vector alphaDot;
             Vector y = this.X.transpose().prodVector(x);
-            return this.U.prodVector(Matrix.diag(this.s.map(z->1 / (Math.exp(-z * time)))).prodVector(this.U.transpose().prodVector(Matrix.solveLinearSystem(this.sigma, y))));
+
+            for (int i = 0; i < samples; i++) {
+                Vector grad = new Vector(y.add(this.alpha.map(z -> 1 / z).scalarProd(1.0 / mu).add(this.L.prodVector(this.alpha).scalarProd(gamma))).diff(this.sigma.prodVector(this.alpha)));
+                Matrix hessian = this.sigma.diff(Matrix.diag(this.alpha.map(z -> -1 / (z * z)).scalarProd(1.0 / mu))).diff(this.L.scalarProd(gamma));
+                double t = 0.5 * Vector.innerProd(grad, grad) / Vector.innerProd(grad, hessian.prodVector(grad));
+                alphaDot = Vector.scalarProd(t, grad);
+                this.alpha = Vector.add(this.alpha, alphaDot);
+                System.out.println("alpha constraint : " + Vector.innerProd(ones, this.alpha) + "\t mu : " + mu + "\t gamma: " + gamma);
+                this.alpha = this.alpha.map(z -> Math.max(1E-20, z));
+                this.alpha = Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
+                mu = 1 + i / 10;
+                gamma = 1 + i / 10;
+            }
+            return Vector.scalarProd(1.0 / Vector.innerProd(ones, this.alpha), this.alpha);
         }
     }
 
