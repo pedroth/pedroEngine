@@ -83,7 +83,7 @@ public class NumericTest {
     @Test
     public void PCATest() throws IOException {
         CsvReader table = new CsvReader();
-        table.read("src/numeric/test/resource/testData2.csv");
+        table.read("src/test/java/numeric/resource/testData2.csv");
         int[] size = table.getSize();
         Vector[] data = new Vector[size[0]];
         for (int i = 0; i < size[0]; i++) {

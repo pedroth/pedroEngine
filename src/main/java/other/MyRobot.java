@@ -7,7 +7,7 @@ public class MyRobot {
     public static void main(String[] args) {
         try {
             double min2Sec = 60;
-            double numberOfMin = 0.25;
+            double numberOfMin = args.length > 0 ? Double.valueOf(args[0]) : 1;
             double threshold = min2Sec * numberOfMin;
             Robot robot = new Robot();
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
