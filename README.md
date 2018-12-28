@@ -13,19 +13,19 @@ Hope it might be useful for someone.
 
 ### apps
 1) EigenSimulation
-  * Simulation and visualization of various algorithms that solve the eigen vector/value problem. 
+   * Simulation and visualization of various algorithms that solve the eigen vector/value problem. 
 
 2) ImplicitSurface
-  * Visualization of some implicit surfaces
+   * Visualization of some implicit surfaces
   
 3) DiffusionDistanceTest
-  * Visualization and simulation of the discrete heat equation on a graph.
+   * Visualization and simulation of the discrete heat equation on a graph.
   
 4) SpectralClusterTest
-  * Visualization of the segmentation of random geometric graphs using spectral clustering algorithms.
+   * Visualization of the segmentation of random geometric graphs using spectral clustering algorithms.
 
 5) TextCurves
-  * Visualization of text using the [Lowbow curves](https://arxiv.org/ftp/arxiv/papers/1206/1206.6858.pdf)
+   * Visualization of text using the [Lowbow curves](https://arxiv.org/ftp/arxiv/papers/1206/1206.6858.pdf)
 
 6) Other minor stuff
 
@@ -45,7 +45,7 @@ Hope it might be useful for someone.
 
 ### numeric
 1) Camera3D
-  * 3D Spherical camera implementation
+   * 3D Spherical camera implementation
 2) Algorithms for the computation eigen vector/values of symmetric matrices
 3) SVD - Singular value decomposition calculation
 4) PCA - Principal components analysis implementation
