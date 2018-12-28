@@ -12,6 +12,9 @@ Hope it might be useful for someone.
 * QuickSort implementation (saves the permutation).
 
 ### apps
+
+*Some of the apps may be found [here](https://pedroth.github.io/visualExperiments/JavaExperiments/JavaExperiments.html)*
+
 1) EigenSimulation
    * Simulation and visualization of various algorithms that solve the eigen vector/value problem. 
 
