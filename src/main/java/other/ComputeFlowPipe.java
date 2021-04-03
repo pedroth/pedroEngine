@@ -3,7 +3,7 @@ package other;
 import graph.Graph;
 import graph.TopologicalOrder;
 import inputOutput.TextIO;
-import javafx.util.Pair;
+import utils.Pair;
 
 import java.io.IOException;
 

@@ -2,9 +2,9 @@ package graph;
 
 
 import algebra.DistanceMatrix;
-import javafx.util.Pair;
 import numeric.Distance;
 import numeric.MyMath;
+import utils.Pair;
 
 import java.util.List;
 import java.util.PriorityQueue;

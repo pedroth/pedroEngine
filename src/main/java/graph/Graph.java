@@ -1,7 +1,7 @@
 package graph;
 
 import algebra.Matrix;
-import javafx.util.Pair;
+import utils.Pair;
 
 import java.util.*;
 

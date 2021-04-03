@@ -7,7 +7,6 @@ import algebra.Vector;
 import graph.*;
 import inputOutput.CsvReader;
 import inputOutput.TextIO;
-import javafx.util.Pair;
 import nlp.lowbow.eigenLowbow.*;
 import nlp.lowbow.simpleLowBow.BaseLowBowManager;
 import nlp.lowbow.simpleLowBow.LambdaTestFlow;
@@ -33,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import utils.Csv2Matrix;
 import utils.FilesCrawler;
+import utils.Pair;
 import utils.StopWatch;
 
 import java.io.File;
@@ -681,7 +681,7 @@ public class LowBowTests {
         address.add("BattleStarGalactica");
         extension.add("avi");
         int n = address.size();
-        List<javafx.util.Pair> similarityData = new ArrayList<>();
+        List<Pair> similarityData = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
             List<String> subtitles = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", "srt");
@@ -773,7 +773,7 @@ public class LowBowTests {
         address.add("BattleStarGalactica");
         extension.add("avi");
         int n = address.size();
-        List<javafx.util.Pair> similarityData = new ArrayList<>();
+        List<Pair> similarityData = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
             List<String> subtitles = FilesCrawler.listFilesWithExtension(src + address.get(i) + "/", "srt");

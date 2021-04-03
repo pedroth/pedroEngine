@@ -4,10 +4,10 @@ import algebra.Vec2;
 import algebra.Vector;
 import graph.Graph;
 import inputOutput.TextIO;
-import javafx.util.Pair;
 import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.utils.LdaWrapper;
 import numeric.Distance;
+import utils.Pair;
 
 import java.io.IOException;
 import java.util.*;

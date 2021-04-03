@@ -4,7 +4,6 @@ import algebra.Vec2;
 import algebra.Vector;
 import apps.utils.MyFrame;
 import graph.Graph;
-import javafx.util.Pair;
 import nlp.segmentedBow.sub.SubSegmentedBow;
 import nlp.seriesSummary.ArcSummarizerSpectral;
 import nlp.seriesSummary.BaseArcSummarizer;
@@ -14,6 +13,7 @@ import twoDimEngine.elements.Line2D;
 import twoDimEngine.elements.Point2D;
 import twoDimEngine.elements.String2D;
 import twoDimEngine.shaders.ThickLineShader;
+import utils.Pair;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
