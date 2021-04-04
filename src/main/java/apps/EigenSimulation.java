@@ -28,11 +28,11 @@ public class EigenSimulation extends MyFrame {
             .addLine("[blue ball]  : intrinsic method")
             .addLine("[green ball] : power method")
             .addLine("[red ball] : constrained gradient descend")
-            .addLine(" <1> : heat map")
+            .addLine("<1> : heat map")
             .addLine("<2> : directional heat map")
-            .addLine(" <3> : gradient field visualization")
-            .addLine(" <4> : chess pattern")
-            .addLine(" drag mouse to change camera")
+            .addLine("<3> : gradient field visualization")
+            .addLine("<4> : chess pattern")
+            .addLine("drag mouse to change camera")
             .addLine("right mouse click to scale")
             .buildWithTitle("Help") ;
 
