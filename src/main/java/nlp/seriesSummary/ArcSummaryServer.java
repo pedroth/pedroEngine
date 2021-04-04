@@ -37,6 +37,7 @@ public class ArcSummaryServer {
 
     public ArcSummaryServer(int serverPort) throws IOException {
         this.serverPort = serverPort;
+        System.out.println(String.format("Arc Summary started at port %d", serverPort));
         try {
             necessaryWordPredicate = new RemoveStopWordsPredicate("stopWords.txt");
         } catch (IOException e) {

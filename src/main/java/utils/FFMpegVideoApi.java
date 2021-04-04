@@ -110,7 +110,10 @@ public class FFMpegVideoApi {
     }
 
     private static String addQuotingToString(String s) {
-        return '"' + s + '"';
+        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+            return '"' + s + '"';
+        }
+        return s;
     }
 
     public static void main(String[] args) throws IOException {

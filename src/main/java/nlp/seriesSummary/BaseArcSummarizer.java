@@ -617,7 +617,9 @@ public abstract class BaseArcSummarizer extends SeriesSummarization {
 
     private String parseVideoAddress(String videoAddress) {
         String[] split = videoAddress.split("\\\\");
-        String[] secondSplit = split[split.length - 1].split("\\.");
+        String[] split2 = videoAddress.split("/");
+        String[] maxSplit = split.length >= split2.length ? split : split2;
+        String[] secondSplit = maxSplit[maxSplit.length - 1].split("\\.");
         return secondSplit[0];
     }
 
