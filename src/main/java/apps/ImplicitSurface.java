@@ -21,14 +21,14 @@ public class ImplicitSurface extends MyFrame {
     private TwoDimEngine engine;
     private String2D fps;
     private static final TextFrame HELP_FRAME = TextFrame.builder()
-            .addLine(" w : move camera foward")
-            .addLine(" s : move camera backward")
-            .addLine(" a : move camera to left")
-            .addLine(" d : move camera to right")
-            .addLine(" q : move camera down")
-            .addLine(" e : move camera up")
+            .addLine("w : move camera foward")
+            .addLine("s : move camera backward")
+            .addLine("a : move camera to left")
+            .addLine("d : move camera to right")
+            .addLine("q : move camera down")
+            .addLine("e : move camera up")
             .addLine("p : hd on/off")
-            .addLine(" drag mouse to change camera")
+            .addLine("drag mouse to change camera")
             .addLine("[0-9]: change surface")
             .buildWithTitle("Help");
     /**
