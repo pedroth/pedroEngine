@@ -13,8 +13,6 @@ Hope it might be useful for someone.
 
 ### [apps](https://github.com/pedroth/pedroEngine/tree/master/src/main/java/apps)
 
-*Some of the apps may be found [here](https://pedroth.github.io/visualExperiments/JavaExperiments/JavaExperiments.html)*
-
 1) [EigenSimulation](https://github.com/pedroth/pedroEngine/blob/master/src/main/java/apps/EigenSimulation.java)
    * Simulation and visualization of various algorithms that solve the eigen vector/value problem. 
 
