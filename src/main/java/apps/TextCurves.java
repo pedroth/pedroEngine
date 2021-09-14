@@ -28,6 +28,10 @@ import java.util.Map;
  * @author pedro
  */
 public class TextCurves extends MyFrame implements MouseWheelListener {
+    private static final TextFrame HELP_FRAME = TextFrame.builder()
+            .addLine("<left mouse> to change camera / move camera")
+            .addLine("<right mouse> zoom in/out (pca mode)")
+            .buildWithTitle("Help");
     private TwoDimEngine engine;
     private PaintMethod2D shader;
     /**
@@ -112,6 +116,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         private HeatMethod heatFlow;
         private String flowName;
         private static Map<String, FlowsEnum> flowsByNameMap = new HashMap<>(FlowsEnum.values().length);
+
         static {
             for (FlowsEnum flowsEnum : FlowsEnum.values()) {
                 flowsByNameMap.put(flowsEnum.flowName, flowsEnum);
@@ -310,7 +315,13 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        // TODO Auto-generated method stub
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_H:
+                HELP_FRAME.setVisible(true);
+                break;
+            default:
+                break;
+        }
 
     }
 
