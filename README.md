@@ -57,6 +57,7 @@ Hope it might be useful for someone.
 
 ### [other](https://github.com/pedroth/pedroEngine/tree/master/src/main/java/other)
 * Some random stuff, the **MyRobot** class makes your mouse simulate a orbit of a planet :)
+  * `xhost + && sudo docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix:ro -e DISPLAY=$DISPLAY -it pedroth/java-apps bash -c "java -cp pedroEngine/pedroEngine.jar other.MyRobot"`
 
 ### [realFunction](https://github.com/pedroth/pedroEngine/tree/master/src/main/java/realFunction)
 * An update from the **function** package of the **Learning** repo [here](https://github.com/pedroth/Learning/tree/master/src/main/java/functions)
