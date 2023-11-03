@@ -149,7 +149,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         input.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         input.setLayout(new GridLayout(1, 2));
         Panel p1 = new Panel(new GridLayout(7, 1));
-        input.setResizable(false);
+        input.setResizable(true);
         input.setSize((int) Math.floor(0.6 * width), (int) Math.floor(0.3 * width));
         input.setLocation(width, 0);
         /**
@@ -263,7 +263,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         p7.add(new Label(""));
         flowSolverChoice = new Choice();
         for (FlowsEnum flowsEnum : FlowsEnum.values()) {
-            flowSolverChoice.add(flowsEnum.name());
+            flowSolverChoice.add(flowsEnum.flowName);
         }
 
         flowSolverChoice.addItemListener(e -> this.heatMethod = FlowsEnum.getHeatMethodFromName(flowSolverChoice.getSelectedItem()));
@@ -585,12 +585,12 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
 
     public void generateText() {
         ArrayList<LowBowPca> lowList = lowbowM.getDocModels();
-
-        if (lowList == null)
+        if (lowList == null) {
             return;
+        }
 
         LowBow low = lowList.get(lowList.size() - 1);
-        new TextFrame("Generated Text", low.generateText(symbolSampler));
+        new TextFrame("Generated Text", low.generateText(symbolSampler)).setVisible(true);
     }
 
     public void pcaCoords() {
