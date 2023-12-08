@@ -34,7 +34,7 @@ public class EigenSimulation extends MyFrame {
             .addLine("<4> : chess pattern")
             .addLine("drag mouse to change camera")
             .addLine("right mouse click to scale")
-            .buildWithTitle("Help") ;
+            .buildWithTitle("Help");
 
     /*
      * Ray trace Image parameters
@@ -66,6 +66,8 @@ public class EigenSimulation extends MyFrame {
     private TwoDimEngine engine;
 
     private String2D fps;
+    private double fpsMean = 0;
+    private int iterations = 0;
 
     /*
      * Symmetric Matrix
@@ -295,52 +297,8 @@ public class EigenSimulation extends MyFrame {
         double m = sol1 * sol2;
         if (m < 0) {
             return Math.max(sol1, sol2);
-        } else if (m == 0) {
-            return 0;
-        } else {
-            return sol1 > 0 && sol2 > 0 ? Math.min(sol1, sol2) : Double.MAX_VALUE;
         }
-    }
-
-    private double getSphereIntersection2(Vector eye, Vector dir, Sphere sphere) {
-        int maxIte = 10;
-        double h = maxVision / (maxIte);
-        Vec3 pos = sphere.getPos();
-        double radius = sphere.getRadius();
-        double t;
-        for (t = 0; t < maxVision; ) {
-            Vector p = line(eye, dir, t);
-            if (Vector.diff(pos, p).norm() < radius) {
-                return t;
-            }
-            t += h;
-        }
-        if (t >= maxVision) {
-            return Double.MAX_VALUE;
-        }
-
-        double tLeft = t - h;
-        double tRight = t;
-
-        double root = 0;
-        double fRoot;
-        Vector l;
-        for (int i = 0; i < 10; i++) {
-            root = 0.5 * (tLeft + tRight);
-            l = line(eye, dir, root);
-            fRoot = Vector.diff(pos, l).norm() - radius;
-            if (Math.abs(fRoot) < 1E-3) {
-                break;
-            } else {
-                l = line(eye, dir, tLeft);
-                if (Math.signum(Vector.diff(pos, l).norm() - radius) == Math.signum(fRoot)) {
-                    tLeft = root;
-                } else {
-                    tRight = root;
-                }
-            }
-        }
-        return root;
+        return sol1 > 0 && sol2 > 0 ? Math.min(sol1, sol2) : Double.MAX_VALUE;
     }
 
     /**
@@ -433,12 +391,11 @@ public class EigenSimulation extends MyFrame {
         camera.update(dt);
         eigenUpdate(dt);
         raytrace();
-        int index;
         for (int i = 0; i < sqrtSamples; i++) {
             for (int j = 0; j < sqrtSamples; j++) {
                 double x = (1.0 * widthChanged / sqrtSamples) * i;
                 double y = (1.0 * heightChanged / sqrtSamples) * j;
-                index = 3 * j + 3 * sqrtSamples * i;
+                int index = 3 * j + 3 * sqrtSamples * i;
                 colorBuffer[index] = Math.max(0, Math.min(255, colorBuffer[index]));
                 colorBuffer[index + 1] = Math.max(0, Math.min(255, colorBuffer[index + 1]));
                 colorBuffer[index + 2] = Math.max(0, Math.min(255, colorBuffer[index + 2]));
@@ -449,9 +406,11 @@ public class EigenSimulation extends MyFrame {
             }
         }
         if (dt != 0.0) {
-            Double aux = 1 / dt;
-            NumberFormat format = new DecimalFormat("#,00");
-            fps.setString(format.format(aux));
+            iterations++;
+            double aux = 1 / dt;
+            fpsMean += (aux - fpsMean) / iterations;
+            NumberFormat format = new DecimalFormat("#");
+            fps.setString(format.format(fpsMean));
         }
         engine.drawElements();
         engine.paintImage(this.getGraphics());
