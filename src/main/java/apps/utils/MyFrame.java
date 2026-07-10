@@ -258,8 +258,6 @@ public abstract class MyFrame extends JFrame implements KeyListener,
      */
     public void update(Graphics g) {
         dt = getTimeDifferential();
-        updateTime(dt);
-        updateDraw();
         /**
          * fps count
          */
@@ -268,6 +266,8 @@ public abstract class MyFrame extends JFrame implements KeyListener,
             fpsCount = 0;
         }
         fpsCount++;
+        updateTime(dt);
+        updateDraw();
         repaint();
     }
 

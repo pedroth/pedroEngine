@@ -532,7 +532,7 @@ public class TextCurves extends MyFrame implements MouseWheelListener {
         }
         updateStringCurve();
         engine.drawElements();
-        this.setTitle("Fps : " + this.getFps());
+        this.setTitle("Press h for help | Fps : " + this.getFps());
         drawImage(engine.getImage());
     }
 
